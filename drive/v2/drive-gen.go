@@ -14,7 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"google.golang.org/api/googleapi"
+	"github.com/odeke-em/google-api-go-client/googleapi"
 	"io"
 	"net/http"
 	"net/url"
