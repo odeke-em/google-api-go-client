@@ -1,11 +1,11 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/O8FpeLrV7oJ_TJYD5E7IAdYY0iY\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/AlGO7dz3sDTBKgLgnWPYGlYVP9g\"",
  "discoveryVersion": "v1",
  "id": "container:v1beta1",
  "name": "container",
  "version": "v1beta1",
- "revision": "20150105",
+ "revision": "20150113",
  "title": "Google Container Engine API",
  "description": "The Google Container Engine API is used for building and managing container based applications, powered by the open source Kubernetes technology.",
  "ownerDomain": "google.com",
@@ -79,7 +79,6 @@
   "Cluster": {
    "id": "Cluster",
    "type": "object",
-   "externalTypeName": "container.v1beta1.Cluster",
    "properties": {
     "clusterApiVersion": {
      "type": "string",
@@ -164,7 +163,6 @@
   "CreateClusterRequest": {
    "id": "CreateClusterRequest",
    "type": "object",
-   "externalTypeName": "container.v1beta1.CreateClusterRequest",
    "properties": {
     "cluster": {
      "$ref": "Cluster",
@@ -175,7 +173,6 @@
   "ListAggregatedClustersResponse": {
    "id": "ListAggregatedClustersResponse",
    "type": "object",
-   "externalTypeName": "container.v1beta1.ListAggregatedClustersResponse",
    "properties": {
     "clusters": {
      "type": "array",
@@ -189,7 +186,6 @@
   "ListAggregatedOperationsResponse": {
    "id": "ListAggregatedOperationsResponse",
    "type": "object",
-   "externalTypeName": "container.v1beta1.ListAggregatedOperationsResponse",
    "properties": {
     "operations": {
      "type": "array",
@@ -203,7 +199,6 @@
   "ListClustersResponse": {
    "id": "ListClustersResponse",
    "type": "object",
-   "externalTypeName": "container.v1beta1.ListClustersResponse",
    "properties": {
     "clusters": {
      "type": "array",
@@ -217,7 +212,6 @@
   "ListOperationsResponse": {
    "id": "ListOperationsResponse",
    "type": "object",
-   "externalTypeName": "container.v1beta1.ListOperationsResponse",
    "properties": {
     "operations": {
      "type": "array",
@@ -231,7 +225,6 @@
   "MasterAuth": {
    "id": "MasterAuth",
    "type": "object",
-   "externalTypeName": "container.v1beta1.MasterAuth",
    "properties": {
     "password": {
      "type": "string",
@@ -246,11 +239,17 @@
   "NodeConfig": {
    "id": "NodeConfig",
    "type": "object",
-   "externalTypeName": "container.v1beta1.NodeConfig",
    "properties": {
     "machineType": {
      "type": "string",
      "description": "The name of a Google Compute Engine machine type (e.g. n1-standard-1).\n\nIf unspecified, the default machine type is n1-standard-1."
+    },
+    "serviceAccounts": {
+     "type": "array",
+     "description": "The optional list of ServiceAccounts, each with their specified scopes, to be made available on all of the node VMs. In addition to the service accounts and scopes specified, the \"default\" account will always be created with the following scopes to ensure the correct functioning of the cluster:  \n- https://www.googleapis.com/auth/compute,\n- https://www.googleapis.com/auth/devstorage.read_only",
+     "items": {
+      "$ref": "ServiceAccount"
+     }
     },
     "sourceImage": {
      "type": "string",
@@ -262,7 +261,6 @@
    "id": "Operation",
    "type": "object",
    "description": "Defines the operation resource. All fields are output only.",
-   "externalTypeName": "container.v1beta1.Operation",
    "properties": {
     "errorMessage": {
      "type": "string",
@@ -313,6 +311,24 @@
     "zone": {
      "type": "string",
      "description": "The name of the Google Compute Engine zone in which the operation is taking place."
+    }
+   }
+  },
+  "ServiceAccount": {
+   "id": "ServiceAccount",
+   "type": "object",
+   "description": "A Compute Engine service account.",
+   "properties": {
+    "email": {
+     "type": "string",
+     "description": "Email address of the service account."
+    },
+    "scopes": {
+     "type": "array",
+     "description": "The list of scopes to be made available for this service account.",
+     "items": {
+      "type": "string"
+     }
     }
    }
   }

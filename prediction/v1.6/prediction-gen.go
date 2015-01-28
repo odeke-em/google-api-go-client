@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/net/context"
 	"google.golang.org/api/googleapi"
 	"io"
 	"net/http"
@@ -33,6 +34,7 @@ var _ = url.Parse
 var _ = googleapi.Version
 var _ = errors.New
 var _ = strings.Replace
+var _ = context.Background
 
 const apiId = "prediction:v1.6"
 const apiName = "prediction"
@@ -365,7 +367,7 @@ type Output struct {
 	OutputMulti []*OutputOutputMulti `json:"outputMulti,omitempty"`
 
 	// OutputValue: The estimated regression value (Regression models only).
-	OutputValue string `json:"outputValue,omitempty"`
+	OutputValue float64 `json:"outputValue,omitempty"`
 
 	// SelfLink: A URL to re-request this resource.
 	SelfLink string `json:"selfLink,omitempty"`
