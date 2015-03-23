@@ -65,8 +65,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	BackupRuns *BackupRunsService
 
@@ -79,6 +80,13 @@ type Service struct {
 	SslCerts *SslCertsService
 
 	Tiers *TiersService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewBackupRunsService(s *Service) *BackupRunsService {
@@ -872,7 +880,7 @@ func (c *BackupRunsGetCall) Do() (*BackupRun, error) {
 		"instance":            c.instance,
 		"backupConfiguration": c.backupConfiguration,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -927,6 +935,7 @@ func (c *BackupRunsGetCall) Do() (*BackupRun, error) {
 	//     "$ref": "BackupRun"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -996,7 +1005,7 @@ func (c *BackupRunsListCall) Do() (*BackupRunsListResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1055,6 +1064,7 @@ func (c *BackupRunsListCall) Do() (*BackupRunsListResponse, error) {
 	//     "$ref": "BackupRunsListResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1094,7 +1104,7 @@ func (c *FlagsListCall) Do() (*FlagsListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1117,6 +1127,7 @@ func (c *FlagsListCall) Do() (*FlagsListResponse, error) {
 	//     "$ref": "FlagsListResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1167,7 +1178,7 @@ func (c *InstancesCloneCall) Do() (*InstancesCloneResponse, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1204,6 +1215,7 @@ func (c *InstancesCloneCall) Do() (*InstancesCloneResponse, error) {
 	//     "$ref": "InstancesCloneResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1249,7 +1261,7 @@ func (c *InstancesDeleteCall) Do() (*InstancesDeleteResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1290,6 +1302,7 @@ func (c *InstancesDeleteCall) Do() (*InstancesDeleteResponse, error) {
 	//     "$ref": "InstancesDeleteResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1344,7 +1357,7 @@ func (c *InstancesExportCall) Do() (*InstancesExportResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1433,7 +1446,7 @@ func (c *InstancesGetCall) Do() (*DatabaseInstance, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1474,6 +1487,7 @@ func (c *InstancesGetCall) Do() (*DatabaseInstance, error) {
 	//     "$ref": "DatabaseInstance"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1528,7 +1542,7 @@ func (c *InstancesImportCall) Do() (*InstancesImportResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1622,7 +1636,7 @@ func (c *InstancesInsertCall) Do() (*InstancesInsertResponse, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1659,6 +1673,7 @@ func (c *InstancesInsertCall) Do() (*InstancesInsertResponse, error) {
 	//     "$ref": "InstancesInsertResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1723,7 +1738,7 @@ func (c *InstancesListCall) Do() (*InstancesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1768,6 +1783,7 @@ func (c *InstancesListCall) Do() (*InstancesListResponse, error) {
 	//     "$ref": "InstancesListResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1822,7 +1838,7 @@ func (c *InstancesPatchCall) Do() (*InstancesUpdateResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1866,6 +1882,7 @@ func (c *InstancesPatchCall) Do() (*InstancesUpdateResponse, error) {
 	//     "$ref": "InstancesUpdateResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1912,7 +1929,7 @@ func (c *InstancesPromoteReplicaCall) Do() (*InstancesPromoteReplicaResponse, er
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1953,6 +1970,7 @@ func (c *InstancesPromoteReplicaCall) Do() (*InstancesPromoteReplicaResponse, er
 	//     "$ref": "InstancesPromoteReplicaResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -1999,7 +2017,7 @@ func (c *InstancesResetSslConfigCall) Do() (*InstancesResetSslConfigResponse, er
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2040,6 +2058,7 @@ func (c *InstancesResetSslConfigCall) Do() (*InstancesResetSslConfigResponse, er
 	//     "$ref": "InstancesResetSslConfigResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2085,7 +2104,7 @@ func (c *InstancesRestartCall) Do() (*InstancesRestartResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2126,6 +2145,7 @@ func (c *InstancesRestartCall) Do() (*InstancesRestartResponse, error) {
 	//     "$ref": "InstancesRestartResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2177,7 +2197,7 @@ func (c *InstancesRestoreBackupCall) Do() (*InstancesRestoreBackupResponse, erro
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2232,6 +2252,7 @@ func (c *InstancesRestoreBackupCall) Do() (*InstancesRestoreBackupResponse, erro
 	//     "$ref": "InstancesRestoreBackupResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2286,7 +2307,7 @@ func (c *InstancesSetRootPasswordCall) Do() (*InstancesSetRootPasswordResponse, 
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2330,6 +2351,7 @@ func (c *InstancesSetRootPasswordCall) Do() (*InstancesSetRootPasswordResponse, 
 	//     "$ref": "InstancesSetRootPasswordResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2383,7 +2405,7 @@ func (c *InstancesUpdateCall) Do() (*InstancesUpdateResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2428,6 +2450,7 @@ func (c *InstancesUpdateCall) Do() (*InstancesUpdateResponse, error) {
 	//     "$ref": "InstancesUpdateResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2477,7 +2500,7 @@ func (c *OperationsGetCall) Do() (*InstanceOperation, error) {
 		"instance":  c.instance,
 		"operation": c.operation,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2525,6 +2548,7 @@ func (c *OperationsGetCall) Do() (*InstanceOperation, error) {
 	//     "$ref": "InstanceOperation"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2592,7 +2616,7 @@ func (c *OperationsListCall) Do() (*OperationsListResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2644,6 +2668,7 @@ func (c *OperationsListCall) Do() (*OperationsListResponse, error) {
 	//     "$ref": "OperationsListResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2692,7 +2717,7 @@ func (c *SslCertsDeleteCall) Do() (*SslCertsDeleteResponse, error) {
 		"instance":        c.instance,
 		"sha1Fingerprint": c.sha1Fingerprint,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2740,6 +2765,7 @@ func (c *SslCertsDeleteCall) Do() (*SslCertsDeleteResponse, error) {
 	//     "$ref": "SslCertsDeleteResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2789,7 +2815,7 @@ func (c *SslCertsGetCall) Do() (*SslCert, error) {
 		"instance":        c.instance,
 		"sha1Fingerprint": c.sha1Fingerprint,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2837,6 +2863,7 @@ func (c *SslCertsGetCall) Do() (*SslCert, error) {
 	//     "$ref": "SslCert"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2891,7 +2918,7 @@ func (c *SslCertsInsertCall) Do() (*SslCertsInsertResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2935,6 +2962,7 @@ func (c *SslCertsInsertCall) Do() (*SslCertsInsertResponse, error) {
 	//     "$ref": "SslCertsInsertResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -2981,7 +3009,7 @@ func (c *SslCertsListCall) Do() (*SslCertsListResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3022,6 +3050,7 @@ func (c *SslCertsListCall) Do() (*SslCertsListResponse, error) {
 	//     "$ref": "SslCertsListResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }
@@ -3065,7 +3094,7 @@ func (c *TiersListCall) Do() (*TiersListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3099,6 +3128,7 @@ func (c *TiersListCall) Do() (*TiersListResponse, error) {
 	//     "$ref": "TiersListResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/sqlservice.admin"
 	//   ]
 	// }

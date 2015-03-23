@@ -59,14 +59,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	AchievementConfigurations *AchievementConfigurationsService
 
 	ImageConfigurations *ImageConfigurationsService
 
 	LeaderboardConfigurations *LeaderboardConfigurationsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAchievementConfigurationsService(s *Service) *AchievementConfigurationsService {
@@ -361,7 +369,7 @@ func (c *AchievementConfigurationsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"achievementId": c.achievementId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -431,7 +439,7 @@ func (c *AchievementConfigurationsGetCall) Do() (*AchievementConfiguration, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"achievementId": c.achievementId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -515,7 +523,7 @@ func (c *AchievementConfigurationsInsertCall) Do() (*AchievementConfiguration, e
 		"applicationId": c.applicationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -617,7 +625,7 @@ func (c *AchievementConfigurationsListCall) Do() (*AchievementConfigurationListR
 	googleapi.Expand(req.URL, map[string]string{
 		"applicationId": c.applicationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -715,7 +723,7 @@ func (c *AchievementConfigurationsPatchCall) Do() (*AchievementConfiguration, er
 		"achievementId": c.achievementId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -803,7 +811,7 @@ func (c *AchievementConfigurationsUpdateCall) Do() (*AchievementConfiguration, e
 		"achievementId": c.achievementId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -945,13 +953,10 @@ func (c *ImageConfigurationsUploadCall) Do() (*ImageConfiguration, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -964,6 +969,7 @@ func (c *ImageConfigurationsUploadCall) Do() (*ImageConfiguration, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -974,6 +980,7 @@ func (c *ImageConfigurationsUploadCall) Do() (*ImageConfiguration, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *ImageConfiguration
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -1074,7 +1081,7 @@ func (c *LeaderboardConfigurationsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"leaderboardId": c.leaderboardId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1144,7 +1151,7 @@ func (c *LeaderboardConfigurationsGetCall) Do() (*LeaderboardConfiguration, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"leaderboardId": c.leaderboardId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1228,7 +1235,7 @@ func (c *LeaderboardConfigurationsInsertCall) Do() (*LeaderboardConfiguration, e
 		"applicationId": c.applicationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1330,7 +1337,7 @@ func (c *LeaderboardConfigurationsListCall) Do() (*LeaderboardConfigurationListR
 	googleapi.Expand(req.URL, map[string]string{
 		"applicationId": c.applicationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1428,7 +1435,7 @@ func (c *LeaderboardConfigurationsPatchCall) Do() (*LeaderboardConfiguration, er
 		"leaderboardId": c.leaderboardId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1516,7 +1523,7 @@ func (c *LeaderboardConfigurationsUpdateCall) Do() (*LeaderboardConfiguration, e
 		"leaderboardId": c.leaderboardId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

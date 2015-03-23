@@ -1,12 +1,12 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/_P21uQ2GK5pRjA-Z7Vcc84OAsKE\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/W-CYad3sVi3av-L2zzzQukVGZ3g\"",
  "discoveryVersion": "v1",
- "id": "cloudmonitoring:v2beta1",
+ "id": "cloudmonitoring:v2beta2",
  "name": "cloudmonitoring",
  "canonicalName": "Cloud Monitoring",
- "version": "v2beta1",
- "revision": "20141112",
+ "version": "v2beta2",
+ "revision": "20150109",
  "title": "Cloud Monitoring API",
  "description": "API for accessing Google Cloud and API monitoring data.",
  "ownerDomain": "google.com",
@@ -15,12 +15,12 @@
   "x16": "http://www.google.com/images/icons/product/search-16.gif",
   "x32": "http://www.google.com/images/icons/product/search-32.gif"
  },
- "documentationLink": "https://developers.google.com/cloud-monitoring/",
+ "documentationLink": "https://cloud.google.com/monitoring/v2beta2/",
  "protocol": "rest",
- "baseUrl": "https://www.googleapis.com/cloudmonitoring/v2beta1/projects/",
- "basePath": "/cloudmonitoring/v2beta1/projects/",
+ "baseUrl": "https://www.googleapis.com/cloudmonitoring/v2beta2/projects/",
+ "basePath": "/cloudmonitoring/v2beta2/projects/",
  "rootUrl": "https://www.googleapis.com/",
- "servicePath": "cloudmonitoring/v2beta1/projects/",
+ "servicePath": "cloudmonitoring/v2beta2/projects/",
  "batchPath": "batch",
  "parameters": {
   "alt": {
@@ -70,13 +70,25 @@
  "auth": {
   "oauth2": {
    "scopes": {
-    "https://www.googleapis.com/auth/monitoring.readonly": {
-     "description": "View monitoring data for all of your Google Cloud and API projects"
+    "https://www.googleapis.com/auth/monitoring": {
+     "description": "View and write monitoring data for all of your Google and third-party Cloud and API projects"
     }
    }
   }
  },
  "schemas": {
+  "DeleteMetricDescriptorResponse": {
+   "id": "DeleteMetricDescriptorResponse",
+   "type": "object",
+   "description": "The response of cloudmonitoring.metricDescriptors.delete.",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"cloudmonitoring#deleteMetricDescriptorResponse\".",
+     "default": "cloudmonitoring#deleteMetricDescriptorResponse"
+    }
+   }
+  },
   "ListMetricDescriptorsRequest": {
    "id": "ListMetricDescriptorsRequest",
    "type": "object",
@@ -433,11 +445,116 @@
      "description": "The label's value."
     }
    }
+  },
+  "TimeseriesPoint": {
+   "id": "TimeseriesPoint",
+   "type": "object",
+   "description": "When writing time series, TimeseriesPoint should be used instead of Timeseries, to enforce single point for each time series in the timeseries.write request.",
+   "properties": {
+    "point": {
+     "$ref": "Point",
+     "description": "The data point in this time series snapshot."
+    },
+    "timeseriesDesc": {
+     "$ref": "TimeseriesDescriptor",
+     "description": "The descriptor of this time series."
+    }
+   }
+  },
+  "WriteTimeseriesRequest": {
+   "id": "WriteTimeseriesRequest",
+   "type": "object",
+   "description": "The request of cloudmonitoring.timeseries.write",
+   "properties": {
+    "commonLabels": {
+     "type": "object",
+     "description": "The label's name.",
+     "additionalProperties": {
+      "type": "string",
+      "description": "The label's name."
+     }
+    },
+    "timeseries": {
+     "type": "array",
+     "description": "Provide time series specific labels and the data points for each time series. The labels in timeseries and the common_labels should form a complete list of labels that required by the metric.",
+     "items": {
+      "$ref": "TimeseriesPoint"
+     }
+    }
+   }
+  },
+  "WriteTimeseriesResponse": {
+   "id": "WriteTimeseriesResponse",
+   "type": "object",
+   "description": "The response of cloudmonitoring.timeseries.write",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"cloudmonitoring#writeTimeseriesResponse\".",
+     "default": "cloudmonitoring#writeTimeseriesResponse"
+    }
+   }
   }
  },
  "resources": {
   "metricDescriptors": {
    "methods": {
+    "create": {
+     "id": "cloudmonitoring.metricDescriptors.create",
+     "path": "{project}/metricDescriptors",
+     "httpMethod": "POST",
+     "description": "Create a new metric.",
+     "parameters": {
+      "project": {
+       "type": "string",
+       "description": "The project id. The value can be the numeric project ID or string-based project name.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "project"
+     ],
+     "request": {
+      "$ref": "MetricDescriptor"
+     },
+     "response": {
+      "$ref": "MetricDescriptor"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/monitoring"
+     ]
+    },
+    "delete": {
+     "id": "cloudmonitoring.metricDescriptors.delete",
+     "path": "{project}/metricDescriptors/{metric}",
+     "httpMethod": "DELETE",
+     "description": "Delete an existing metric.",
+     "parameters": {
+      "metric": {
+       "type": "string",
+       "description": "Name of the metric.",
+       "required": true,
+       "location": "path"
+      },
+      "project": {
+       "type": "string",
+       "description": "The project ID to which the metric belongs.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "project",
+      "metric"
+     ],
+     "response": {
+      "$ref": "DeleteMetricDescriptorResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/monitoring"
+     ]
+    },
     "list": {
      "id": "cloudmonitoring.metricDescriptors.list",
      "path": "{project}/metricDescriptors",
@@ -480,7 +597,7 @@
       "$ref": "ListMetricDescriptorsResponse"
      },
      "scopes": [
-      "https://www.googleapis.com/auth/monitoring.readonly"
+      "https://www.googleapis.com/auth/monitoring"
      ]
     }
    }
@@ -579,7 +696,33 @@
       "$ref": "ListTimeseriesResponse"
      },
      "scopes": [
-      "https://www.googleapis.com/auth/monitoring.readonly"
+      "https://www.googleapis.com/auth/monitoring"
+     ]
+    },
+    "write": {
+     "id": "cloudmonitoring.timeseries.write",
+     "path": "{project}/timeseries:write",
+     "httpMethod": "POST",
+     "description": "Put data points to one or more time series for one or more metrics. If a time series does not exist, a new time series will be created. It is not allowed to write a time series point that is older than the existing youngest point of that time series. Points that are older than the existing youngest point of that time series will be discarded silently. Therefore, users should make sure that points of a time series are written sequentially in the order of their end time.",
+     "parameters": {
+      "project": {
+       "type": "string",
+       "description": "The project ID. The value can be the numeric project ID or string-based project name.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "project"
+     ],
+     "request": {
+      "$ref": "WriteTimeseriesRequest"
+     },
+     "response": {
+      "$ref": "WriteTimeseriesResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/monitoring"
      ]
     }
    }
@@ -678,7 +821,7 @@
       "$ref": "ListTimeseriesDescriptorsResponse"
      },
      "scopes": [
-      "https://www.googleapis.com/auth/monitoring.readonly"
+      "https://www.googleapis.com/auth/monitoring"
      ]
     }
    }

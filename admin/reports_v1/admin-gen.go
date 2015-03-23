@@ -63,8 +63,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Activities *ActivitiesService
 
@@ -73,6 +74,13 @@ type Service struct {
 	CustomerUsageReports *CustomerUsageReportsService
 
 	UserUsageReport *UserUsageReportService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewActivitiesService(s *Service) *ActivitiesService {
@@ -461,7 +469,7 @@ func (c *ActivitiesListCall) Do() (*Activities, error) {
 		"userKey":         c.userKey,
 		"applicationName": c.applicationName,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -686,7 +694,7 @@ func (c *ActivitiesWatchCall) Do() (*Channel, error) {
 		"applicationName": c.applicationName,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -826,7 +834,7 @@ func (c *ChannelsStopCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -920,7 +928,7 @@ func (c *CustomerUsageReportsGetCall) Do() (*UsageReports, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"date": c.date,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -963,7 +971,7 @@ func (c *CustomerUsageReportsGetCall) Do() (*UsageReports, error) {
 	//     "parameters": {
 	//       "description": "Represents the application name, parameter name pairs to fetch in csv as app_name1:param_name1, app_name2:param_name2.",
 	//       "location": "query",
-	//       "pattern": "(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)):.+,)*(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)):.+)",
+	//       "pattern": "(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)|(device_management)):.+,)*(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)|(device_management)):.+)",
 	//       "type": "string"
 	//     }
 	//   },
@@ -1069,7 +1077,7 @@ func (c *UserUsageReportGetCall) Do() (*UsageReports, error) {
 		"userKey": c.userKey,
 		"date":    c.date,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1108,7 +1116,7 @@ func (c *UserUsageReportGetCall) Do() (*UsageReports, error) {
 	//     "filters": {
 	//       "description": "Represents the set of filters including parameter operator value.",
 	//       "location": "query",
-	//       "pattern": "(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)):.+[\u003c,\u003c=,==,\u003e=,\u003e,!=].+,)*(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)):.+[\u003c,\u003c=,==,\u003e=,\u003e,!=].+)",
+	//       "pattern": "(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)|(device_management)):.+[\u003c,\u003c=,==,\u003e=,\u003e,!=].+,)*(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)|(device_management)):.+[\u003c,\u003c=,==,\u003e=,\u003e,!=].+)",
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
@@ -1126,7 +1134,7 @@ func (c *UserUsageReportGetCall) Do() (*UsageReports, error) {
 	//     "parameters": {
 	//       "description": "Represents the application name, parameter name pairs to fetch in csv as app_name1:param_name1, app_name2:param_name2.",
 	//       "location": "query",
-	//       "pattern": "(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)):.+,)*(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)):.+)",
+	//       "pattern": "(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)|(device_management)):.+,)*(((accounts)|(cros)|(gmail)|(calendar)|(docs)|(gplus)|(sites)|(device_management)):.+)",
 	//       "type": "string"
 	//     },
 	//     "userKey": {

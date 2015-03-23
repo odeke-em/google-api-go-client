@@ -1,11 +1,11 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/MuNbTn-U7uo4q5kIHWudYUMbnVc\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/IuZy-huEI4odldDxlxCkfd4i7iE\"",
  "discoveryVersion": "v1",
  "id": "replicapoolupdater:v1beta1",
  "name": "replicapoolupdater",
  "version": "v1beta1",
- "revision": "20150114",
+ "revision": "20150129",
  "title": "Google Compute Engine Instance Group Updater API",
  "description": "The Google Compute Engine Instance Group Updater API provides services for updating groups of Compute Engine Instances.",
  "ownerDomain": "google.com",
@@ -85,22 +85,38 @@
   }
  },
  "schemas": {
-  "InsertResponse": {
-   "id": "InsertResponse",
-   "type": "object",
-   "description": "Response returned by Insert method.",
-   "properties": {
-    "rollingUpdate": {
-     "type": "string",
-     "description": "The name of the update."
-    }
-   }
-  },
   "InstanceUpdate": {
    "id": "InstanceUpdate",
    "type": "object",
    "description": "Update of a single instance.",
    "properties": {
+    "error": {
+     "type": "object",
+     "description": "Errors that occurred during the instance update.",
+     "properties": {
+      "errors": {
+       "type": "array",
+       "description": "[Output Only] The array of errors encountered while processing this operation.",
+       "items": {
+        "type": "object",
+        "properties": {
+         "code": {
+          "type": "string",
+          "description": "[Output Only] The error type identifier for this error."
+         },
+         "location": {
+          "type": "string",
+          "description": "[Output Only] Indicates the field in the request which caused the error. This property is optional."
+         },
+         "message": {
+          "type": "string",
+          "description": "[Output Only] An optional, human-readable error message."
+         }
+        }
+       }
+      }
+     }
+    },
     "instance": {
      "type": "string",
      "description": "URL of the instance being updated."
@@ -138,30 +154,217 @@
     }
    }
   },
+  "Operation": {
+   "id": "Operation",
+   "type": "object",
+   "description": "An operation resource, used to manage asynchronous API requests.",
+   "properties": {
+    "clientOperationId": {
+     "type": "string"
+    },
+    "creationTimestamp": {
+     "type": "string",
+     "description": "[Output Only] Creation timestamp in RFC3339 text format (output only)."
+    },
+    "endTime": {
+     "type": "string"
+    },
+    "error": {
+     "type": "object",
+     "description": "[Output Only] If errors occurred during processing of this operation, this field will be populated.",
+     "properties": {
+      "errors": {
+       "type": "array",
+       "description": "[Output Only] The array of errors encountered while processing this operation.",
+       "items": {
+        "type": "object",
+        "properties": {
+         "code": {
+          "type": "string",
+          "description": "[Output Only] The error type identifier for this error."
+         },
+         "location": {
+          "type": "string",
+          "description": "[Output Only] Indicates the field in the request which caused the error. This property is optional."
+         },
+         "message": {
+          "type": "string",
+          "description": "[Output Only] An optional, human-readable error message."
+         }
+        }
+       }
+      }
+     }
+    },
+    "httpErrorMessage": {
+     "type": "string"
+    },
+    "httpErrorStatusCode": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "id": {
+     "type": "string",
+     "description": "[Output Only] Unique identifier for the resource; defined by the server.",
+     "format": "uint64"
+    },
+    "insertTime": {
+     "type": "string",
+     "description": "[Output Only] The time that this operation was requested. This is in RFC 3339 format."
+    },
+    "kind": {
+     "type": "string",
+     "description": "[Output Only] Type of the resource. Always kind#operation for Operation resources.",
+     "default": "replicapoolupdater#operation"
+    },
+    "name": {
+     "type": "string",
+     "description": "[Output Only] Name of the resource (output only)."
+    },
+    "operationType": {
+     "type": "string"
+    },
+    "progress": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "region": {
+     "type": "string",
+     "description": "[Output Only] URL of the region where the operation resides (output only)."
+    },
+    "selfLink": {
+     "type": "string",
+     "description": "[Output Only] Server defined URL for the resource."
+    },
+    "startTime": {
+     "type": "string",
+     "description": "[Output Only] The time that this operation was started by the server. This is in RFC 3339 format."
+    },
+    "status": {
+     "type": "string",
+     "description": "[Output Only] Status of the operation. Can be one of the following: \"PENDING\", \"RUNNING\", or \"DONE\"."
+    },
+    "statusMessage": {
+     "type": "string",
+     "description": "[Output Only] An optional textual description of the current status of the operation."
+    },
+    "targetId": {
+     "type": "string",
+     "description": "[Output Only] Unique target id which identifies a particular incarnation of the target.",
+     "format": "uint64"
+    },
+    "targetLink": {
+     "type": "string",
+     "description": "[Output Only] URL of the resource the operation is mutating (output only)."
+    },
+    "user": {
+     "type": "string"
+    },
+    "warnings": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "code": {
+        "type": "string",
+        "description": "[Output only] The warning type identifier for this warning."
+       },
+       "data": {
+        "type": "array",
+        "description": "[Output only] Metadata for this warning in key:value format.",
+        "items": {
+         "type": "object",
+         "properties": {
+          "key": {
+           "type": "string",
+           "description": "[Output Only] Metadata key for this warning."
+          },
+          "value": {
+           "type": "string",
+           "description": "[Output Only] Metadata value for this warning."
+          }
+         }
+        }
+       },
+       "message": {
+        "type": "string",
+        "description": "[Output only] Optional human-readable details for this warning."
+       }
+      }
+     }
+    },
+    "zone": {
+     "type": "string",
+     "description": "[Output Only] URL of the zone where the operation resides (output only)."
+    }
+   }
+  },
   "RollingUpdate": {
    "id": "RollingUpdate",
    "type": "object",
-   "description": "Resource describing a single update (rollout) of a group of instances to the given template.",
+   "description": "The following represents a resource describing a single update (rollout) of a group of instances to the given template.",
    "properties": {
     "actionType": {
      "type": "string",
-     "description": "Action to be performed for each instance. Possible values are:  \n- \"RECREATE\": Instance will be recreated."
+     "description": "Specifies the action to take for each instance within the instance group. This can be RECREATE which will recreate each instance and is only available for managed instance groups. It can also be REBOOT which performs a soft reboot for each instance and is only available for regular (non-managed) instance groups and explicit lists of instances."
     },
     "creationTimestamp": {
      "type": "string",
      "description": "[Output Only] Creation timestamp in RFC3339 text format."
     },
+    "description": {
+     "type": "string",
+     "description": "An optional textual description of the resource; provided by the client when the resource is created."
+    },
+    "error": {
+     "type": "object",
+     "description": "[Output Only] Errors that occurred during rolling update.",
+     "properties": {
+      "errors": {
+       "type": "array",
+       "description": "[Output Only] The array of errors encountered while processing this operation.",
+       "items": {
+        "type": "object",
+        "properties": {
+         "code": {
+          "type": "string",
+          "description": "[Output Only] The error type identifier for this error."
+         },
+         "location": {
+          "type": "string",
+          "description": "[Output Only] Indicates the field in the request which caused the error. This property is optional."
+         },
+         "message": {
+          "type": "string",
+          "description": "[Output Only] An optional, human-readable error message."
+         }
+        }
+       }
+      }
+     }
+    },
     "id": {
      "type": "string",
      "description": "[Output Only] Unique identifier for the resource; defined by the server."
     },
+    "instanceGroup": {
+     "type": "string",
+     "description": "Fully-qualified URL of an instance group being updated. Exactly one of instanceGroupManager, instanceGroup and instance list must be set."
+    },
     "instanceGroupManager": {
      "type": "string",
-     "description": "URL of an instance group manager being updated."
+     "description": "Fully-qualified URL of an instance group manager being updated. Exactly one of instanceGroupManager, instanceGroup and instance list must be set."
     },
     "instanceTemplate": {
      "type": "string",
-     "description": "URL of an instance template to apply."
+     "description": "Fully-qualified URL of an instance template to apply."
+    },
+    "instances": {
+     "type": "array",
+     "description": "List of fully-qualified URLs of instances to be updated. Exactly one of instanceGroupManager, instanceGroup and instance list must be set.",
+     "items": {
+      "type": "string"
+     }
     },
     "kind": {
      "type": "string",
@@ -170,27 +373,36 @@
     },
     "policy": {
      "type": "object",
-     "description": "Parameters of the update process. Setting (api.field).field_number manually is a workaround for b/16512602.",
+     "description": "Parameters of the update process.",
      "properties": {
-      "canary": {
-       "type": "object",
-       "description": "Parameters of a canary phase. If absent, canary will NOT be performed.",
-       "properties": {
-        "numInstances": {
-         "type": "integer",
-         "description": "Number of instances updated as a part of canary phase. If absent, the default number of instances will be used.",
-         "format": "int32"
-        }
-       }
+      "autoPauseAfterInstances": {
+       "type": "integer",
+       "description": "Number of instances updated before the update gets automatically paused.",
+       "format": "int32"
+      },
+      "instanceStartupTimeoutSec": {
+       "type": "integer",
+       "description": "Maximum amount of time we will wait after finishing all steps until we receive HEALTHY state for instance. If this deadline is exceeded instance update is considered as failed.",
+       "format": "int32"
       },
       "maxNumConcurrentInstances": {
        "type": "integer",
        "description": "Maximum number of instances that can be updated simultaneously (concurrently). An update of an instance starts when the instance is about to be restarted and finishes after the instance has been restarted and the sleep period (defined by sleepAfterInstanceRestartSec) has passed.",
        "format": "int32"
       },
+      "maxNumFailedInstances": {
+       "type": "integer",
+       "description": "Maximum number of instance updates that can fail without failing the group update. Instance update is considered failed if any of it's update actions (e.g. Stop call on Instance resource in Rolling Reboot) failed with permanent failure, or if after finishing all update actions this instance is in UNHEALTHY state.",
+       "format": "int32"
+      },
+      "minInstanceUpdateTimeSec": {
+       "type": "integer",
+       "description": "Specifies minimum amount of time we will spend on updating single instance, measuring at the start of the first update action (e.g. Recreate call on Instance Group Manager or Stop call on Instance resource). If actual instance update takes less time we will simply sleep before proceeding with next instance.",
+       "format": "int32"
+      },
       "sleepAfterInstanceRestartSec": {
        "type": "integer",
-       "description": "The number of seconds to wait between when the instance has been successfully updated and restarted, to when it is marked as done.",
+       "description": "Time period after the instance has been restarted but before marking the update of this instance as done. This field is deprecated and ignored by Rolling Updater.",
        "format": "int32"
       }
      }
@@ -280,6 +492,9 @@
       "zone",
       "rollingUpdate"
      ],
+     "response": {
+      "$ref": "Operation"
+     },
      "scopes": [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/replicapool"
@@ -353,7 +568,7 @@
       "$ref": "RollingUpdate"
      },
      "response": {
-      "$ref": "InsertResponse"
+      "$ref": "Operation"
      },
      "scopes": [
       "https://www.googleapis.com/auth/cloud-platform",
@@ -373,7 +588,7 @@
       },
       "instanceGroupManager": {
        "type": "string",
-       "description": "The name of the instance group manager.",
+       "description": "The name of the instance group manager used for filtering.",
        "location": "query"
       },
       "maxResults": {
@@ -507,6 +722,9 @@
       "zone",
       "rollingUpdate"
      ],
+     "response": {
+      "$ref": "Operation"
+     },
      "scopes": [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/replicapool"
@@ -543,6 +761,9 @@
       "zone",
       "rollingUpdate"
      ],
+     "response": {
+      "$ref": "Operation"
+     },
      "scopes": [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/replicapool"
@@ -579,6 +800,52 @@
       "zone",
       "rollingUpdate"
      ],
+     "response": {
+      "$ref": "Operation"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/replicapool"
+     ]
+    }
+   }
+  },
+  "zoneOperations": {
+   "methods": {
+    "get": {
+     "id": "replicapoolupdater.zoneOperations.get",
+     "path": "{project}/zones/{zone}/operations/{operation}",
+     "httpMethod": "GET",
+     "description": "Retrieves the specified zone-specific operation resource.",
+     "parameters": {
+      "operation": {
+       "type": "string",
+       "description": "Name of the operation resource to return.",
+       "required": true,
+       "location": "path"
+      },
+      "project": {
+       "type": "string",
+       "description": "Name of the project scoping this request.",
+       "required": true,
+       "pattern": "(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?))",
+       "location": "path"
+      },
+      "zone": {
+       "type": "string",
+       "description": "Name of the zone scoping this request.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "project",
+      "zone",
+      "operation"
+     ],
+     "response": {
+      "$ref": "Operation"
+     },
      "scopes": [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/replicapool"

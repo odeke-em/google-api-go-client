@@ -76,8 +76,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Datasets *DatasetsService
 
@@ -88,6 +89,13 @@ type Service struct {
 	Tabledata *TabledataService
 
 	Tables *TablesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewDatasetsService(s *Service) *DatasetsService {
@@ -351,6 +359,9 @@ type Job struct {
 	// Status: [Output-only] The status of this job. Examine this value when
 	// polling an asynchronous job to see if the job is complete.
 	Status *JobStatus `json:"status,omitempty"`
+
+	// User_email: [Output-only] Email address of the user who ran the job.
+	User_email string `json:"user_email,omitempty"`
 }
 
 type JobConfiguration struct {
@@ -489,6 +500,15 @@ type JobConfigurationLoad struct {
 	// result and the job fails. The default value is 0, which requires that
 	// all records are valid.
 	MaxBadRecords int64 `json:"maxBadRecords,omitempty"`
+
+	// ProjectionFields: [Experimental] Names(case-sensitive) of properties
+	// to keep when importing data. If this is populated, only the specified
+	// properties will be imported for each entity. Currently, this is only
+	// supported for DATASTORE_BACKUP imports and only top level properties
+	// are supported. If any specified property is not found in the
+	// Datastore 'Kind' being imported, that is an error. Note: This feature
+	// is experimental and can change in the future.
+	ProjectionFields []string `json:"projectionFields,omitempty"`
 
 	// Quote: [Optional] The value that is used to quote data sections in a
 	// CSV file. BigQuery converts the string to ISO-8859-1 encoding, and
@@ -681,7 +701,8 @@ type JobListJobs struct {
 	// Status: [Full-projection-only] Describes the state of the job.
 	Status *JobStatus `json:"status,omitempty"`
 
-	// User_email: [Full-projection-only] User who ran the job.
+	// User_email: [Full-projection-only] Email address of the user who ran
+	// the job.
 	User_email string `json:"user_email,omitempty"`
 }
 
@@ -824,10 +845,10 @@ type QueryRequest struct {
 	// format 'datasetId.tableId'.
 	DefaultDataset *DatasetReference `json:"defaultDataset,omitempty"`
 
-	// DryRun: [Optional] If set, don't actually run the query. A valid
-	// query will return an empty response, while an invalid query will
-	// return the same error it would if it wasn't a dry run. The default
-	// value is false.
+	// DryRun: [Optional] If set, don't actually run this job. A valid query
+	// will return a mostly empty response with some processing statistics,
+	// while an invalid query will return the same error it would if it
+	// wasn't a dry run.
 	DryRun bool `json:"dryRun,omitempty"`
 
 	// Kind: The resource type of the request.
@@ -935,7 +956,7 @@ type Table struct {
 
 	// LastModifiedTime: [Output-only] The time when this table was last
 	// modified, in milliseconds since the epoch.
-	LastModifiedTime int64 `json:"lastModifiedTime,omitempty,string"`
+	LastModifiedTime uint64 `json:"lastModifiedTime,omitempty,string"`
 
 	// NumBytes: [Output-only] The size of the table in bytes. This property
 	// is unavailable for tables that are actively receiving streaming
@@ -971,11 +992,21 @@ type TableCell struct {
 }
 
 type TableDataInsertAllRequest struct {
+	// IgnoreUnknownValues: [Optional] Accept rows that contain values that
+	// do not match the schema. The unknown values are ignored. Default is
+	// false, which treats unknown values as errors.
+	IgnoreUnknownValues bool `json:"ignoreUnknownValues,omitempty"`
+
 	// Kind: The resource type of the response.
 	Kind string `json:"kind,omitempty"`
 
 	// Rows: The rows to insert.
 	Rows []*TableDataInsertAllRequestRows `json:"rows,omitempty"`
+
+	// SkipInvalidRows: [Optional] Insert all valid rows of a request, even
+	// if invalid rows exist. The default value is false, which causes the
+	// entire request to fail if any invalid rows exist.
+	SkipInvalidRows bool `json:"skipInvalidRows,omitempty"`
 }
 
 type TableDataInsertAllRequestRows struct {
@@ -1165,7 +1196,7 @@ func (c *DatasetsDeleteCall) Do() error {
 		"projectId": c.projectId,
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1250,7 +1281,7 @@ func (c *DatasetsGetCall) Do() (*Dataset, error) {
 		"projectId": c.projectId,
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1342,7 +1373,7 @@ func (c *DatasetsInsertCall) Do() (*Dataset, error) {
 		"projectId": c.projectId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1454,7 +1485,7 @@ func (c *DatasetsListCall) Do() (*DatasetList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1561,7 +1592,7 @@ func (c *DatasetsPatchCall) Do() (*Dataset, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1661,7 +1692,7 @@ func (c *DatasetsUpdateCall) Do() (*Dataset, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1751,7 +1782,7 @@ func (c *JobsGetCall) Do() (*Job, error) {
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1880,7 +1911,7 @@ func (c *JobsGetQueryResultsCall) Do() (*GetQueryResultsResponse, error) {
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2051,13 +2082,10 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2070,6 +2098,7 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2080,6 +2109,7 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Job
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -2224,7 +2254,7 @@ func (c *JobsListCall) Do() (*JobList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2355,7 +2385,7 @@ func (c *JobsQueryCall) Do() (*QueryResponse, error) {
 		"projectId": c.projectId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2451,7 +2481,7 @@ func (c *ProjectsListCall) Do() (*ProjectList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2545,7 +2575,7 @@ func (c *TabledataInsertAllCall) Do() (*TableDataInsertAllResponse, error) {
 		"tableId":   c.tableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2676,7 +2706,7 @@ func (c *TabledataListCall) Do() (*TableDataList, error) {
 		"datasetId": c.datasetId,
 		"tableId":   c.tableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2791,7 +2821,7 @@ func (c *TablesDeleteCall) Do() error {
 		"datasetId": c.datasetId,
 		"tableId":   c.tableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2883,7 +2913,7 @@ func (c *TablesGetCall) Do() (*Table, error) {
 		"datasetId": c.datasetId,
 		"tableId":   c.tableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2985,7 +3015,7 @@ func (c *TablesInsertCall) Do() (*Table, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3095,7 +3125,7 @@ func (c *TablesListCall) Do() (*TableList, error) {
 		"projectId": c.projectId,
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3207,7 +3237,7 @@ func (c *TablesPatchCall) Do() (*Table, error) {
 		"tableId":   c.tableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3317,7 +3347,7 @@ func (c *TablesUpdateCall) Do() (*Table, error) {
 		"tableId":   c.tableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

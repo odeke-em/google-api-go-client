@@ -24,9 +24,6 @@ import (
 	"unicode"
 )
 
-// goGenVersion is the version of the Go code generator
-const goGenVersion = "0.5"
-
 var (
 	apiToGenerate = flag.String("api", "*", "The API ID to generate, like 'tasks:v1'. A value of '*' means all.")
 	useCache      = flag.Bool("cache", true, "Use cache of discovered Google API discovery documents.")
@@ -40,6 +37,7 @@ var (
 	jsonFile     = flag.String("api_json_file", "", "If non-empty, the path to a local file on disk containing the API to generate. Exclusive with setting --api.")
 	output       = flag.String("output", "", "(optional) Path to source output file. If not specified, the API name and version are used to construct an output path (e.g. tasks/v1).")
 	googleAPIPkg = flag.String("googleapi_pkg", "google.golang.org/api/googleapi", "Go package path of the 'googleapi' support package.")
+	contextPkg   = flag.String("context_pkg", "golang.org/x/net/context", "Go package path of the 'context' support package.")
 )
 
 // API represents an API to generate, as well as its state while it's
@@ -379,6 +377,12 @@ func (a *API) GenerateCode() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Because the Discovery JSON may not have all the fields populated that the actual
+	// API JSON has (e.g. rootUrl and servicePath), the API should be repopulated from
+	// the JSON here.
+	if err := json.Unmarshal(jsonBytes, a); err != nil {
+		return nil, err
+	}
 
 	// Buffer the output in memory, for gofmt'ing later in the defer.
 	var buf bytes.Buffer
@@ -421,7 +425,7 @@ func (a *API) GenerateCode() ([]byte, error) {
 		"net/url",
 		"strconv",
 		"strings",
-		"golang.org/x/net/context",
+		*contextPkg,
 	} {
 		p("\t%q\n", pkg)
 	}
@@ -461,11 +465,16 @@ func (a *API) GenerateCode() ([]byte, error) {
 	p("\ntype Service struct {\n")
 	p("\tclient *http.Client\n")
 	p("\tBasePath string // API endpoint base URL\n")
+	pn("\tUserAgent string // optional additional User-Agent fragment")
 
 	for _, res := range reslist {
 		p("\n\t%s\t*%s\n", res.GoField(), res.GoType())
 	}
 	p("}\n")
+	pn("\nfunc (s *Service) userAgent() string {")
+	pn(` if s.UserAgent == "" { return googleapi.UserAgent }`)
+	pn(` return googleapi.UserAgent + " " + s.UserAgent`)
+	pn("}\n")
 
 	for _, res := range reslist {
 		res.generateType()
@@ -1094,11 +1103,11 @@ func (m *Method) Id() string {
 	return jstr(m.m, "id")
 }
 
-func (m *Method) supportsMedia() bool {
+func (m *Method) supportsMediaUpload() bool {
 	return jobj(m.m, "mediaUpload") != nil
 }
 
-func (m *Method) mediaPath() string {
+func (m *Method) mediaUploadPath() string {
 	return jstr(jobj(jobj(jobj(m.m, "mediaUpload"), "protocols"), "simple"), "path")
 }
 
@@ -1185,7 +1194,7 @@ func (meth *Method) generateCode() {
 		p("\t%s %s\n", arg.goname, arg.gotype)
 	}
 	p("\topt_ map[string]interface{}\n")
-	if meth.supportsMedia() {
+	if meth.supportsMediaUpload() {
 		p("\tmedia_     io.Reader\n")
 		p("\tresumable_ googleapi.SizeReaderAt\n")
 		p("\tmediaType_ string\n")
@@ -1232,7 +1241,7 @@ func (meth *Method) generateCode() {
 		p("}\n")
 	}
 
-	if meth.supportsMedia() {
+	if meth.supportsMediaUpload() {
 		pn("\n// Media specifies the media to upload in a single chunk.")
 		pn("// At most one of Media and ResumableMedia may be set.")
 		pn("func (c *%s) Media(r io.Reader) *%s {", callName, callName)
@@ -1306,7 +1315,7 @@ func (meth *Method) generateCode() {
 	}
 
 	p("urls := googleapi.ResolveRelative(c.s.BasePath, %q)\n", jstr(meth.m, "path"))
-	if meth.supportsMedia() {
+	if meth.supportsMediaUpload() {
 		pn("var progressUpdater_ googleapi.ProgressUpdater")
 		pn("if v, ok := c.opt_[\"progressUpdater\"]; ok {")
 		pn(" if pu, ok := v.(googleapi.ProgressUpdater); ok {")
@@ -1315,14 +1324,14 @@ func (meth *Method) generateCode() {
 		pn("}")
 		pn("if c.media_ != nil || c.resumable_ != nil {")
 		// Hack guess, since we get a 404 otherwise:
-		//pn("urls = googleapi.ResolveRelative(%q, %q)", a.apiBaseURL(), meth.mediaPath())
+		//pn("urls = googleapi.ResolveRelative(%q, %q)", a.apiBaseURL(), meth.mediaUploadPath())
 		// Further hack.  Discovery doc is wrong?
 		pn("urls = strings.Replace(urls, %q, %q, 1)", "https://www.googleapis.com/", "https://www.googleapis.com/upload/")
 		pn(`params.Set("uploadType", c.protocol_)`)
 		pn("}")
 	}
 	pn("urls += \"?\" + params.Encode()")
-	if meth.supportsMedia() && httpMethod != "GET" {
+	if meth.supportsMediaUpload() && httpMethod != "GET" {
 		if !hasContentType { // Support mediaUpload but no ctype set.
 			pn("body = new(bytes.Buffer)")
 			pn(`ctype := "application/json"`)
@@ -1349,7 +1358,7 @@ func (meth *Method) generateCode() {
 		pn(`googleapi.SetOpaque(req.URL)`)
 	}
 
-	if meth.supportsMedia() {
+	if meth.supportsMediaUpload() {
 		pn(`if c.protocol_ == "resumable" {`)
 		pn(" req.ContentLength = 0")
 		pn(` if c.mediaType_ == "" {`)
@@ -1357,25 +1366,23 @@ func (meth *Method) generateCode() {
 		pn(" }")
 		pn(` req.Header.Set("X-Upload-Content-Type", c.mediaType_)`)
 		pn(" req.Body = nil")
-		pn(` if params.Get("name") == "" {`)
-		pn(`  return %sfmt.Errorf("resumable uploads must set the Name parameter.")`, nilRet)
-		pn(" }")
 		pn("} else {")
 		pn(` req.Header.Set("Content-Type", ctype)`)
 		pn("}")
 	} else if hasContentType {
 		pn(`req.Header.Set("Content-Type", ctype)`)
 	}
-	pn(`req.Header.Set("User-Agent", "google-api-go-client/` + goGenVersion + `")`)
+	pn(`req.Header.Set("User-Agent", c.s.userAgent())`)
 	pn("res, err := c.s.client.Do(req);")
 	pn("if err != nil { return %serr }", nilRet)
 	pn("defer googleapi.CloseBody(res)")
 	pn("if err := googleapi.CheckResponse(res); err != nil { return %serr }", nilRet)
-	if meth.supportsMedia() {
+	if meth.supportsMediaUpload() {
 		pn(`if c.protocol_ == "resumable" {`)
 		pn(` loc := res.Header.Get("Location")`)
 		pn(" rx := &googleapi.ResumableUpload{")
 		pn("  Client:        c.s.client,")
+		pn("  UserAgent:     c.s.userAgent(),")
 		pn("  URI:           loc,")
 		pn("  Media:         c.resumable_,")
 		pn("  MediaType:     c.mediaType_,")
@@ -1384,6 +1391,7 @@ func (meth *Method) generateCode() {
 		pn(" }")
 		pn(" res, err = rx.Upload(c.ctx_)")
 		pn(" if err != nil { return %serr }", nilRet)
+		pn(" defer res.Body.Close()")
 		pn("}")
 	}
 	if retTypeComma == "" {

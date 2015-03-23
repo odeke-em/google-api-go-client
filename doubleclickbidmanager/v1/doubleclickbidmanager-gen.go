@@ -53,14 +53,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Lineitems *LineitemsService
 
 	Queries *QueriesService
 
 	Reports *ReportsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewLineitemsService(s *Service) *LineitemsService {
@@ -203,6 +211,15 @@ type QueryMetadata struct {
 	// run.
 	LatestReportRunTimeMs int64 `json:"latestReportRunTimeMs,omitempty,string"`
 
+	// Locale: Locale of the generated reports. Valid values are cs CZECH de
+	// GERMAN en ENGLISH es SPANISH fr FRENCH it ITALIAN ja JAPANESE ko
+	// KOREAN pl POLISH pt-BR BRAZILIAN_PORTUGUESE ru RUSSIAN tr TURKISH uk
+	// UKRAINIAN zh-CN CHINA_CHINESE zh-TW TAIWAN_CHINESE
+	//
+	// An locale string
+	// not in the list above will generate reports in English.
+	Locale string `json:"locale,omitempty"`
+
 	// ReportCount: Number of reports that have been generated for the
 	// query.
 	ReportCount int64 `json:"reportCount,omitempty"`
@@ -232,7 +249,7 @@ type QuerySchedule struct {
 	Frequency string `json:"frequency,omitempty"`
 
 	// NextRunMinuteOfDay: Time of day at which a new report will be
-	// generated, represented as minutes past midnight Range is 0 to 1439.
+	// generated, represented as minutes past midnight. Range is 0 to 1439.
 	// Only applies to scheduled reports.
 	NextRunMinuteOfDay int64 `json:"nextRunMinuteOfDay,omitempty"`
 
@@ -402,7 +419,7 @@ func (c *LineitemsDownloadlineitemsCall) Do() (*DownloadLineItemsResponse, error
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -471,7 +488,7 @@ func (c *LineitemsUploadlineitemsCall) Do() (*UploadLineItemsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -540,7 +557,7 @@ func (c *QueriesCreatequeryCall) Do() (*Query, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -606,7 +623,7 @@ func (c *QueriesDeletequeryCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -673,7 +690,7 @@ func (c *QueriesGetqueryCall) Do() (*Query, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -743,7 +760,7 @@ func (c *QueriesListqueriesCall) Do() (*ListQueriesResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -813,7 +830,7 @@ func (c *QueriesRunqueryCall) Do() error {
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -883,7 +900,7 @@ func (c *ReportsListreportsCall) Do() (*ListReportsResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"queryId": strconv.FormatInt(c.queryId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

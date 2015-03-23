@@ -65,8 +65,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Accounts *AccountsService
 
@@ -85,6 +86,13 @@ type Service struct {
 	Products *ProductsService
 
 	Productstatuses *ProductstatusesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAccountsService(s *Service) *AccountsService {
@@ -210,6 +218,16 @@ type AccountAdwordsLink struct {
 	Status string `json:"status,omitempty"`
 }
 
+type AccountIdentifier struct {
+	// AggregatorId: The aggregator ID, set for aggregators and subaccounts
+	// (in that case, it represents the aggregator of the subaccount).
+	AggregatorId uint64 `json:"aggregatorId,omitempty,string"`
+
+	// MerchantId: The merchant account ID, set for individual accounts and
+	// subaccounts.
+	MerchantId uint64 `json:"merchantId,omitempty,string"`
+}
+
 type AccountShipping struct {
 	// AccountId: The ID of the account to which these account shipping
 	// settings belong.
@@ -252,7 +270,7 @@ type AccountShippingCarrierRate struct {
 	Name string `json:"name,omitempty"`
 
 	// SaleCountry: Sale country for which this carrier rate is valid,
-	// represented as an ISO_3166-1 Alpha-2 code.
+	// represented as an ISO 3166-1 Alpha-2 code.
 	SaleCountry string `json:"saleCountry,omitempty"`
 
 	// ShippingOrigin: Shipping origin represented as a postal code.
@@ -292,7 +310,7 @@ type AccountShippingCondition struct {
 
 type AccountShippingLocationGroup struct {
 	// Country: The country in which this location group is, represented as
-	// ISO_3166-1 Alpha-2 code.
+	// ISO 3166-1 Alpha-2 code.
 	Country string `json:"country,omitempty"`
 
 	// LocationIds: A location ID (also called criteria ID) representing
@@ -325,7 +343,7 @@ type AccountShippingPostalCodeRange struct {
 
 type AccountShippingRateTable struct {
 	// Content: One-dimensional table cells define one condition along the
-	// same dimension. Bi-dimensional table cells use two dimension with
+	// same dimension. Bi-dimensional table cells use two dimensions with
 	// respectively M and N distinct values and must contain exactly M * N
 	// cells with distinct conditions (for each possible value pairs).
 	Content []*AccountShippingRateTableCell `json:"content,omitempty"`
@@ -334,14 +352,14 @@ type AccountShippingRateTable struct {
 	Name string `json:"name,omitempty"`
 
 	// SaleCountry: Sale country for which this table is valid, represented
-	// as an ISO_3166-1 Alpha-2 code.
+	// as an ISO 3166-1 Alpha-2 code.
 	SaleCountry string `json:"saleCountry,omitempty"`
 }
 
 type AccountShippingRateTableCell struct {
 	// Condition: Conditions for which the cell is valid. All cells in a
 	// table must use the same dimension or pair of dimensions among price,
-	// weight, shipping_label or delivery location. If no condition is
+	// weight, shipping label or delivery location. If no condition is
 	// specified, the cell acts as a catch-all and matches all the elements
 	// that are not matched by other cells in this dimension.
 	Condition *AccountShippingCondition `json:"condition,omitempty"`
@@ -366,7 +384,7 @@ type AccountShippingShippingService struct {
 	Name string `json:"name,omitempty"`
 
 	// SaleCountry: Sale country for which this service can be used,
-	// represented as an ISO_3166-1 Alpha-2 code.
+	// represented as an ISO 3166-1 Alpha-2 code.
 	SaleCountry string `json:"saleCountry,omitempty"`
 }
 
@@ -500,6 +518,22 @@ type AccountUser struct {
 
 	// EmailAddress: User's email address.
 	EmailAddress string `json:"emailAddress,omitempty"`
+}
+
+type AccountsAuthInfoResponse struct {
+	// AccountIdentifiers: The account identifiers corresponding to the
+	// authenticated user.
+	// - For an individual account: only the merchant ID
+	// is defined
+	// - For an aggregator: only the aggregator ID is defined
+	// -
+	// For a subaccount of an MCA: both the merchant ID and the aggregator
+	// ID are defined.
+	AccountIdentifiers []*AccountIdentifier `json:"accountIdentifiers,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "content#accountsAuthInfoResponse".
+	Kind string `json:"kind,omitempty"`
 }
 
 type AccountsCustomBatchRequest struct {
@@ -1135,11 +1169,14 @@ type Product struct {
 	// AgeGroup: Target age group of the item.
 	AgeGroup string `json:"ageGroup,omitempty"`
 
+	// Aspects: Specifies the intended aspects for the product.
+	Aspects []*ProductAspect `json:"aspects,omitempty"`
+
 	// Availability: Availability status of the item.
 	Availability string `json:"availability,omitempty"`
 
 	// AvailabilityDate: The day a pre-ordered product becomes available for
-	// delivery.
+	// delivery, in ISO 8601 format.
 	AvailabilityDate string `json:"availabilityDate,omitempty"`
 
 	// Brand: Brand of the item.
@@ -1194,20 +1231,38 @@ type Product struct {
 	// Destinations: Specifies the intended destinations for the product.
 	Destinations []*ProductDestination `json:"destinations,omitempty"`
 
+	// DisplayAdsId: An identifier for an item for dynamic remarketing
+	// campaigns.
+	DisplayAdsId string `json:"displayAdsId,omitempty"`
+
+	// DisplayAdsLink: URL directly to your item's landing page for dynamic
+	// remarketing campaigns.
+	DisplayAdsLink string `json:"displayAdsLink,omitempty"`
+
+	// DisplayAdsSimilarIds: Advertiser-specified recommendations.
+	DisplayAdsSimilarIds []string `json:"displayAdsSimilarIds,omitempty"`
+
+	// DisplayAdsTitle: Title of an item for dynamic remarketing campaigns.
+	DisplayAdsTitle string `json:"displayAdsTitle,omitempty"`
+
+	// DisplayAdsValue: Offer margin for dynamic remarketing campaigns.
+	DisplayAdsValue float64 `json:"displayAdsValue,omitempty"`
+
 	// EnergyEfficiencyClass: The energy efficiency class as defined in EU
 	// directive 2010/30/EU.
 	EnergyEfficiencyClass string `json:"energyEfficiencyClass,omitempty"`
 
 	// ExpirationDate: Date on which the item should expire, as specified
-	// upon insertion. The actual expiration date in Google Shopping is
-	// exposed in productstatuses as googleExpirationDate and might be
-	// earlier if expirationDate is too far in the future.
+	// upon insertion, in ISO 8601 format. The actual expiration date in
+	// Google Shopping is exposed in productstatuses as googleExpirationDate
+	// and might be earlier if expirationDate is too far in the future.
 	ExpirationDate string `json:"expirationDate,omitempty"`
 
 	// Gender: Target gender of the item.
 	Gender string `json:"gender,omitempty"`
 
-	// GoogleProductCategory: Google's category of the item.
+	// GoogleProductCategory: Google's category of the item (see Google
+	// product taxonomy).
 	GoogleProductCategory string `json:"googleProductCategory,omitempty"`
 
 	// Gtin: Global Trade Item Number (GTIN) of the item.
@@ -1273,24 +1328,35 @@ type Product struct {
 	// Price: Price of the item.
 	Price *Price `json:"price,omitempty"`
 
-	// ProductType: Your category of the item.
+	// ProductType: Your category of the item (formatted as in product feeds
+	// specification).
 	ProductType string `json:"productType,omitempty"`
 
 	// SalePrice: Advertised sale price of the item.
 	SalePrice *Price `json:"salePrice,omitempty"`
 
-	// SalePriceEffectiveDate: Date range during which the item is on sale.
+	// SalePriceEffectiveDate: Date range during which the item is on sale
+	// (see product feed specifications).
 	SalePriceEffectiveDate string `json:"salePriceEffectiveDate,omitempty"`
 
 	// Shipping: Shipping rules.
 	Shipping []*ProductShipping `json:"shipping,omitempty"`
 
+	// ShippingHeight: Height of the item for shipping.
+	ShippingHeight *ProductShippingDimension `json:"shippingHeight,omitempty"`
+
 	// ShippingLabel: The shipping label of the product, used to group
 	// product in account-level shipping rules.
 	ShippingLabel string `json:"shippingLabel,omitempty"`
 
+	// ShippingLength: Length of the item for shipping.
+	ShippingLength *ProductShippingDimension `json:"shippingLength,omitempty"`
+
 	// ShippingWeight: Weight of the item for shipping.
 	ShippingWeight *ProductShippingWeight `json:"shippingWeight,omitempty"`
+
+	// ShippingWidth: Width of the item for shipping.
+	ShippingWidth *ProductShippingDimension `json:"shippingWidth,omitempty"`
 
 	// SizeSystem: System in which the size is specified. Recommended for
 	// apparel items.
@@ -1324,6 +1390,19 @@ type Product struct {
 
 	// Warnings: Read-only warnings.
 	Warnings []*Error `json:"warnings,omitempty"`
+}
+
+type ProductAspect struct {
+	// AspectName: The name of the aspect.
+	AspectName string `json:"aspectName,omitempty"`
+
+	// DestinationName: The name of the destination. Leave out to apply to
+	// all destinations.
+	DestinationName string `json:"destinationName,omitempty"`
+
+	// Intention: Whether the aspect is required, excluded or should be
+	// validated.
+	Intention string `json:"intention,omitempty"`
 }
 
 type ProductCustomAttribute struct {
@@ -1382,9 +1461,9 @@ type ProductShipping struct {
 	LocationId int64 `json:"locationId,omitempty,string"`
 
 	// PostalCode: The postal code range that the shipping rate applies to,
-	// represented by a postal code, a postal code prefix using * wildcard,
-	// a range between two postal codes or two postal code prefixes of equal
-	// length.
+	// represented by a postal code, a postal code prefix followed by a *
+	// wildcard, a range between two postal codes or two postal code
+	// prefixes of equal length.
 	PostalCode string `json:"postalCode,omitempty"`
 
 	// Price: Fixed shipping price, represented as a number.
@@ -1399,6 +1478,19 @@ type ProductShipping struct {
 	Service string `json:"service,omitempty"`
 }
 
+type ProductShippingDimension struct {
+	// Unit: The unit of value.
+	//
+	// Acceptable values are:
+	// - "cm"
+	// - "in"
+	Unit string `json:"unit,omitempty"`
+
+	// Value: The dimension of the product used to calculate the shipping
+	// cost of the item.
+	Value float64 `json:"value,omitempty"`
+}
+
 type ProductShippingWeight struct {
 	// Unit: The unit of value.
 	Unit string `json:"unit,omitempty"`
@@ -1409,7 +1501,8 @@ type ProductShippingWeight struct {
 }
 
 type ProductStatus struct {
-	// CreationDate: Date on which the item has been created.
+	// CreationDate: Date on which the item has been created, in ISO 8601
+	// format.
 	CreationDate string `json:"creationDate,omitempty"`
 
 	// DataQualityIssues: A list of data quality issues associated with the
@@ -1420,14 +1513,15 @@ type ProductStatus struct {
 	DestinationStatuses []*ProductStatusDestinationStatus `json:"destinationStatuses,omitempty"`
 
 	// GoogleExpirationDate: Date on which the item expires in Google
-	// Shopping.
+	// Shopping, in ISO 8601 format.
 	GoogleExpirationDate string `json:"googleExpirationDate,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "content#productStatus".
 	Kind string `json:"kind,omitempty"`
 
-	// LastUpdateDate: Date on which the item has been last updated.
+	// LastUpdateDate: Date on which the item has been last updated, in ISO
+	// 8601 format.
 	LastUpdateDate string `json:"lastUpdateDate,omitempty"`
 
 	// Link: The link to the product.
@@ -1452,6 +1546,9 @@ type ProductStatusDataQualityIssue struct {
 
 	// Location: The attribute name that is relevant for the issue.
 	Location string `json:"location,omitempty"`
+
+	// Severity: The severity of the data quality issue.
+	Severity string `json:"severity,omitempty"`
 
 	// Timestamp: The time stamp of the data quality issue.
 	Timestamp string `json:"timestamp,omitempty"`
@@ -1640,6 +1737,67 @@ type Weight struct {
 	Value string `json:"value,omitempty"`
 }
 
+// method id "content.accounts.authinfo":
+
+type AccountsAuthinfoCall struct {
+	s    *Service
+	opt_ map[string]interface{}
+}
+
+// Authinfo: Returns information about the authenticated user.
+func (r *AccountsService) Authinfo() *AccountsAuthinfoCall {
+	c := &AccountsAuthinfoCall{s: r.s, opt_: make(map[string]interface{})}
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *AccountsAuthinfoCall) Fields(s ...googleapi.Field) *AccountsAuthinfoCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *AccountsAuthinfoCall) Do() (*AccountsAuthInfoResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "accounts/authinfo")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *AccountsAuthInfoResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns information about the authenticated user.",
+	//   "httpMethod": "GET",
+	//   "id": "content.accounts.authinfo",
+	//   "path": "accounts/authinfo",
+	//   "response": {
+	//     "$ref": "AccountsAuthInfoResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/content"
+	//   ]
+	// }
+
+}
+
 // method id "content.accounts.custombatch":
 
 type AccountsCustombatchCall struct {
@@ -1681,7 +1839,7 @@ func (c *AccountsCustombatchCall) Do() (*AccountsCustomBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1752,7 +1910,7 @@ func (c *AccountsDeleteCall) Do() error {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1833,7 +1991,7 @@ func (c *AccountsGetCall) Do() (*Account, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1926,7 +2084,7 @@ func (c *AccountsInsertCall) Do() (*Account, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2026,7 +2184,7 @@ func (c *AccountsListCall) Do() (*AccountsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2126,7 +2284,7 @@ func (c *AccountsPatchCall) Do() (*Account, error) {
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2225,7 +2383,7 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2318,7 +2476,7 @@ func (c *AccountshippingCustombatchCall) Do() (*AccountshippingCustomBatchRespon
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2389,7 +2547,7 @@ func (c *AccountshippingGetCall) Do() (*AccountShipping, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2496,7 +2654,7 @@ func (c *AccountshippingListCall) Do() (*AccountshippingListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2596,7 +2754,7 @@ func (c *AccountshippingPatchCall) Do() (*AccountShipping, error) {
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2695,7 +2853,7 @@ func (c *AccountshippingUpdateCall) Do() (*AccountShipping, error) {
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2787,7 +2945,7 @@ func (c *AccountstatusesCustombatchCall) Do() (*AccountstatusesCustomBatchRespon
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2857,7 +3015,7 @@ func (c *AccountstatusesGetCall) Do() (*AccountStatus, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2964,7 +3122,7 @@ func (c *AccountstatusesListCall) Do() (*AccountstatusesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3057,7 +3215,7 @@ func (c *AccounttaxCustombatchCall) Do() (*AccounttaxCustomBatchResponse, error)
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3128,7 +3286,7 @@ func (c *AccounttaxGetCall) Do() (*AccountTax, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3234,7 +3392,7 @@ func (c *AccounttaxListCall) Do() (*AccounttaxListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3334,7 +3492,7 @@ func (c *AccounttaxPatchCall) Do() (*AccountTax, error) {
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3433,7 +3591,7 @@ func (c *AccounttaxUpdateCall) Do() (*AccountTax, error) {
 		"accountId":  strconv.FormatUint(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3525,7 +3683,7 @@ func (c *DatafeedsCustombatchCall) Do() (*DatafeedsCustomBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3595,7 +3753,7 @@ func (c *DatafeedsDeleteCall) Do() error {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"datafeedId": strconv.FormatUint(c.datafeedId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3674,7 +3832,7 @@ func (c *DatafeedsGetCall) Do() (*Datafeed, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"datafeedId": strconv.FormatUint(c.datafeedId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3765,7 +3923,7 @@ func (c *DatafeedsInsertCall) Do() (*Datafeed, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3864,7 +4022,7 @@ func (c *DatafeedsListCall) Do() (*DatafeedsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3964,7 +4122,7 @@ func (c *DatafeedsPatchCall) Do() (*Datafeed, error) {
 		"datafeedId": strconv.FormatUint(c.datafeedId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4061,7 +4219,7 @@ func (c *DatafeedsUpdateCall) Do() (*Datafeed, error) {
 		"datafeedId": strconv.FormatUint(c.datafeedId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4151,7 +4309,7 @@ func (c *DatafeedstatusesCustombatchCall) Do() (*DatafeedstatusesCustomBatchResp
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4222,7 +4380,7 @@ func (c *DatafeedstatusesGetCall) Do() (*DatafeedStatus, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"datafeedId": strconv.FormatUint(c.datafeedId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4326,7 +4484,7 @@ func (c *DatafeedstatusesListCall) Do() (*DatafeedstatusesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4419,7 +4577,7 @@ func (c *InventoryCustombatchCall) Do() (*InventoryCustomBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4502,7 +4660,7 @@ func (c *InventorySetCall) Do() (*InventorySetResponse, error) {
 		"productId":  c.productId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4611,7 +4769,7 @@ func (c *ProductsCustombatchCall) Do() (*ProductsCustomBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4699,7 +4857,7 @@ func (c *ProductsDeleteCall) Do() error {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"productId":  c.productId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4784,7 +4942,7 @@ func (c *ProductsGetCall) Do() (*Product, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"productId":  c.productId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4886,7 +5044,7 @@ func (c *ProductsInsertCall) Do() (*Product, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4991,7 +5149,7 @@ func (c *ProductsListCall) Do() (*ProductsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5084,7 +5242,7 @@ func (c *ProductstatusesCustombatchCall) Do() (*ProductstatusesCustomBatchRespon
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5155,7 +5313,7 @@ func (c *ProductstatusesGetCall) Do() (*ProductStatus, error) {
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 		"productId":  c.productId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5261,7 +5419,7 @@ func (c *ProductstatusesListCall) Do() (*ProductstatusesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"merchantId": strconv.FormatUint(c.merchantId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

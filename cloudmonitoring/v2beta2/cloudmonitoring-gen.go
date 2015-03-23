@@ -1,10 +1,10 @@
 // Package cloudmonitoring provides access to the Cloud Monitoring API.
 //
-// See https://developers.google.com/cloud-monitoring/
+// See https://cloud.google.com/monitoring/v2beta2/
 //
 // Usage example:
 //
-//   import "google.golang.org/api/cloudmonitoring/v2beta1"
+//   import "google.golang.org/api/cloudmonitoring/v2beta2"
 //   ...
 //   cloudmonitoringService, err := cloudmonitoring.New(oauthHttpClient)
 package cloudmonitoring
@@ -36,15 +36,16 @@ var _ = errors.New
 var _ = strings.Replace
 var _ = context.Background
 
-const apiId = "cloudmonitoring:v2beta1"
+const apiId = "cloudmonitoring:v2beta2"
 const apiName = "cloudmonitoring"
-const apiVersion = "v2beta1"
-const basePath = "https://www.googleapis.com/cloudmonitoring/v2beta1/projects/"
+const apiVersion = "v2beta2"
+const basePath = "https://www.googleapis.com/cloudmonitoring/v2beta2/projects/"
 
 // OAuth2 scopes used by this API.
 const (
-	// View monitoring data for all of your Google Cloud and API projects
-	MonitoringReadonlyScope = "https://www.googleapis.com/auth/monitoring.readonly"
+	// View and write monitoring data for all of your Google and third-party
+	// Cloud and API projects
+	MonitoringScope = "https://www.googleapis.com/auth/monitoring"
 )
 
 func New(client *http.Client) (*Service, error) {
@@ -59,14 +60,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	MetricDescriptors *MetricDescriptorsService
 
 	Timeseries *TimeseriesService
 
 	TimeseriesDescriptors *TimeseriesDescriptorsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewMetricDescriptorsService(s *Service) *MetricDescriptorsService {
@@ -94,6 +103,12 @@ func NewTimeseriesDescriptorsService(s *Service) *TimeseriesDescriptorsService {
 
 type TimeseriesDescriptorsService struct {
 	s *Service
+}
+
+type DeleteMetricDescriptorResponse struct {
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "cloudmonitoring#deleteMetricDescriptorResponse".
+	Kind string `json:"kind,omitempty"`
 }
 
 type ListMetricDescriptorsRequest struct {
@@ -321,6 +336,203 @@ type TimeseriesDescriptorLabel struct {
 	Value string `json:"value,omitempty"`
 }
 
+type TimeseriesPoint struct {
+	// Point: The data point in this time series snapshot.
+	Point *Point `json:"point,omitempty"`
+
+	// TimeseriesDesc: The descriptor of this time series.
+	TimeseriesDesc *TimeseriesDescriptor `json:"timeseriesDesc,omitempty"`
+}
+
+type WriteTimeseriesRequest struct {
+	// CommonLabels: The label's name.
+	CommonLabels map[string]string `json:"commonLabels,omitempty"`
+
+	// Timeseries: Provide time series specific labels and the data points
+	// for each time series. The labels in timeseries and the common_labels
+	// should form a complete list of labels that required by the metric.
+	Timeseries []*TimeseriesPoint `json:"timeseries,omitempty"`
+}
+
+type WriteTimeseriesResponse struct {
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "cloudmonitoring#writeTimeseriesResponse".
+	Kind string `json:"kind,omitempty"`
+}
+
+// method id "cloudmonitoring.metricDescriptors.create":
+
+type MetricDescriptorsCreateCall struct {
+	s                *Service
+	project          string
+	metricdescriptor *MetricDescriptor
+	opt_             map[string]interface{}
+}
+
+// Create: Create a new metric.
+func (r *MetricDescriptorsService) Create(project string, metricdescriptor *MetricDescriptor) *MetricDescriptorsCreateCall {
+	c := &MetricDescriptorsCreateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.project = project
+	c.metricdescriptor = metricdescriptor
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MetricDescriptorsCreateCall) Fields(s ...googleapi.Field) *MetricDescriptorsCreateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *MetricDescriptorsCreateCall) Do() (*MetricDescriptor, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.metricdescriptor)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{project}/metricDescriptors")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"project": c.project,
+	})
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *MetricDescriptor
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Create a new metric.",
+	//   "httpMethod": "POST",
+	//   "id": "cloudmonitoring.metricDescriptors.create",
+	//   "parameterOrder": [
+	//     "project"
+	//   ],
+	//   "parameters": {
+	//     "project": {
+	//       "description": "The project id. The value can be the numeric project ID or string-based project name.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{project}/metricDescriptors",
+	//   "request": {
+	//     "$ref": "MetricDescriptor"
+	//   },
+	//   "response": {
+	//     "$ref": "MetricDescriptor"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/monitoring"
+	//   ]
+	// }
+
+}
+
+// method id "cloudmonitoring.metricDescriptors.delete":
+
+type MetricDescriptorsDeleteCall struct {
+	s       *Service
+	project string
+	metric  string
+	opt_    map[string]interface{}
+}
+
+// Delete: Delete an existing metric.
+func (r *MetricDescriptorsService) Delete(project string, metric string) *MetricDescriptorsDeleteCall {
+	c := &MetricDescriptorsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.project = project
+	c.metric = metric
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MetricDescriptorsDeleteCall) Fields(s ...googleapi.Field) *MetricDescriptorsDeleteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *MetricDescriptorsDeleteCall) Do() (*DeleteMetricDescriptorResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{project}/metricDescriptors/{metric}")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"project": c.project,
+		"metric":  c.metric,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *DeleteMetricDescriptorResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Delete an existing metric.",
+	//   "httpMethod": "DELETE",
+	//   "id": "cloudmonitoring.metricDescriptors.delete",
+	//   "parameterOrder": [
+	//     "project",
+	//     "metric"
+	//   ],
+	//   "parameters": {
+	//     "metric": {
+	//       "description": "Name of the metric.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "project": {
+	//       "description": "The project ID to which the metric belongs.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{project}/metricDescriptors/{metric}",
+	//   "response": {
+	//     "$ref": "DeleteMetricDescriptorResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/monitoring"
+	//   ]
+	// }
+
+}
+
 // method id "cloudmonitoring.metricDescriptors.list":
 
 type MetricDescriptorsListCall struct {
@@ -400,7 +612,7 @@ func (c *MetricDescriptorsListCall) Do() (*ListMetricDescriptorsResponse, error)
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -456,7 +668,7 @@ func (c *MetricDescriptorsListCall) Do() (*ListMetricDescriptorsResponse, error)
 	//     "$ref": "ListMetricDescriptorsResponse"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/monitoring.readonly"
+	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
 
@@ -616,7 +828,7 @@ func (c *TimeseriesListCall) Do() (*ListTimeseriesResponse, error) {
 		"project": c.project,
 		"metric":  c.metric,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -722,7 +934,101 @@ func (c *TimeseriesListCall) Do() (*ListTimeseriesResponse, error) {
 	//     "$ref": "ListTimeseriesResponse"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/monitoring.readonly"
+	//     "https://www.googleapis.com/auth/monitoring"
+	//   ]
+	// }
+
+}
+
+// method id "cloudmonitoring.timeseries.write":
+
+type TimeseriesWriteCall struct {
+	s                      *Service
+	project                string
+	writetimeseriesrequest *WriteTimeseriesRequest
+	opt_                   map[string]interface{}
+}
+
+// Write: Put data points to one or more time series for one or more
+// metrics. If a time series does not exist, a new time series will be
+// created. It is not allowed to write a time series point that is older
+// than the existing youngest point of that time series. Points that are
+// older than the existing youngest point of that time series will be
+// discarded silently. Therefore, users should make sure that points of
+// a time series are written sequentially in the order of their end
+// time.
+func (r *TimeseriesService) Write(project string, writetimeseriesrequest *WriteTimeseriesRequest) *TimeseriesWriteCall {
+	c := &TimeseriesWriteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.project = project
+	c.writetimeseriesrequest = writetimeseriesrequest
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *TimeseriesWriteCall) Fields(s ...googleapi.Field) *TimeseriesWriteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *TimeseriesWriteCall) Do() (*WriteTimeseriesResponse, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.writetimeseriesrequest)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{project}/timeseries:write")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"project": c.project,
+	})
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *WriteTimeseriesResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Put data points to one or more time series for one or more metrics. If a time series does not exist, a new time series will be created. It is not allowed to write a time series point that is older than the existing youngest point of that time series. Points that are older than the existing youngest point of that time series will be discarded silently. Therefore, users should make sure that points of a time series are written sequentially in the order of their end time.",
+	//   "httpMethod": "POST",
+	//   "id": "cloudmonitoring.timeseries.write",
+	//   "parameterOrder": [
+	//     "project"
+	//   ],
+	//   "parameters": {
+	//     "project": {
+	//       "description": "The project ID. The value can be the numeric project ID or string-based project name.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{project}/timeseries:write",
+	//   "request": {
+	//     "$ref": "WriteTimeseriesRequest"
+	//   },
+	//   "response": {
+	//     "$ref": "WriteTimeseriesResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
 
@@ -883,7 +1189,7 @@ func (c *TimeseriesDescriptorsListCall) Do() (*ListTimeseriesDescriptorsResponse
 		"project": c.project,
 		"metric":  c.metric,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -989,7 +1295,7 @@ func (c *TimeseriesDescriptorsListCall) Do() (*ListTimeseriesDescriptorsResponse
 	//     "$ref": "ListTimeseriesDescriptorsResponse"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/monitoring.readonly"
+	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
 

@@ -46,13 +46,13 @@ const (
 	// View the activity history of your Google Apps
 	ActivityScope = "https://www.googleapis.com/auth/activity"
 
-	// View and manage the files and documents in your Google Drive
+	// View and manage the files in your Google Drive
 	DriveScope = "https://www.googleapis.com/auth/drive"
 
-	// View metadata for files and documents in your Google Drive
+	// View metadata for files in your Google Drive
 	DriveMetadataReadonlyScope = "https://www.googleapis.com/auth/drive.metadata.readonly"
 
-	// View the files and documents in your Google Drive
+	// View the files in your Google Drive
 	DriveReadonlyScope = "https://www.googleapis.com/auth/drive.readonly"
 )
 
@@ -66,10 +66,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Activities *ActivitiesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewActivitiesService(s *Service) *ActivitiesService {
@@ -333,7 +341,7 @@ func (c *ActivitiesListCall) Do() (*ListActivitiesResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

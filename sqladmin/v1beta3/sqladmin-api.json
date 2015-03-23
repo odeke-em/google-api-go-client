@@ -1,12 +1,12 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/hsbAfC9SMMz0njrqp0sUQ-CdpcQ\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/O6ljRtnlfAyfdcd3dwyJdKZfq0c\"",
  "discoveryVersion": "v1",
  "id": "sqladmin:v1beta3",
  "name": "sqladmin",
  "canonicalName": "SQL Admin",
  "version": "v1beta3",
- "revision": "20141112",
+ "revision": "20150109",
  "title": "Cloud SQL Administration API",
  "description": "API for Cloud SQL database instance management.",
  "ownerDomain": "google.com",
@@ -1171,6 +1171,7 @@
       "$ref": "BackupRun"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1219,6 +1220,7 @@
       "$ref": "BackupRunsListResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     }
@@ -1235,6 +1237,7 @@
       "$ref": "FlagsListResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     }
@@ -1265,6 +1268,7 @@
       "$ref": "InstancesCloneResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1295,6 +1299,7 @@
       "$ref": "InstancesDeleteResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1358,6 +1363,7 @@
       "$ref": "DatabaseInstance"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1417,6 +1423,7 @@
       "$ref": "InstancesInsertResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1451,6 +1458,7 @@
       "$ref": "InstancesListResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1484,6 +1492,7 @@
       "$ref": "InstancesUpdateResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1514,6 +1523,7 @@
       "$ref": "InstancesPromoteReplicaResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1544,6 +1554,7 @@
       "$ref": "InstancesResetSslConfigResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1574,6 +1585,7 @@
       "$ref": "InstancesRestartResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1618,6 +1630,7 @@
       "$ref": "InstancesRestoreBackupResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1651,6 +1664,7 @@
       "$ref": "InstancesSetRootPasswordResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1685,6 +1699,7 @@
       "$ref": "InstancesUpdateResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     }
@@ -1726,6 +1741,7 @@
       "$ref": "InstanceOperation"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1767,6 +1783,7 @@
       "$ref": "OperationsListResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     }
@@ -1808,6 +1825,7 @@
       "$ref": "SslCertsDeleteResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1845,6 +1863,7 @@
       "$ref": "SslCert"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1878,6 +1897,7 @@
       "$ref": "SslCertsInsertResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     },
@@ -1908,6 +1928,7 @@
       "$ref": "SslCertsListResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     }
@@ -1935,6 +1956,7 @@
       "$ref": "TiersListResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/sqlservice.admin"
      ]
     }

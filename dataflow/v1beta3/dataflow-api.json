@@ -1,11 +1,12 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/hhVDITVmyhfKZ7lgzSCcyF5BTcw\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/p23x-gNsMm8R6x-RDoeYGjGvTE0\"",
  "discoveryVersion": "v1",
  "id": "dataflow:v1beta3",
  "name": "dataflow",
  "version": "v1beta3",
- "revision": "20141128",
+ "revision": "20150130",
+ "title": "Google Dataflow API",
  "description": "Google Dataflow API.",
  "ownerDomain": "google.com",
  "ownerName": "Google",
@@ -189,6 +190,12 @@
      "type": "array",
      "items": {
       "type": "string"
+     }
+    },
+    "sdkPipelineOptions": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "any"
      }
     },
     "tempStoragePrefix": {
@@ -700,7 +707,16 @@
    "id": "PubsubLocation",
    "type": "object",
    "properties": {
+    "dropLateData": {
+     "type": "boolean"
+    },
+    "idLabel": {
+     "type": "string"
+    },
     "subscription": {
+     "type": "string"
+    },
+    "timestampLabel": {
      "type": "string"
     },
     "topic": {
@@ -874,6 +890,18 @@
      "additionalProperties": {
       "type": "any"
      }
+    }
+   }
+  },
+  "SourceFork": {
+   "id": "SourceFork",
+   "type": "object",
+   "properties": {
+    "primary": {
+     "$ref": "SourceSplitShard"
+    },
+    "residual": {
+     "$ref": "SourceSplitShard"
     }
    }
   },
@@ -1130,6 +1158,9 @@
     "parallelWorkerSettings": {
      "$ref": "WorkerSettings"
     },
+    "streamingWorkerMainClass": {
+     "type": "string"
+    },
     "taskGroup": {
      "type": "string"
     },
@@ -1263,6 +1294,9 @@
     },
     "requestedLeaseDuration": {
      "type": "string"
+    },
+    "sourceFork": {
+     "$ref": "SourceFork"
     },
     "sourceOperationResponse": {
      "$ref": "SourceOperationResponse"

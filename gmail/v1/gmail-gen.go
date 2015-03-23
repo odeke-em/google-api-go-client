@@ -66,10 +66,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Users *UsersService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewUsersService(s *Service) *UsersService {
@@ -165,8 +173,46 @@ type History struct {
 	// Id: The mailbox sequence ID.
 	Id uint64 `json:"id,omitempty,string"`
 
-	// Messages: The messages that changed in this history record.
+	// LabelsAdded: Labels added to messages in this history record.
+	LabelsAdded []*HistoryLabelAdded `json:"labelsAdded,omitempty"`
+
+	// LabelsRemoved: Labels removed from messages in this history record.
+	LabelsRemoved []*HistoryLabelRemoved `json:"labelsRemoved,omitempty"`
+
+	// Messages: List of messages changed in this history record. The fields
+	// for specific change types, such as messagesAdded may duplicate
+	// messages in this field. We recommend using the specific change-type
+	// fields instead of this.
 	Messages []*Message `json:"messages,omitempty"`
+
+	// MessagesAdded: Messages added to the mailbox in this history record.
+	MessagesAdded []*HistoryMessageAdded `json:"messagesAdded,omitempty"`
+
+	// MessagesDeleted: Messages deleted (not Trashed) from the mailbox in
+	// this history record.
+	MessagesDeleted []*HistoryMessageDeleted `json:"messagesDeleted,omitempty"`
+}
+
+type HistoryLabelAdded struct {
+	// LabelIds: Label IDs added to the message.
+	LabelIds []string `json:"labelIds,omitempty"`
+
+	Message *Message `json:"message,omitempty"`
+}
+
+type HistoryLabelRemoved struct {
+	// LabelIds: Label IDs removed from the message.
+	LabelIds []string `json:"labelIds,omitempty"`
+
+	Message *Message `json:"message,omitempty"`
+}
+
+type HistoryMessageAdded struct {
+	Message *Message `json:"message,omitempty"`
+}
+
+type HistoryMessageDeleted struct {
+	Message *Message `json:"message,omitempty"`
 }
 
 type Label struct {
@@ -221,7 +267,8 @@ type ListDraftsResponse struct {
 }
 
 type ListHistoryResponse struct {
-	// History: List of history records.
+	// History: List of history records. Any messages contained in the
+	// response will typically only have id and threadId fields populated.
 	History []*History `json:"history,omitempty"`
 
 	// HistoryId: The ID of the mailbox's current history record.
@@ -433,7 +480,7 @@ func (c *UsersGetProfileCall) Do() (*Profile, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -577,13 +624,10 @@ func (c *UsersDraftsCreateCall) Do() (*Draft, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -596,6 +640,7 @@ func (c *UsersDraftsCreateCall) Do() (*Draft, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -606,6 +651,7 @@ func (c *UsersDraftsCreateCall) Do() (*Draft, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Draft
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -701,7 +747,7 @@ func (c *UsersDraftsDeleteCall) Do() error {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -793,7 +839,7 @@ func (c *UsersDraftsGetCall) Do() (*Draft, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -918,7 +964,7 @@ func (c *UsersDraftsListCall) Do() (*ListDraftsResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1075,13 +1121,10 @@ func (c *UsersDraftsSendCall) Do() (*Message, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1094,6 +1137,7 @@ func (c *UsersDraftsSendCall) Do() (*Message, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -1104,6 +1148,7 @@ func (c *UsersDraftsSendCall) Do() (*Message, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Message
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -1262,13 +1307,10 @@ func (c *UsersDraftsUpdateCall) Do() (*Draft, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1281,6 +1323,7 @@ func (c *UsersDraftsUpdateCall) Do() (*Draft, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -1291,6 +1334,7 @@ func (c *UsersDraftsUpdateCall) Do() (*Draft, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Draft
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -1440,7 +1484,7 @@ func (c *UsersHistoryListCall) Do() (*ListHistoryResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1550,7 +1594,7 @@ func (c *UsersLabelsCreateCall) Do() (*Label, error) {
 		"userId": c.userId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1635,7 +1679,7 @@ func (c *UsersLabelsDeleteCall) Do() error {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1716,7 +1760,7 @@ func (c *UsersLabelsGetCall) Do() (*Label, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1802,7 +1846,7 @@ func (c *UsersLabelsListCall) Do() (*ListLabelsResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1893,7 +1937,7 @@ func (c *UsersLabelsPatchCall) Do() (*Label, error) {
 		"id":     c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1992,7 +2036,7 @@ func (c *UsersLabelsUpdateCall) Do() (*Label, error) {
 		"id":     c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2084,7 +2128,7 @@ func (c *UsersMessagesDeleteCall) Do() error {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2184,7 +2228,7 @@ func (c *UsersMessagesGetCall) Do() (*Message, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2282,10 +2326,35 @@ func (r *UsersMessagesService) Import(userId string, message *Message) *UsersMes
 	return c
 }
 
+// Deleted sets the optional parameter "deleted": Mark the email as
+// permanently deleted (not TRASH) and only visible in Google Apps Vault
+// to a Vault administrator. Only used for Google Apps for Work
+// accounts.
+func (c *UsersMessagesImportCall) Deleted(deleted bool) *UsersMessagesImportCall {
+	c.opt_["deleted"] = deleted
+	return c
+}
+
 // InternalDateSource sets the optional parameter "internalDateSource":
 // Source for Gmail's internal date of the message.
 func (c *UsersMessagesImportCall) InternalDateSource(internalDateSource string) *UsersMessagesImportCall {
 	c.opt_["internalDateSource"] = internalDateSource
+	return c
+}
+
+// NeverMarkSpam sets the optional parameter "neverMarkSpam": Ignore the
+// Gmail spam classifier decision and never mark this email as SPAM in
+// the mailbox.
+func (c *UsersMessagesImportCall) NeverMarkSpam(neverMarkSpam bool) *UsersMessagesImportCall {
+	c.opt_["neverMarkSpam"] = neverMarkSpam
+	return c
+}
+
+// ProcessForCalendar sets the optional parameter "processForCalendar":
+// Process calendar invites in the email and add any extracted meetings
+// to the Google Calendar for this user.
+func (c *UsersMessagesImportCall) ProcessForCalendar(processForCalendar bool) *UsersMessagesImportCall {
+	c.opt_["processForCalendar"] = processForCalendar
 	return c
 }
 
@@ -2334,8 +2403,17 @@ func (c *UsersMessagesImportCall) Do() (*Message, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["deleted"]; ok {
+		params.Set("deleted", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["internalDateSource"]; ok {
 		params.Set("internalDateSource", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["neverMarkSpam"]; ok {
+		params.Set("neverMarkSpam", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["processForCalendar"]; ok {
+		params.Set("processForCalendar", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
@@ -2370,13 +2448,10 @@ func (c *UsersMessagesImportCall) Do() (*Message, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2389,6 +2464,7 @@ func (c *UsersMessagesImportCall) Do() (*Message, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2399,6 +2475,7 @@ func (c *UsersMessagesImportCall) Do() (*Message, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Message
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -2429,6 +2506,12 @@ func (c *UsersMessagesImportCall) Do() (*Message, error) {
 	//     "userId"
 	//   ],
 	//   "parameters": {
+	//     "deleted": {
+	//       "default": "false",
+	//       "description": "Mark the email as permanently deleted (not TRASH) and only visible in Google Apps Vault to a Vault administrator. Only used for Google Apps for Work accounts.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
 	//     "internalDateSource": {
 	//       "default": "dateHeader",
 	//       "description": "Source for Gmail's internal date of the message.",
@@ -2442,6 +2525,18 @@ func (c *UsersMessagesImportCall) Do() (*Message, error) {
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
+	//     },
+	//     "neverMarkSpam": {
+	//       "default": "false",
+	//       "description": "Ignore the Gmail spam classifier decision and never mark this email as SPAM in the mailbox.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
+	//     "processForCalendar": {
+	//       "default": "false",
+	//       "description": "Process calendar invites in the email and add any extracted meetings to the Google Calendar for this user.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "userId": {
 	//       "default": "me",
@@ -2488,6 +2583,15 @@ func (r *UsersMessagesService) Insert(userId string, message *Message) *UsersMes
 	c := &UsersMessagesInsertCall{s: r.s, opt_: make(map[string]interface{})}
 	c.userId = userId
 	c.message = message
+	return c
+}
+
+// Deleted sets the optional parameter "deleted": Mark the email as
+// permanently deleted (not TRASH) and only visible in Google Apps Vault
+// to a Vault administrator. Only used for Google Apps for Work
+// accounts.
+func (c *UsersMessagesInsertCall) Deleted(deleted bool) *UsersMessagesInsertCall {
+	c.opt_["deleted"] = deleted
 	return c
 }
 
@@ -2543,6 +2647,9 @@ func (c *UsersMessagesInsertCall) Do() (*Message, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["deleted"]; ok {
+		params.Set("deleted", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["internalDateSource"]; ok {
 		params.Set("internalDateSource", fmt.Sprintf("%v", v))
 	}
@@ -2579,13 +2686,10 @@ func (c *UsersMessagesInsertCall) Do() (*Message, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2598,6 +2702,7 @@ func (c *UsersMessagesInsertCall) Do() (*Message, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2608,6 +2713,7 @@ func (c *UsersMessagesInsertCall) Do() (*Message, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Message
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -2638,6 +2744,12 @@ func (c *UsersMessagesInsertCall) Do() (*Message, error) {
 	//     "userId"
 	//   ],
 	//   "parameters": {
+	//     "deleted": {
+	//       "default": "false",
+	//       "description": "Mark the email as permanently deleted (not TRASH) and only visible in Google Apps Vault to a Vault administrator. Only used for Google Apps for Work accounts.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
 	//     "internalDateSource": {
 	//       "default": "receivedTime",
 	//       "description": "Source for Gmail's internal date of the message.",
@@ -2763,7 +2875,7 @@ func (c *UsersMessagesListCall) Do() (*ListMessagesResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2882,7 +2994,7 @@ func (c *UsersMessagesModifyCall) Do() (*Message, error) {
 		"id":     c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3035,13 +3147,10 @@ func (c *UsersMessagesSendCall) Do() (*Message, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3054,6 +3163,7 @@ func (c *UsersMessagesSendCall) Do() (*Message, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -3064,6 +3174,7 @@ func (c *UsersMessagesSendCall) Do() (*Message, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 	}
 	var ret *Message
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
@@ -3158,7 +3269,7 @@ func (c *UsersMessagesTrashCall) Do() (*Message, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3246,7 +3357,7 @@ func (c *UsersMessagesUntrashCall) Do() (*Message, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3337,7 +3448,7 @@ func (c *UsersMessagesAttachmentsGetCall) Do() (*MessagePartBody, error) {
 		"messageId": c.messageId,
 		"id":        c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3434,7 +3545,7 @@ func (c *UsersThreadsDeleteCall) Do() error {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3534,7 +3645,7 @@ func (c *UsersThreadsGetCall) Do() (*Thread, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3693,7 +3804,7 @@ func (c *UsersThreadsListCall) Do() (*ListThreadsResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3813,7 +3924,7 @@ func (c *UsersThreadsModifyCall) Do() (*Thread, error) {
 		"id":     c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3904,7 +4015,7 @@ func (c *UsersThreadsTrashCall) Do() (*Thread, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3992,7 +4103,7 @@ func (c *UsersThreadsUntrashCall) Do() (*Thread, error) {
 		"userId": c.userId,
 		"id":     c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
