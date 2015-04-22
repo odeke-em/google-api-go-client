@@ -1,12 +1,12 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/HVk1_aaqWFJChNS_pb8qXf9T_6g\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/Gmiuw1CxRdCARwJufqITEQBJ4wU\"",
  "discoveryVersion": "v1",
  "id": "youtube:v3",
  "name": "youtube",
  "canonicalName": "YouTube",
  "version": "v3",
- "revision": "20150309",
+ "revision": "20150330",
  "title": "YouTube Data API",
  "description": "Programmatic access to YouTube features.",
  "ownerDomain": "google.com",
@@ -531,6 +531,182 @@
     }
    }
   },
+  "Caption": {
+   "id": "Caption",
+   "type": "object",
+   "description": "A caption resource represents a YouTube caption track. A caption track is associated with exactly one YouTube video.",
+   "properties": {
+    "etag": {
+     "type": "string",
+     "description": "Etag of this resource."
+    },
+    "id": {
+     "type": "string",
+     "description": "The ID that YouTube uses to uniquely identify the caption track.",
+     "annotations": {
+      "required": [
+       "youtube.captions.update"
+      ]
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"youtube#caption\".",
+     "default": "youtube#caption"
+    },
+    "snippet": {
+     "$ref": "CaptionSnippet",
+     "description": "The snippet object contains basic details about the caption."
+    }
+   }
+  },
+  "CaptionListResponse": {
+   "id": "CaptionListResponse",
+   "type": "object",
+   "properties": {
+    "etag": {
+     "type": "string",
+     "description": "Etag of this resource."
+    },
+    "eventId": {
+     "type": "string",
+     "description": "Serialized EventId of the request which produced this response."
+    },
+    "items": {
+     "type": "array",
+     "description": "A list of captions that match the request criteria.",
+     "items": {
+      "$ref": "Caption"
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"youtube#captionListResponse\".",
+     "default": "youtube#captionListResponse"
+    },
+    "visitorId": {
+     "type": "string",
+     "description": "The visitorId identifies the visitor."
+    }
+   }
+  },
+  "CaptionSnippet": {
+   "id": "CaptionSnippet",
+   "type": "object",
+   "description": "Basic details about a caption track, such as its language and name.",
+   "properties": {
+    "audioTrackType": {
+     "type": "string",
+     "description": "The type of audio track associated with the caption track.",
+     "enum": [
+      "commentary",
+      "descriptive",
+      "primary",
+      "unknown"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      "",
+      ""
+     ]
+    },
+    "failureReason": {
+     "type": "string",
+     "description": "The reason that YouTube failed to process the caption track. This property is only present if the state property's value is failed.",
+     "enum": [
+      "processingFailed",
+      "unknownFormat",
+      "unsupportedFormat"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      ""
+     ]
+    },
+    "isAutoSynced": {
+     "type": "boolean",
+     "description": "Indicates whether YouTube synchronized the caption track to the audio track in the video. The value will be true if a sync was explicitly requested when the caption track was uploaded. For example, when calling the captions.insert or captions.update methods, you can set the sync parameter to true to instruct YouTube to sync the uploaded track to the video. If the value is false, YouTube uses the time codes in the uploaded caption track to determine when to display captions."
+    },
+    "isCC": {
+     "type": "boolean",
+     "description": "Indicates whether the track contains closed captions for the deaf and hard of hearing. The default value is false."
+    },
+    "isDraft": {
+     "type": "boolean",
+     "description": "Indicates whether the caption track is a draft. If the value is true, then the track is not publicly visible. The default value is false."
+    },
+    "isEasyReader": {
+     "type": "boolean",
+     "description": "Indicates whether caption track is formatted for \"easy reader,\" meaning it is at a third-grade level for language learners. The default value is false."
+    },
+    "isLarge": {
+     "type": "boolean",
+     "description": "Indicates whether the caption track uses large text for the vision-impaired. The default value is false."
+    },
+    "language": {
+     "type": "string",
+     "description": "The language of the caption track. The property value is a BCP-47 language tag.",
+     "annotations": {
+      "required": [
+       "youtube.captions.insert"
+      ]
+     }
+    },
+    "lastUpdated": {
+     "type": "string",
+     "description": "The date and time when the caption track was last updated. The value is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.",
+     "format": "date-time"
+    },
+    "name": {
+     "type": "string",
+     "description": "The name of the caption track. The name is intended to be visible to the user as an option during playback.",
+     "annotations": {
+      "required": [
+       "youtube.captions.insert"
+      ]
+     }
+    },
+    "status": {
+     "type": "string",
+     "description": "The caption track's status.",
+     "enum": [
+      "failed",
+      "serving",
+      "syncing"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      ""
+     ]
+    },
+    "trackKind": {
+     "type": "string",
+     "description": "The caption track's type.",
+     "enum": [
+      "ASR",
+      "forced",
+      "standard"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      ""
+     ]
+    },
+    "videoId": {
+     "type": "string",
+     "description": "The ID that YouTube uses to uniquely identify the video associated with the caption track.",
+     "annotations": {
+      "required": [
+       "youtube.captions.insert"
+      ]
+     }
+    }
+   }
+  },
   "CdnSettings": {
    "id": "CdnSettings",
    "type": "object",
@@ -795,6 +971,15 @@
      "items": {
       "$ref": "ChannelConversionPing"
      }
+    }
+   }
+  },
+  "ChannelId": {
+   "id": "ChannelId",
+   "type": "object",
+   "properties": {
+    "value": {
+     "type": "string"
     }
    }
   },
@@ -1214,6 +1399,282 @@
      "items": {
       "type": "string"
      }
+    }
+   }
+  },
+  "Comment": {
+   "id": "Comment",
+   "type": "object",
+   "description": "A comment represents a single YouTube comment.",
+   "properties": {
+    "etag": {
+     "type": "string",
+     "description": "Etag of this resource."
+    },
+    "id": {
+     "type": "string",
+     "description": "The ID that YouTube uses to uniquely identify the comment."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"youtube#comment\".",
+     "default": "youtube#comment"
+    },
+    "snippet": {
+     "$ref": "CommentSnippet",
+     "description": "The snippet object contains basic details about the comment."
+    }
+   }
+  },
+  "CommentListResponse": {
+   "id": "CommentListResponse",
+   "type": "object",
+   "properties": {
+    "etag": {
+     "type": "string",
+     "description": "Etag of this resource."
+    },
+    "eventId": {
+     "type": "string",
+     "description": "Serialized EventId of the request which produced this response."
+    },
+    "items": {
+     "type": "array",
+     "description": "A list of comments that match the request criteria.",
+     "items": {
+      "$ref": "Comment"
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"youtube#commentListResponse\".",
+     "default": "youtube#commentListResponse"
+    },
+    "nextPageToken": {
+     "type": "string",
+     "description": "The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set."
+    },
+    "pageInfo": {
+     "$ref": "PageInfo"
+    },
+    "tokenPagination": {
+     "$ref": "TokenPagination"
+    },
+    "visitorId": {
+     "type": "string",
+     "description": "The visitorId identifies the visitor."
+    }
+   }
+  },
+  "CommentSnippet": {
+   "id": "CommentSnippet",
+   "type": "object",
+   "description": "Basic details about a comment, such as its author and text.",
+   "properties": {
+    "authorChannelId": {
+     "$ref": "ChannelId",
+     "description": "The id of the author's YouTube channel, if any."
+    },
+    "authorChannelUrl": {
+     "type": "string",
+     "description": "Link to the author's YouTube channel, if any."
+    },
+    "authorDisplayName": {
+     "type": "string",
+     "description": "The name of the user who posted the comment."
+    },
+    "authorGoogleplusProfileUrl": {
+     "type": "string",
+     "description": "Link to the author's Google+ profile, if any."
+    },
+    "authorProfileImageUrl": {
+     "type": "string",
+     "description": "The URL for the avatar of the user who posted the comment."
+    },
+    "canRate": {
+     "type": "boolean",
+     "description": "Whether the current viewer can rate this comment."
+    },
+    "channelId": {
+     "type": "string",
+     "description": "The id of the corresponding YouTube channel. In case of a channel comment this is the channel the comment refers to. In case of a video comment it's the video's channel."
+    },
+    "likeCount": {
+     "type": "integer",
+     "description": "The total number of likes this comment has received.",
+     "format": "uint32"
+    },
+    "moderationStatus": {
+     "type": "string",
+     "description": "The comment's moderation status. Will not be set if the comments were requested through the id filter.",
+     "enum": [
+      "heldForReview",
+      "likelySpam",
+      "published",
+      "rejected"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      "",
+      ""
+     ]
+    },
+    "parentId": {
+     "type": "string",
+     "description": "The unique id of the parent comment, only set for replies."
+    },
+    "publishedAt": {
+     "type": "string",
+     "description": "The date and time when the comment was orignally published. The value is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.",
+     "format": "date-time"
+    },
+    "textDisplay": {
+     "type": "string",
+     "description": "The comment's text. The format is either plain text or HTML dependent on what has been requested. Even the plain text representation may differ from the text originally posted in that it may replace video links with video titles etc."
+    },
+    "textOriginal": {
+     "type": "string",
+     "description": "The comment's original raw text as initially posted or last updated. The original text will only be returned if it is accessible to the viewer, which is only guaranteed if the viewer is the comment's author."
+    },
+    "updatedAt": {
+     "type": "string",
+     "description": "The date and time when was last updated . The value is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.",
+     "format": "date-time"
+    },
+    "videoId": {
+     "type": "string",
+     "description": "The ID of the video the comment refers to, if any."
+    },
+    "viewerRating": {
+     "type": "string",
+     "description": "The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future.",
+     "enum": [
+      "dislike",
+      "like",
+      "none",
+      "unspecified"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      "",
+      ""
+     ]
+    }
+   }
+  },
+  "CommentThread": {
+   "id": "CommentThread",
+   "type": "object",
+   "description": "A comment thread represents information that applies to a top level comment and all its replies. It can also include the top level comment itself and some of the replies.",
+   "properties": {
+    "etag": {
+     "type": "string",
+     "description": "Etag of this resource."
+    },
+    "id": {
+     "type": "string",
+     "description": "The ID that YouTube uses to uniquely identify the comment thread."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"youtube#commentThread\".",
+     "default": "youtube#commentThread"
+    },
+    "replies": {
+     "$ref": "CommentThreadReplies",
+     "description": "The replies object contains a limited number of replies (if any) to the top level comment found in the snippet."
+    },
+    "snippet": {
+     "$ref": "CommentThreadSnippet",
+     "description": "The snippet object contains basic details about the comment thread and also the top level comment."
+    }
+   }
+  },
+  "CommentThreadListResponse": {
+   "id": "CommentThreadListResponse",
+   "type": "object",
+   "properties": {
+    "etag": {
+     "type": "string",
+     "description": "Etag of this resource."
+    },
+    "eventId": {
+     "type": "string",
+     "description": "Serialized EventId of the request which produced this response."
+    },
+    "items": {
+     "type": "array",
+     "description": "A list of comment threads that match the request criteria.",
+     "items": {
+      "$ref": "CommentThread"
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"youtube#commentThreadListResponse\".",
+     "default": "youtube#commentThreadListResponse"
+    },
+    "nextPageToken": {
+     "type": "string",
+     "description": "The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set."
+    },
+    "pageInfo": {
+     "$ref": "PageInfo"
+    },
+    "tokenPagination": {
+     "$ref": "TokenPagination"
+    },
+    "visitorId": {
+     "type": "string",
+     "description": "The visitorId identifies the visitor."
+    }
+   }
+  },
+  "CommentThreadReplies": {
+   "id": "CommentThreadReplies",
+   "type": "object",
+   "description": "Comments written in (direct or indirect) reply to the top level comment.",
+   "properties": {
+    "comments": {
+     "type": "array",
+     "description": "A limited number of replies. Unless the number of replies returned equals total_reply_count in the snippet the returned replies are only a subset of the total number of replies.",
+     "items": {
+      "$ref": "Comment"
+     }
+    }
+   }
+  },
+  "CommentThreadSnippet": {
+   "id": "CommentThreadSnippet",
+   "type": "object",
+   "description": "Basic details about a comment thread.",
+   "properties": {
+    "canReply": {
+     "type": "boolean",
+     "description": "Whether the current viewer of the thread can reply to it. This is viewer specific - other viewers may see a different value for this field."
+    },
+    "channelId": {
+     "type": "string",
+     "description": "The YouTube channel the comments in the thread refer to or the channel with the video the comments refer to. If video_id isn't set the comments refer to the channel itself."
+    },
+    "isPublic": {
+     "type": "boolean",
+     "description": "Whether the thread (and therefore all its comments) is visible to all YouTube users."
+    },
+    "topLevelComment": {
+     "$ref": "Comment",
+     "description": "The top level comment of this thread."
+    },
+    "totalReplyCount": {
+     "type": "integer",
+     "description": "The total number of replies (not including the top level comment).",
+     "format": "uint32"
+    },
+    "videoId": {
+     "type": "string",
+     "description": "The ID of the video the comments refer to, if any. No video_id implies a channel discussion comment."
     }
    }
   },
@@ -5631,6 +6092,265 @@
     }
    }
   },
+  "captions": {
+   "methods": {
+    "delete": {
+     "id": "youtube.captions.delete",
+     "path": "captions",
+     "httpMethod": "DELETE",
+     "description": "Deletes a specified caption track.",
+     "parameters": {
+      "debugProjectIdOverride": {
+       "type": "string",
+       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+       "format": "int64",
+       "location": "query"
+      },
+      "id": {
+       "type": "string",
+       "description": "The id parameter identifies the caption track that is being deleted. The value is a caption track ID as identified by the id property in a caption resource.",
+       "required": true,
+       "location": "query"
+      },
+      "onBehalfOf": {
+       "type": "string",
+       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "id"
+     ],
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "download": {
+     "id": "youtube.captions.download",
+     "path": "captions/{id}",
+     "httpMethod": "GET",
+     "description": "Downloads a caption track. The caption track is returned in its original format unless the request specifies a value for the tfmt parameter and in its original language unless the request specifies a value for the tlang parameter.",
+     "parameters": {
+      "debugProjectIdOverride": {
+       "type": "string",
+       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+       "format": "int64",
+       "location": "query"
+      },
+      "id": {
+       "type": "string",
+       "description": "The id parameter identifies the caption track that is being retrieved. The value is a caption track ID as identified by the id property in a caption resource.",
+       "required": true,
+       "location": "path"
+      },
+      "onBehalfOf": {
+       "type": "string",
+       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+       "location": "query"
+      },
+      "tfmt": {
+       "type": "string",
+       "description": "The tfmt parameter specifies that the caption track should be returned in a specific format. If the parameter is not included in the request, the track is returned in its original format.",
+       "enum": [
+        "sbv",
+        "scc",
+        "srt",
+        "ttml",
+        "vtt"
+       ],
+       "enumDescriptions": [
+        "SubViewer subtitle.",
+        "Scenarist Closed Caption format.",
+        "SubRip subtitle.",
+        "Timed Text Markup Language caption.",
+        "Web Video Text Tracks caption."
+       ],
+       "location": "query"
+      },
+      "tlang": {
+       "type": "string",
+       "description": "The tlang parameter specifies that the API response should return a translation of the specified caption track. The parameter value is an ISO 639-1 two-letter language code that identifies the desired caption language. The translation is generated by using machine translation, such as Google Translate.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "id"
+     ],
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ],
+     "supportsMediaDownload": true
+    },
+    "insert": {
+     "id": "youtube.captions.insert",
+     "path": "captions",
+     "httpMethod": "POST",
+     "description": "Uploads a caption track.",
+     "parameters": {
+      "debugProjectIdOverride": {
+       "type": "string",
+       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+       "format": "int64",
+       "location": "query"
+      },
+      "onBehalfOf": {
+       "type": "string",
+       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+       "location": "query"
+      },
+      "part": {
+       "type": "string",
+       "description": "The part parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
+       "required": true,
+       "location": "query"
+      },
+      "sync": {
+       "type": "boolean",
+       "description": "The sync parameter indicates whether YouTube should automatically synchronize the caption file with the audio track of the video. If you set the value to true, YouTube will disregard any time codes that are in the uploaded caption file and generate new time codes for the captions.\n\nYou should set the sync parameter to true if you are uploading a transcript, which has no time codes, or if you suspect the time codes in your file are incorrect and want YouTube to try to fix them.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "request": {
+      "$ref": "Caption"
+     },
+     "response": {
+      "$ref": "Caption"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ],
+     "supportsMediaUpload": true,
+     "mediaUpload": {
+      "accept": [
+       "*/*",
+       "application/octet-stream",
+       "text/xml"
+      ],
+      "maxSize": "100MB",
+      "protocols": {
+       "simple": {
+        "multipart": true,
+        "path": "/upload/youtube/v3/captions"
+       },
+       "resumable": {
+        "multipart": true,
+        "path": "/resumable/upload/youtube/v3/captions"
+       }
+      }
+     }
+    },
+    "list": {
+     "id": "youtube.captions.list",
+     "path": "captions",
+     "httpMethod": "GET",
+     "description": "Returns a list of caption tracks that are associated with a specified video. Note that the API response does not contain the actual captions and that the captions.download method provides the ability to retrieve a caption track.",
+     "parameters": {
+      "debugProjectIdOverride": {
+       "type": "string",
+       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+       "format": "int64",
+       "location": "query"
+      },
+      "id": {
+       "type": "string",
+       "description": "The id parameter specifies a comma-separated list of IDs that identify the caption resources that should be retrieved. Each ID must identify a caption track associated with the specified video.",
+       "location": "query"
+      },
+      "onBehalfOf": {
+       "type": "string",
+       "description": "ID of the Google+ Page for the channel that the request is on behalf of.",
+       "location": "query"
+      },
+      "part": {
+       "type": "string",
+       "description": "The part parameter specifies a comma-separated list of one or more caption resource parts that the API response will include. The part names that you can include in the parameter value are id and snippet.",
+       "required": true,
+       "location": "query"
+      },
+      "videoId": {
+       "type": "string",
+       "description": "The videoId parameter specifies the YouTube video ID of the video for which the API should return caption tracks.",
+       "required": true,
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part",
+      "videoId"
+     ],
+     "response": {
+      "$ref": "CaptionListResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "update": {
+     "id": "youtube.captions.update",
+     "path": "captions",
+     "httpMethod": "PUT",
+     "description": "Updates a caption track. When updating a caption track, you can change the track's draft status, upload a new caption file for the track, or both.",
+     "parameters": {
+      "debugProjectIdOverride": {
+       "type": "string",
+       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+       "format": "int64",
+       "location": "query"
+      },
+      "onBehalfOf": {
+       "type": "string",
+       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+       "location": "query"
+      },
+      "part": {
+       "type": "string",
+       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Set the property value to snippet if you are updating the track's draft status. Otherwise, set the property value to id.",
+       "required": true,
+       "location": "query"
+      },
+      "sync": {
+       "type": "boolean",
+       "description": "Note: The API server only processes the parameter value if the request contains an updated caption file.\n\nThe sync parameter indicates whether YouTube should automatically synchronize the caption file with the audio track of the video. If you set the value to true, YouTube will automatically synchronize the caption track with the audio track.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "request": {
+      "$ref": "Caption"
+     },
+     "response": {
+      "$ref": "Caption"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ],
+     "supportsMediaUpload": true,
+     "mediaUpload": {
+      "accept": [
+       "*/*",
+       "application/octet-stream",
+       "text/xml"
+      ],
+      "maxSize": "100MB",
+      "protocols": {
+       "simple": {
+        "multipart": true,
+        "path": "/upload/youtube/v3/captions"
+       },
+       "resumable": {
+        "multipart": true,
+        "path": "/resumable/upload/youtube/v3/captions"
+       }
+      }
+     }
+    }
+   }
+  },
   "channelBanners": {
    "methods": {
     "insert": {
@@ -5756,6 +6476,11 @@
        "description": "The channelId parameter specifies a YouTube channel ID. The API will only return that channel's channelSections.",
        "location": "query"
       },
+      "hl": {
+       "type": "string",
+       "description": "The hl parameter indicates that the snippet.localized property values in the returned channelSection resources should be in the specified language if localized values for that language are available. For example, if the API request specifies hl=de, the snippet.localized properties in the API response will contain German titles if German titles are available. Channel owners can provide localized channel section titles using either the channelSections.insert or channelSections.update method.",
+       "location": "query"
+      },
       "id": {
        "type": "string",
        "description": "The id parameter specifies a comma-separated list of the YouTube channelSection ID(s) for the resource(s) that are being retrieved. In a channelSection resource, the id property specifies the YouTube channelSection ID.",
@@ -5842,6 +6567,11 @@
       "forUsername": {
        "type": "string",
        "description": "The forUsername parameter specifies a YouTube username, thereby requesting the channel associated with that username.",
+       "location": "query"
+      },
+      "hl": {
+       "type": "string",
+       "description": "The hl parameter should be used for filter out the properties that are not in the given language. Used for the brandingSettings part.",
        "location": "query"
       },
       "id": {
@@ -5935,6 +6665,360 @@
       "https://www.googleapis.com/auth/youtube",
       "https://www.googleapis.com/auth/youtube.force-ssl",
       "https://www.googleapis.com/auth/youtubepartner"
+     ]
+    }
+   }
+  },
+  "commentThreads": {
+   "methods": {
+    "insert": {
+     "id": "youtube.commentThreads.insert",
+     "path": "commentThreads",
+     "httpMethod": "POST",
+     "description": "Creates a new comment thread and top level comment.",
+     "parameters": {
+      "part": {
+       "type": "string",
+       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+       "required": true,
+       "location": "query"
+      },
+      "shareOnGooglePlus": {
+       "type": "boolean",
+       "description": "The shareOnGooglePlus determines whether this thread should also be posted on Google+.",
+       "default": "false",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "request": {
+      "$ref": "CommentThread"
+     },
+     "response": {
+      "$ref": "CommentThread"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "list": {
+     "id": "youtube.commentThreads.list",
+     "path": "commentThreads",
+     "httpMethod": "GET",
+     "description": "Returns a list of comment threads that match the API request parameters.",
+     "parameters": {
+      "allThreadsRelatedToChannelId": {
+       "type": "string",
+       "description": "The allThreadsRelatedToChannelId parameter instructs the API to return the comment threads of all videos of the channel and the channel comments as well.",
+       "location": "query"
+      },
+      "channelId": {
+       "type": "string",
+       "description": "The channelId parameter instructs the API to return the comment threads for all the channel comments (not including comments left on videos).",
+       "location": "query"
+      },
+      "id": {
+       "type": "string",
+       "description": "The id parameter specifies a comma-separated list of comment thread IDs for the resources that should be retrieved.",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+       "default": "20",
+       "format": "uint32",
+       "minimum": "1",
+       "maximum": "100",
+       "location": "query"
+      },
+      "moderationStatus": {
+       "type": "string",
+       "description": "Set this parameter to limit the returned comment threads to a particular moderation state.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+       "default": "published",
+       "enum": [
+        "heldForReview",
+        "likelySpam",
+        "published"
+       ],
+       "enumDescriptions": [
+        "Returns only comment threads awaiting review by a moderator.",
+        "Returns only comment threads classified as likely being spam.",
+        "Returns only published comment threads."
+       ],
+       "location": "query"
+      },
+      "pageToken": {
+       "type": "string",
+       "description": "The pageToken parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identifies the next page of the result that can be retrieved.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+       "location": "query"
+      },
+      "part": {
+       "type": "string",
+       "description": "The part parameter specifies the commentThread resource parts that the API response will include. Supported values are id, snippet and replies.",
+       "required": true,
+       "location": "query"
+      },
+      "searchTerms": {
+       "type": "string",
+       "description": "The searchTerms parameter instructs the API to limit the returned comments to those which contain the specified search terms.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+       "location": "query"
+      },
+      "textFormat": {
+       "type": "string",
+       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users in html formatted or in plain text.",
+       "default": "FORMAT_HTML",
+       "enum": [
+        "html",
+        "plainText"
+       ],
+       "enumDescriptions": [
+        "Returns the comments in HTML format.",
+        "Returns the comments in plain text format."
+       ],
+       "location": "query"
+      },
+      "videoId": {
+       "type": "string",
+       "description": "The videoId parameter instructs the API to return the comment threads for the video specified by the video id.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "response": {
+      "$ref": "CommentThreadListResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "update": {
+     "id": "youtube.commentThreads.update",
+     "path": "commentThreads",
+     "httpMethod": "PUT",
+     "description": "Modifies an existing comment.",
+     "parameters": {
+      "part": {
+       "type": "string",
+       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id, snippet and replies. However only snippet contains properties that can be updated.",
+       "required": true,
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "request": {
+      "$ref": "CommentThread"
+     },
+     "response": {
+      "$ref": "CommentThread"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    }
+   }
+  },
+  "comments": {
+   "methods": {
+    "delete": {
+     "id": "youtube.comments.delete",
+     "path": "comments",
+     "httpMethod": "DELETE",
+     "description": "Deletes a comment.",
+     "parameters": {
+      "id": {
+       "type": "string",
+       "description": "The id parameter specifies the comment ID for the resource that should be deleted.",
+       "required": true,
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "id"
+     ],
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "insert": {
+     "id": "youtube.comments.insert",
+     "path": "comments",
+     "httpMethod": "POST",
+     "description": "Creates a new comment.\n\nNote: to create a top level comment it is also necessary to create a comment thread. Both are accomplished through the commentThreads resource.",
+     "parameters": {
+      "part": {
+       "type": "string",
+       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+       "required": true,
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "request": {
+      "$ref": "Comment"
+     },
+     "response": {
+      "$ref": "Comment"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "list": {
+     "id": "youtube.comments.list",
+     "path": "comments",
+     "httpMethod": "GET",
+     "description": "Returns a list of comments that match the API request parameters.",
+     "parameters": {
+      "id": {
+       "type": "string",
+       "description": "The id parameter specifies a comma-separated list of comment IDs for the resources that should be retrieved.",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+       "default": "20",
+       "format": "uint32",
+       "minimum": "1",
+       "maximum": "100",
+       "location": "query"
+      },
+      "pageToken": {
+       "type": "string",
+       "description": "The pageToken parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identifies the next page of the result that can be retrieved.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+       "location": "query"
+      },
+      "parentId": {
+       "type": "string",
+       "description": "The parentId parameter specifies the ID of the comment for which replies should be retrieved.\n\nNote: Currently YouTube features only one level of replies (ie replies to top level comments). However replies to replies may be supported in the future.",
+       "location": "query"
+      },
+      "part": {
+       "type": "string",
+       "description": "The part parameter specifies the comment resource parts that the API response will include. Supported values are id and snippet.",
+       "required": true,
+       "location": "query"
+      },
+      "textFormat": {
+       "type": "string",
+       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users formatted as HTML or as plain text.",
+       "default": "FORMAT_HTML",
+       "enum": [
+        "html",
+        "plainText"
+       ],
+       "enumDescriptions": [
+        "Returns the comments in HTML format.",
+        "Returns the comments in plain text format."
+       ],
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "response": {
+      "$ref": "CommentListResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "markAsSpam": {
+     "id": "youtube.comments.markAsSpam",
+     "path": "comments/markAsSpam",
+     "httpMethod": "POST",
+     "description": "Expresses the caller's opinion that a comment is spam.",
+     "parameters": {
+      "id": {
+       "type": "string",
+       "description": "The id parameter specifies a comma-separated list of IDs of comments which should get flagged as spam.",
+       "required": true,
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "id"
+     ],
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "setModerationStatus": {
+     "id": "youtube.comments.setModerationStatus",
+     "path": "comments/setModerationStatus",
+     "httpMethod": "POST",
+     "description": "Sets the moderation status of one or more comments.",
+     "parameters": {
+      "banAuthor": {
+       "type": "boolean",
+       "description": "The banAuthor paramter, if set to true, adds the author of the comment to the ban list. This means all future comments of the author will autmomatically be rejected.\n\nNote: This parameter is only valid in combination with moderationStatus 'rejected'.",
+       "default": "false",
+       "location": "query"
+      },
+      "id": {
+       "type": "string",
+       "description": "The id parameter specifies a comma-separated list of IDs of comments whose moderation status should be updated.",
+       "required": true,
+       "location": "query"
+      },
+      "moderationStatus": {
+       "type": "string",
+       "description": "Determines the new moderation status of the specified comments.",
+       "required": true,
+       "enum": [
+        "heldForReview",
+        "published",
+        "rejected"
+       ],
+       "enumDescriptions": [
+        "Marks a comment as awaiting review by a moderator.",
+        "Clears a comment for public display.",
+        "Rejects a comment as not fit for display.\n\nNote: currently there is no way to list or otherwise discover a rejected comment. However it is possible to change its moderation status as long as its ID is still known.\n\nNote: Currently, if you reject a comment you effectively also hide all its replies as there is no longer any way to discover them. This may change in the future."
+       ],
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "id",
+      "moderationStatus"
+     ],
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+     ]
+    },
+    "update": {
+     "id": "youtube.comments.update",
+     "path": "comments",
+     "httpMethod": "PUT",
+     "description": "Modifies an existing comment.",
+     "parameters": {
+      "part": {
+       "type": "string",
+       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be updated.",
+       "required": true,
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "part"
+     ],
+     "request": {
+      "$ref": "Comment"
+     },
+     "response": {
+      "$ref": "Comment"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
      ]
     }
    }
@@ -6798,6 +7882,11 @@
        "description": "This value indicates that the API should only return the specified channel's playlists.",
        "location": "query"
       },
+      "hl": {
+       "type": "string",
+       "description": "The hl parameter should be used for filter out the properties that are not in the given language. Used for the snippet part.",
+       "location": "query"
+      },
       "id": {
        "type": "string",
        "description": "The id parameter specifies a comma-separated list of the YouTube playlist ID(s) for the resource(s) that are being retrieved. In a playlist resource, the id property specifies the playlist's YouTube playlist ID.",
@@ -6931,6 +8020,11 @@
       "forContentOwner": {
        "type": "boolean",
        "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe forContentOwner parameter restricts the search to only retrieve resources owned by the content owner specified by the onBehalfOfContentOwner parameter. The user must be authenticated using a CMS account linked to the specified content owner and onBehalfOfContentOwner must be provided.",
+       "location": "query"
+      },
+      "forDeveloper": {
+       "type": "boolean",
+       "description": "The forDeveloper parameter restricts the search to only retrieve videos uploaded via the developer's application or website. The API server uses the request's authorization credentials to identify the developer. Therefore, a developer can restrict results to videos uploaded through the developer's own app or website but not to videos uploaded through other apps or sites.",
        "location": "query"
       },
       "forMine": {

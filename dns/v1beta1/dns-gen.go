@@ -142,8 +142,7 @@ type Change struct {
 	// This is in RFC3339 text format.
 	StartTime string `json:"startTime,omitempty"`
 
-	// Status: Status of the operation. Can be one of the following:
-	// "PENDING" or "DONE" (output only).
+	// Status: Status of the operation (output only).
 	Status string `json:"status,omitempty"`
 }
 
@@ -282,14 +281,15 @@ type ResourceRecordSet struct {
 	Name string `json:"name,omitempty"`
 
 	// Rrdatas: As defined in RFC 1035 (section 5) and RFC 1034 (section
-	// 3.6.1)
+	// 3.6.1).
 	Rrdatas []string `json:"rrdatas,omitempty"`
 
 	// Ttl: Number of seconds that this ResourceRecordSet can be cached by
 	// resolvers.
 	Ttl int64 `json:"ttl,omitempty"`
 
-	// Type: One of A, AAAA, SOA, MX, NS, TXT
+	// Type: The identifier of a supported record type, for example, A,
+	// AAAA, MX, TXT, and so on.
 	Type string `json:"type,omitempty"`
 }
 

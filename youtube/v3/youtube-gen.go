@@ -69,9 +69,12 @@ func New(client *http.Client) (*Service, error) {
 	}
 	s := &Service{client: client, BasePath: basePath}
 	s.Activities = NewActivitiesService(s)
+	s.Captions = NewCaptionsService(s)
 	s.ChannelBanners = NewChannelBannersService(s)
 	s.ChannelSections = NewChannelSectionsService(s)
 	s.Channels = NewChannelsService(s)
+	s.CommentThreads = NewCommentThreadsService(s)
+	s.Comments = NewCommentsService(s)
 	s.GuideCategories = NewGuideCategoriesService(s)
 	s.I18nLanguages = NewI18nLanguagesService(s)
 	s.I18nRegions = NewI18nRegionsService(s)
@@ -95,11 +98,17 @@ type Service struct {
 
 	Activities *ActivitiesService
 
+	Captions *CaptionsService
+
 	ChannelBanners *ChannelBannersService
 
 	ChannelSections *ChannelSectionsService
 
 	Channels *ChannelsService
+
+	CommentThreads *CommentThreadsService
+
+	Comments *CommentsService
 
 	GuideCategories *GuideCategoriesService
 
@@ -144,6 +153,15 @@ type ActivitiesService struct {
 	s *Service
 }
 
+func NewCaptionsService(s *Service) *CaptionsService {
+	rs := &CaptionsService{s: s}
+	return rs
+}
+
+type CaptionsService struct {
+	s *Service
+}
+
 func NewChannelBannersService(s *Service) *ChannelBannersService {
 	rs := &ChannelBannersService{s: s}
 	return rs
@@ -168,6 +186,24 @@ func NewChannelsService(s *Service) *ChannelsService {
 }
 
 type ChannelsService struct {
+	s *Service
+}
+
+func NewCommentThreadsService(s *Service) *CommentThreadsService {
+	rs := &CommentThreadsService{s: s}
+	return rs
+}
+
+type CommentThreadsService struct {
+	s *Service
+}
+
+func NewCommentsService(s *Service) *CommentsService {
+	rs := &CommentsService{s: s}
+	return rs
+}
+
+type CommentsService struct {
 	s *Service
 }
 
@@ -574,6 +610,102 @@ type ActivitySnippet struct {
 	Type string `json:"type,omitempty"`
 }
 
+type Caption struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID that YouTube uses to uniquely identify the caption track.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#caption".
+	Kind string `json:"kind,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the caption.
+	Snippet *CaptionSnippet `json:"snippet,omitempty"`
+}
+
+type CaptionListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of captions that match the request criteria.
+	Items []*Caption `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#captionListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type CaptionSnippet struct {
+	// AudioTrackType: The type of audio track associated with the caption
+	// track.
+	AudioTrackType string `json:"audioTrackType,omitempty"`
+
+	// FailureReason: The reason that YouTube failed to process the caption
+	// track. This property is only present if the state property's value is
+	// failed.
+	FailureReason string `json:"failureReason,omitempty"`
+
+	// IsAutoSynced: Indicates whether YouTube synchronized the caption
+	// track to the audio track in the video. The value will be true if a
+	// sync was explicitly requested when the caption track was uploaded.
+	// For example, when calling the captions.insert or captions.update
+	// methods, you can set the sync parameter to true to instruct YouTube
+	// to sync the uploaded track to the video. If the value is false,
+	// YouTube uses the time codes in the uploaded caption track to
+	// determine when to display captions.
+	IsAutoSynced bool `json:"isAutoSynced,omitempty"`
+
+	// IsCC: Indicates whether the track contains closed captions for the
+	// deaf and hard of hearing. The default value is false.
+	IsCC bool `json:"isCC,omitempty"`
+
+	// IsDraft: Indicates whether the caption track is a draft. If the value
+	// is true, then the track is not publicly visible. The default value is
+	// false.
+	IsDraft bool `json:"isDraft,omitempty"`
+
+	// IsEasyReader: Indicates whether caption track is formatted for "easy
+	// reader," meaning it is at a third-grade level for language learners.
+	// The default value is false.
+	IsEasyReader bool `json:"isEasyReader,omitempty"`
+
+	// IsLarge: Indicates whether the caption track uses large text for the
+	// vision-impaired. The default value is false.
+	IsLarge bool `json:"isLarge,omitempty"`
+
+	// Language: The language of the caption track. The property value is a
+	// BCP-47 language tag.
+	Language string `json:"language,omitempty"`
+
+	// LastUpdated: The date and time when the caption track was last
+	// updated. The value is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ)
+	// format.
+	LastUpdated string `json:"lastUpdated,omitempty"`
+
+	// Name: The name of the caption track. The name is intended to be
+	// visible to the user as an option during playback.
+	Name string `json:"name,omitempty"`
+
+	// Status: The caption track's status.
+	Status string `json:"status,omitempty"`
+
+	// TrackKind: The caption track's type.
+	TrackKind string `json:"trackKind,omitempty"`
+
+	// VideoId: The ID that YouTube uses to uniquely identify the video
+	// associated with the caption track.
+	VideoId string `json:"videoId,omitempty"`
+}
+
 type CdnSettings struct {
 	// Format: The format of the video stream that you are sending to
 	// Youtube.
@@ -758,6 +890,10 @@ type ChannelConversionPings struct {
 	// cookie). Each ping has a context, in which the app must fire the
 	// ping, and a url identifying the ping.
 	Pings []*ChannelConversionPing `json:"pings,omitempty"`
+}
+
+type ChannelId struct {
+	Value string `json:"value,omitempty"`
 }
 
 type ChannelListResponse struct {
@@ -992,6 +1128,195 @@ type ChannelTopicDetails struct {
 	// You can retrieve information about each topic using the Freebase
 	// Topic API.
 	TopicIds []string `json:"topicIds,omitempty"`
+}
+
+type Comment struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID that YouTube uses to uniquely identify the comment.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#comment".
+	Kind string `json:"kind,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the comment.
+	Snippet *CommentSnippet `json:"snippet,omitempty"`
+}
+
+type CommentListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of comments that match the request criteria.
+	Items []*Comment `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#commentListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// NextPageToken: The token that can be used as the value of the
+	// pageToken parameter to retrieve the next page in the result set.
+	NextPageToken string `json:"nextPageToken,omitempty"`
+
+	PageInfo *PageInfo `json:"pageInfo,omitempty"`
+
+	TokenPagination *TokenPagination `json:"tokenPagination,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type CommentSnippet struct {
+	// AuthorChannelId: The id of the author's YouTube channel, if any.
+	AuthorChannelId *ChannelId `json:"authorChannelId,omitempty"`
+
+	// AuthorChannelUrl: Link to the author's YouTube channel, if any.
+	AuthorChannelUrl string `json:"authorChannelUrl,omitempty"`
+
+	// AuthorDisplayName: The name of the user who posted the comment.
+	AuthorDisplayName string `json:"authorDisplayName,omitempty"`
+
+	// AuthorGoogleplusProfileUrl: Link to the author's Google+ profile, if
+	// any.
+	AuthorGoogleplusProfileUrl string `json:"authorGoogleplusProfileUrl,omitempty"`
+
+	// AuthorProfileImageUrl: The URL for the avatar of the user who posted
+	// the comment.
+	AuthorProfileImageUrl string `json:"authorProfileImageUrl,omitempty"`
+
+	// CanRate: Whether the current viewer can rate this comment.
+	CanRate bool `json:"canRate,omitempty"`
+
+	// ChannelId: The id of the corresponding YouTube channel. In case of a
+	// channel comment this is the channel the comment refers to. In case of
+	// a video comment it's the video's channel.
+	ChannelId string `json:"channelId,omitempty"`
+
+	// LikeCount: The total number of likes this comment has received.
+	LikeCount int64 `json:"likeCount,omitempty"`
+
+	// ModerationStatus: The comment's moderation status. Will not be set if
+	// the comments were requested through the id filter.
+	ModerationStatus string `json:"moderationStatus,omitempty"`
+
+	// ParentId: The unique id of the parent comment, only set for replies.
+	ParentId string `json:"parentId,omitempty"`
+
+	// PublishedAt: The date and time when the comment was orignally
+	// published. The value is specified in ISO 8601
+	// (YYYY-MM-DDThh:mm:ss.sZ) format.
+	PublishedAt string `json:"publishedAt,omitempty"`
+
+	// TextDisplay: The comment's text. The format is either plain text or
+	// HTML dependent on what has been requested. Even the plain text
+	// representation may differ from the text originally posted in that it
+	// may replace video links with video titles etc.
+	TextDisplay string `json:"textDisplay,omitempty"`
+
+	// TextOriginal: The comment's original raw text as initially posted or
+	// last updated. The original text will only be returned if it is
+	// accessible to the viewer, which is only guaranteed if the viewer is
+	// the comment's author.
+	TextOriginal string `json:"textOriginal,omitempty"`
+
+	// UpdatedAt: The date and time when was last updated . The value is
+	// specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.
+	UpdatedAt string `json:"updatedAt,omitempty"`
+
+	// VideoId: The ID of the video the comment refers to, if any.
+	VideoId string `json:"videoId,omitempty"`
+
+	// ViewerRating: The rating the viewer has given to this comment. For
+	// the time being this will never return RATE_TYPE_DISLIKE and instead
+	// return RATE_TYPE_NONE. This may change in the future.
+	ViewerRating string `json:"viewerRating,omitempty"`
+}
+
+type CommentThread struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID that YouTube uses to uniquely identify the comment thread.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#commentThread".
+	Kind string `json:"kind,omitempty"`
+
+	// Replies: The replies object contains a limited number of replies (if
+	// any) to the top level comment found in the snippet.
+	Replies *CommentThreadReplies `json:"replies,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the comment
+	// thread and also the top level comment.
+	Snippet *CommentThreadSnippet `json:"snippet,omitempty"`
+}
+
+type CommentThreadListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of comment threads that match the request criteria.
+	Items []*CommentThread `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#commentThreadListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// NextPageToken: The token that can be used as the value of the
+	// pageToken parameter to retrieve the next page in the result set.
+	NextPageToken string `json:"nextPageToken,omitempty"`
+
+	PageInfo *PageInfo `json:"pageInfo,omitempty"`
+
+	TokenPagination *TokenPagination `json:"tokenPagination,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type CommentThreadReplies struct {
+	// Comments: A limited number of replies. Unless the number of replies
+	// returned equals total_reply_count in the snippet the returned replies
+	// are only a subset of the total number of replies.
+	Comments []*Comment `json:"comments,omitempty"`
+}
+
+type CommentThreadSnippet struct {
+	// CanReply: Whether the current viewer of the thread can reply to it.
+	// This is viewer specific - other viewers may see a different value for
+	// this field.
+	CanReply bool `json:"canReply,omitempty"`
+
+	// ChannelId: The YouTube channel the comments in the thread refer to or
+	// the channel with the video the comments refer to. If video_id isn't
+	// set the comments refer to the channel itself.
+	ChannelId string `json:"channelId,omitempty"`
+
+	// IsPublic: Whether the thread (and therefore all its comments) is
+	// visible to all YouTube users.
+	IsPublic bool `json:"isPublic,omitempty"`
+
+	// TopLevelComment: The top level comment of this thread.
+	TopLevelComment *Comment `json:"topLevelComment,omitempty"`
+
+	// TotalReplyCount: The total number of replies (not including the top
+	// level comment).
+	TotalReplyCount int64 `json:"totalReplyCount,omitempty"`
+
+	// VideoId: The ID of the video the comments refer to, if any. No
+	// video_id implies a channel discussion comment.
+	VideoId string `json:"videoId,omitempty"`
 }
 
 type ContentRating struct {
@@ -3501,6 +3826,870 @@ func (c *ActivitiesListCall) Do() (*ActivityListResponse, error) {
 
 }
 
+// method id "youtube.captions.delete":
+
+type CaptionsDeleteCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// Delete: Deletes a specified caption track.
+func (r *CaptionsService) Delete(id string) *CaptionsDeleteCall {
+	c := &CaptionsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID
+func (c *CaptionsDeleteCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsDeleteCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsDeleteCall) OnBehalfOf(onBehalfOf string) *CaptionsDeleteCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsDeleteCall) Fields(s ...googleapi.Field) *CaptionsDeleteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsDeleteCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Deletes a specified caption track.",
+	//   "httpMethod": "DELETE",
+	//   "id": "youtube.captions.delete",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter identifies the caption track that is being deleted. The value is a caption track ID as identified by the id property in a caption resource.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.captions.download":
+
+type CaptionsDownloadCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// Download: Downloads a caption track. The caption track is returned in
+// its original format unless the request specifies a value for the tfmt
+// parameter and in its original language unless the request specifies a
+// value for the tlang parameter.
+func (r *CaptionsService) Download(id string) *CaptionsDownloadCall {
+	c := &CaptionsDownloadCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID
+func (c *CaptionsDownloadCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsDownloadCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsDownloadCall) OnBehalfOf(onBehalfOf string) *CaptionsDownloadCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Tfmt sets the optional parameter "tfmt": The tfmt parameter specifies
+// that the caption track should be returned in a specific format. If
+// the parameter is not included in the request, the track is returned
+// in its original format.
+func (c *CaptionsDownloadCall) Tfmt(tfmt string) *CaptionsDownloadCall {
+	c.opt_["tfmt"] = tfmt
+	return c
+}
+
+// Tlang sets the optional parameter "tlang": The tlang parameter
+// specifies that the API response should return a translation of the
+// specified caption track. The parameter value is an ISO 639-1
+// two-letter language code that identifies the desired caption
+// language. The translation is generated by using machine translation,
+// such as Google Translate.
+func (c *CaptionsDownloadCall) Tlang(tlang string) *CaptionsDownloadCall {
+	c.opt_["tlang"] = tlang
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsDownloadCall) Fields(s ...googleapi.Field) *CaptionsDownloadCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsDownloadCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["tfmt"]; ok {
+		params.Set("tfmt", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["tlang"]; ok {
+		params.Set("tlang", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions/{id}")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"id": c.id,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Downloads a caption track. The caption track is returned in its original format unless the request specifies a value for the tfmt parameter and in its original language unless the request specifies a value for the tlang parameter.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.captions.download",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter identifies the caption track that is being retrieved. The value is a caption track ID as identified by the id property in a caption resource.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "tfmt": {
+	//       "description": "The tfmt parameter specifies that the caption track should be returned in a specific format. If the parameter is not included in the request, the track is returned in its original format.",
+	//       "enum": [
+	//         "sbv",
+	//         "scc",
+	//         "srt",
+	//         "ttml",
+	//         "vtt"
+	//       ],
+	//       "enumDescriptions": [
+	//         "SubViewer subtitle.",
+	//         "Scenarist Closed Caption format.",
+	//         "SubRip subtitle.",
+	//         "Timed Text Markup Language caption.",
+	//         "Web Video Text Tracks caption."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "tlang": {
+	//       "description": "The tlang parameter specifies that the API response should return a translation of the specified caption track. The parameter value is an ISO 639-1 two-letter language code that identifies the desired caption language. The translation is generated by using machine translation, such as Google Translate.",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "captions/{id}",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ],
+	//   "supportsMediaDownload": true
+	// }
+
+}
+
+// method id "youtube.captions.insert":
+
+type CaptionsInsertCall struct {
+	s          *Service
+	part       string
+	caption    *Caption
+	opt_       map[string]interface{}
+	media_     io.Reader
+	resumable_ googleapi.SizeReaderAt
+	mediaType_ string
+	ctx_       context.Context
+	protocol_  string
+}
+
+// Insert: Uploads a caption track.
+func (r *CaptionsService) Insert(part string, caption *Caption) *CaptionsInsertCall {
+	c := &CaptionsInsertCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.caption = caption
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID.
+func (c *CaptionsInsertCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsInsertCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsInsertCall) OnBehalfOf(onBehalfOf string) *CaptionsInsertCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Sync sets the optional parameter "sync": The sync parameter indicates
+// whether YouTube should automatically synchronize the caption file
+// with the audio track of the video. If you set the value to true,
+// YouTube will disregard any time codes that are in the uploaded
+// caption file and generate new time codes for the captions.
+//
+// You
+// should set the sync parameter to true if you are uploading a
+// transcript, which has no time codes, or if you suspect the time codes
+// in your file are incorrect and want YouTube to try to fix them.
+func (c *CaptionsInsertCall) Sync(sync bool) *CaptionsInsertCall {
+	c.opt_["sync"] = sync
+	return c
+}
+
+// Media specifies the media to upload in a single chunk.
+// At most one of Media and ResumableMedia may be set.
+func (c *CaptionsInsertCall) Media(r io.Reader) *CaptionsInsertCall {
+	c.media_ = r
+	c.protocol_ = "multipart"
+	return c
+}
+
+// ResumableMedia specifies the media to upload in chunks and can be cancelled with ctx.
+// At most one of Media and ResumableMedia may be set.
+// mediaType identifies the MIME media type of the upload, such as "image/png".
+// If mediaType is "", it will be auto-detected.
+func (c *CaptionsInsertCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *CaptionsInsertCall {
+	c.ctx_ = ctx
+	c.resumable_ = io.NewSectionReader(r, 0, size)
+	c.mediaType_ = mediaType
+	c.protocol_ = "resumable"
+	return c
+}
+
+// ProgressUpdater provides a callback function that will be called after every chunk.
+// It should be a low-latency function in order to not slow down the upload operation.
+// This should only be called when using ResumableMedia (as opposed to Media).
+func (c *CaptionsInsertCall) ProgressUpdater(pu googleapi.ProgressUpdater) *CaptionsInsertCall {
+	c.opt_["progressUpdater"] = pu
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsInsertCall) Fields(s ...googleapi.Field) *CaptionsInsertCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsInsertCall) Do() (*Caption, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.caption)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["sync"]; ok {
+		params.Set("sync", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	var progressUpdater_ googleapi.ProgressUpdater
+	if v, ok := c.opt_["progressUpdater"]; ok {
+		if pu, ok := v.(googleapi.ProgressUpdater); ok {
+			progressUpdater_ = pu
+		}
+	}
+	if c.media_ != nil || c.resumable_ != nil {
+		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
+		params.Set("uploadType", c.protocol_)
+	}
+	urls += "?" + params.Encode()
+	if c.protocol_ != "resumable" {
+		var cancel func()
+		cancel, _ = googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		if cancel != nil {
+			defer cancel()
+		}
+	}
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	if c.protocol_ == "resumable" {
+		req.ContentLength = 0
+		if c.mediaType_ == "" {
+			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+		}
+		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Body = nil
+	} else {
+		req.Header.Set("Content-Type", ctype)
+	}
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	if c.protocol_ == "resumable" {
+		loc := res.Header.Get("Location")
+		rx := &googleapi.ResumableUpload{
+			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
+			URI:           loc,
+			Media:         c.resumable_,
+			MediaType:     c.mediaType_,
+			ContentLength: c.resumable_.Size(),
+			Callback:      progressUpdater_,
+		}
+		res, err = rx.Upload(c.ctx_)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+	}
+	var ret *Caption
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Uploads a caption track.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.captions.insert",
+	//   "mediaUpload": {
+	//     "accept": [
+	//       "*/*",
+	//       "application/octet-stream",
+	//       "text/xml"
+	//     ],
+	//     "maxSize": "100MB",
+	//     "protocols": {
+	//       "resumable": {
+	//         "multipart": true,
+	//         "path": "/resumable/upload/youtube/v3/captions"
+	//       },
+	//       "simple": {
+	//         "multipart": true,
+	//         "path": "/upload/youtube/v3/captions"
+	//       }
+	//     }
+	//   },
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "sync": {
+	//       "description": "The sync parameter indicates whether YouTube should automatically synchronize the caption file with the audio track of the video. If you set the value to true, YouTube will disregard any time codes that are in the uploaded caption file and generate new time codes for the captions.\n\nYou should set the sync parameter to true if you are uploading a transcript, which has no time codes, or if you suspect the time codes in your file are incorrect and want YouTube to try to fix them.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "request": {
+	//     "$ref": "Caption"
+	//   },
+	//   "response": {
+	//     "$ref": "Caption"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ],
+	//   "supportsMediaUpload": true
+	// }
+
+}
+
+// method id "youtube.captions.list":
+
+type CaptionsListCall struct {
+	s       *Service
+	part    string
+	videoId string
+	opt_    map[string]interface{}
+}
+
+// List: Returns a list of caption tracks that are associated with a
+// specified video. Note that the API response does not contain the
+// actual captions and that the captions.download method provides the
+// ability to retrieve a caption track.
+func (r *CaptionsService) List(part string, videoId string) *CaptionsListCall {
+	c := &CaptionsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.videoId = videoId
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID.
+func (c *CaptionsListCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsListCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// Id sets the optional parameter "id": The id parameter specifies a
+// comma-separated list of IDs that identify the caption resources that
+// should be retrieved. Each ID must identify a caption track associated
+// with the specified video.
+func (c *CaptionsListCall) Id(id string) *CaptionsListCall {
+	c.opt_["id"] = id
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is on behalf of.
+func (c *CaptionsListCall) OnBehalfOf(onBehalfOf string) *CaptionsListCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsListCall) Fields(s ...googleapi.Field) *CaptionsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsListCall) Do() (*CaptionListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	params.Set("videoId", fmt.Sprintf("%v", c.videoId))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["id"]; ok {
+		params.Set("id", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CaptionListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of caption tracks that are associated with a specified video. Note that the API response does not contain the actual captions and that the captions.download method provides the ability to retrieve a caption track.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.captions.list",
+	//   "parameterOrder": [
+	//     "part",
+	//     "videoId"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of IDs that identify the caption resources that should be retrieved. Each ID must identify a caption track associated with the specified video.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is on behalf of.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies a comma-separated list of one or more caption resource parts that the API response will include. The part names that you can include in the parameter value are id and snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "videoId": {
+	//       "description": "The videoId parameter specifies the YouTube video ID of the video for which the API should return caption tracks.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "response": {
+	//     "$ref": "CaptionListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.captions.update":
+
+type CaptionsUpdateCall struct {
+	s          *Service
+	part       string
+	caption    *Caption
+	opt_       map[string]interface{}
+	media_     io.Reader
+	resumable_ googleapi.SizeReaderAt
+	mediaType_ string
+	ctx_       context.Context
+	protocol_  string
+}
+
+// Update: Updates a caption track. When updating a caption track, you
+// can change the track's draft status, upload a new caption file for
+// the track, or both.
+func (r *CaptionsService) Update(part string, caption *Caption) *CaptionsUpdateCall {
+	c := &CaptionsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.caption = caption
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID.
+func (c *CaptionsUpdateCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsUpdateCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsUpdateCall) OnBehalfOf(onBehalfOf string) *CaptionsUpdateCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Sync sets the optional parameter "sync": Note: The API server only
+// processes the parameter value if the request contains an updated
+// caption file.
+//
+// The sync parameter indicates whether YouTube should
+// automatically synchronize the caption file with the audio track of
+// the video. If you set the value to true, YouTube will automatically
+// synchronize the caption track with the audio track.
+func (c *CaptionsUpdateCall) Sync(sync bool) *CaptionsUpdateCall {
+	c.opt_["sync"] = sync
+	return c
+}
+
+// Media specifies the media to upload in a single chunk.
+// At most one of Media and ResumableMedia may be set.
+func (c *CaptionsUpdateCall) Media(r io.Reader) *CaptionsUpdateCall {
+	c.media_ = r
+	c.protocol_ = "multipart"
+	return c
+}
+
+// ResumableMedia specifies the media to upload in chunks and can be cancelled with ctx.
+// At most one of Media and ResumableMedia may be set.
+// mediaType identifies the MIME media type of the upload, such as "image/png".
+// If mediaType is "", it will be auto-detected.
+func (c *CaptionsUpdateCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *CaptionsUpdateCall {
+	c.ctx_ = ctx
+	c.resumable_ = io.NewSectionReader(r, 0, size)
+	c.mediaType_ = mediaType
+	c.protocol_ = "resumable"
+	return c
+}
+
+// ProgressUpdater provides a callback function that will be called after every chunk.
+// It should be a low-latency function in order to not slow down the upload operation.
+// This should only be called when using ResumableMedia (as opposed to Media).
+func (c *CaptionsUpdateCall) ProgressUpdater(pu googleapi.ProgressUpdater) *CaptionsUpdateCall {
+	c.opt_["progressUpdater"] = pu
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsUpdateCall) Fields(s ...googleapi.Field) *CaptionsUpdateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsUpdateCall) Do() (*Caption, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.caption)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["sync"]; ok {
+		params.Set("sync", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	var progressUpdater_ googleapi.ProgressUpdater
+	if v, ok := c.opt_["progressUpdater"]; ok {
+		if pu, ok := v.(googleapi.ProgressUpdater); ok {
+			progressUpdater_ = pu
+		}
+	}
+	if c.media_ != nil || c.resumable_ != nil {
+		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
+		params.Set("uploadType", c.protocol_)
+	}
+	urls += "?" + params.Encode()
+	if c.protocol_ != "resumable" {
+		var cancel func()
+		cancel, _ = googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		if cancel != nil {
+			defer cancel()
+		}
+	}
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	if c.protocol_ == "resumable" {
+		req.ContentLength = 0
+		if c.mediaType_ == "" {
+			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+		}
+		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Body = nil
+	} else {
+		req.Header.Set("Content-Type", ctype)
+	}
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	if c.protocol_ == "resumable" {
+		loc := res.Header.Get("Location")
+		rx := &googleapi.ResumableUpload{
+			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
+			URI:           loc,
+			Media:         c.resumable_,
+			MediaType:     c.mediaType_,
+			ContentLength: c.resumable_.Size(),
+			Callback:      progressUpdater_,
+		}
+		res, err = rx.Upload(c.ctx_)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+	}
+	var ret *Caption
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Updates a caption track. When updating a caption track, you can change the track's draft status, upload a new caption file for the track, or both.",
+	//   "httpMethod": "PUT",
+	//   "id": "youtube.captions.update",
+	//   "mediaUpload": {
+	//     "accept": [
+	//       "*/*",
+	//       "application/octet-stream",
+	//       "text/xml"
+	//     ],
+	//     "maxSize": "100MB",
+	//     "protocols": {
+	//       "resumable": {
+	//         "multipart": true,
+	//         "path": "/resumable/upload/youtube/v3/captions"
+	//       },
+	//       "simple": {
+	//         "multipart": true,
+	//         "path": "/upload/youtube/v3/captions"
+	//       }
+	//     }
+	//   },
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Set the property value to snippet if you are updating the track's draft status. Otherwise, set the property value to id.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "sync": {
+	//       "description": "Note: The API server only processes the parameter value if the request contains an updated caption file.\n\nThe sync parameter indicates whether YouTube should automatically synchronize the caption file with the audio track of the video. If you set the value to true, YouTube will automatically synchronize the caption track with the audio track.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "request": {
+	//     "$ref": "Caption"
+	//   },
+	//   "response": {
+	//     "$ref": "Caption"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ],
+	//   "supportsMediaUpload": true
+	// }
+
+}
+
 // method id "youtube.channelBanners.insert":
 
 type ChannelBannersInsertCall struct {
@@ -3983,6 +5172,19 @@ func (c *ChannelSectionsListCall) ChannelId(channelId string) *ChannelSectionsLi
 	return c
 }
 
+// Hl sets the optional parameter "hl": The hl parameter indicates that
+// the snippet.localized property values in the returned channelSection
+// resources should be in the specified language if localized values for
+// that language are available. For example, if the API request
+// specifies hl=de, the snippet.localized properties in the API response
+// will contain German titles if German titles are available. Channel
+// owners can provide localized channel section titles using either the
+// channelSections.insert or channelSections.update method.
+func (c *ChannelSectionsListCall) Hl(hl string) *ChannelSectionsListCall {
+	c.opt_["hl"] = hl
+	return c
+}
+
 // Id sets the optional parameter "id": The id parameter specifies a
 // comma-separated list of the YouTube channelSection ID(s) for the
 // resource(s) that are being retrieved. In a channelSection resource,
@@ -4035,6 +5237,9 @@ func (c *ChannelSectionsListCall) Do() (*ChannelSectionListResponse, error) {
 	if v, ok := c.opt_["channelId"]; ok {
 		params.Set("channelId", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["id"]; ok {
 		params.Set("id", fmt.Sprintf("%v", v))
 	}
@@ -4075,6 +5280,11 @@ func (c *ChannelSectionsListCall) Do() (*ChannelSectionListResponse, error) {
 	//   "parameters": {
 	//     "channelId": {
 	//       "description": "The channelId parameter specifies a YouTube channel ID. The API will only return that channel's channelSections.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "hl": {
+	//       "description": "The hl parameter indicates that the snippet.localized property values in the returned channelSection resources should be in the specified language if localized values for that language are available. For example, if the API request specifies hl=de, the snippet.localized properties in the API response will contain German titles if German titles are available. Channel owners can provide localized channel section titles using either the channelSections.insert or channelSections.update method.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -4261,6 +5471,14 @@ func (c *ChannelsListCall) ForUsername(forUsername string) *ChannelsListCall {
 	return c
 }
 
+// Hl sets the optional parameter "hl": The hl parameter should be used
+// for filter out the properties that are not in the given language.
+// Used for the brandingSettings part.
+func (c *ChannelsListCall) Hl(hl string) *ChannelsListCall {
+	c.opt_["hl"] = hl
+	return c
+}
+
 // Id sets the optional parameter "id": The id parameter specifies a
 // comma-separated list of the YouTube channel ID(s) for the resource(s)
 // that are being retrieved. In a channel resource, the id property
@@ -4348,6 +5566,9 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	if v, ok := c.opt_["forUsername"]; ok {
 		params.Set("forUsername", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["id"]; ok {
 		params.Set("id", fmt.Sprintf("%v", v))
 	}
@@ -4405,6 +5626,11 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	//     },
 	//     "forUsername": {
 	//       "description": "The forUsername parameter specifies a YouTube username, thereby requesting the channel associated with that username.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "hl": {
+	//       "description": "The hl parameter should be used for filter out the properties that are not in the given language. Used for the brandingSettings part.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -4575,6 +5801,1058 @@ func (c *ChannelsUpdateCall) Do() (*Channel, error) {
 	//     "https://www.googleapis.com/auth/youtube",
 	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.commentThreads.insert":
+
+type CommentThreadsInsertCall struct {
+	s             *Service
+	part          string
+	commentthread *CommentThread
+	opt_          map[string]interface{}
+}
+
+// Insert: Creates a new comment thread and top level comment.
+func (r *CommentThreadsService) Insert(part string, commentthread *CommentThread) *CommentThreadsInsertCall {
+	c := &CommentThreadsInsertCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.commentthread = commentthread
+	return c
+}
+
+// ShareOnGooglePlus sets the optional parameter "shareOnGooglePlus":
+// The shareOnGooglePlus determines whether this thread should also be
+// posted on Google+.
+func (c *CommentThreadsInsertCall) ShareOnGooglePlus(shareOnGooglePlus bool) *CommentThreadsInsertCall {
+	c.opt_["shareOnGooglePlus"] = shareOnGooglePlus
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentThreadsInsertCall) Fields(s ...googleapi.Field) *CommentThreadsInsertCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentThreadsInsertCall) Do() (*CommentThread, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.commentthread)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["shareOnGooglePlus"]; ok {
+		params.Set("shareOnGooglePlus", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "commentThreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentThread
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Creates a new comment thread and top level comment.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.commentThreads.insert",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "shareOnGooglePlus": {
+	//       "default": "false",
+	//       "description": "The shareOnGooglePlus determines whether this thread should also be posted on Google+.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
+	//   "path": "commentThreads",
+	//   "request": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "response": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.commentThreads.list":
+
+type CommentThreadsListCall struct {
+	s    *Service
+	part string
+	opt_ map[string]interface{}
+}
+
+// List: Returns a list of comment threads that match the API request
+// parameters.
+func (r *CommentThreadsService) List(part string) *CommentThreadsListCall {
+	c := &CommentThreadsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	return c
+}
+
+// AllThreadsRelatedToChannelId sets the optional parameter
+// "allThreadsRelatedToChannelId": The allThreadsRelatedToChannelId
+// parameter instructs the API to return the comment threads of all
+// videos of the channel and the channel comments as well.
+func (c *CommentThreadsListCall) AllThreadsRelatedToChannelId(allThreadsRelatedToChannelId string) *CommentThreadsListCall {
+	c.opt_["allThreadsRelatedToChannelId"] = allThreadsRelatedToChannelId
+	return c
+}
+
+// ChannelId sets the optional parameter "channelId": The channelId
+// parameter instructs the API to return the comment threads for all the
+// channel comments (not including comments left on videos).
+func (c *CommentThreadsListCall) ChannelId(channelId string) *CommentThreadsListCall {
+	c.opt_["channelId"] = channelId
+	return c
+}
+
+// Id sets the optional parameter "id": The id parameter specifies a
+// comma-separated list of comment thread IDs for the resources that
+// should be retrieved.
+func (c *CommentThreadsListCall) Id(id string) *CommentThreadsListCall {
+	c.opt_["id"] = id
+	return c
+}
+
+// MaxResults sets the optional parameter "maxResults": The maxResults
+// parameter specifies the maximum number of items that should be
+// returned in the result set.
+//
+// Note: This parameter is not supported
+// for use in conjunction with the id parameter.
+func (c *CommentThreadsListCall) MaxResults(maxResults int64) *CommentThreadsListCall {
+	c.opt_["maxResults"] = maxResults
+	return c
+}
+
+// ModerationStatus sets the optional parameter "moderationStatus": Set
+// this parameter to limit the returned comment threads to a particular
+// moderation state.
+//
+// Note: This parameter is not supported for use in
+// conjunction with the id parameter.
+func (c *CommentThreadsListCall) ModerationStatus(moderationStatus string) *CommentThreadsListCall {
+	c.opt_["moderationStatus"] = moderationStatus
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": The pageToken
+// parameter identifies a specific page in the result set that should be
+// returned. In an API response, the nextPageToken property identifies
+// the next page of the result that can be retrieved.
+//
+// Note: This
+// parameter is not supported for use in conjunction with the id
+// parameter.
+func (c *CommentThreadsListCall) PageToken(pageToken string) *CommentThreadsListCall {
+	c.opt_["pageToken"] = pageToken
+	return c
+}
+
+// SearchTerms sets the optional parameter "searchTerms": The
+// searchTerms parameter instructs the API to limit the returned
+// comments to those which contain the specified search terms.
+//
+// Note:
+// This parameter is not supported for use in conjunction with the id
+// parameter.
+func (c *CommentThreadsListCall) SearchTerms(searchTerms string) *CommentThreadsListCall {
+	c.opt_["searchTerms"] = searchTerms
+	return c
+}
+
+// TextFormat sets the optional parameter "textFormat": Set this
+// parameter's value to html or plainText to instruct the API to return
+// the comments left by users in html formatted or in plain text.
+func (c *CommentThreadsListCall) TextFormat(textFormat string) *CommentThreadsListCall {
+	c.opt_["textFormat"] = textFormat
+	return c
+}
+
+// VideoId sets the optional parameter "videoId": The videoId parameter
+// instructs the API to return the comment threads for the video
+// specified by the video id.
+func (c *CommentThreadsListCall) VideoId(videoId string) *CommentThreadsListCall {
+	c.opt_["videoId"] = videoId
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentThreadsListCall) Fields(s ...googleapi.Field) *CommentThreadsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["allThreadsRelatedToChannelId"]; ok {
+		params.Set("allThreadsRelatedToChannelId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["channelId"]; ok {
+		params.Set("channelId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["id"]; ok {
+		params.Set("id", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["maxResults"]; ok {
+		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["moderationStatus"]; ok {
+		params.Set("moderationStatus", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["pageToken"]; ok {
+		params.Set("pageToken", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["searchTerms"]; ok {
+		params.Set("searchTerms", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["textFormat"]; ok {
+		params.Set("textFormat", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["videoId"]; ok {
+		params.Set("videoId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "commentThreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentThreadListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of comment threads that match the API request parameters.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.commentThreads.list",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "allThreadsRelatedToChannelId": {
+	//       "description": "The allThreadsRelatedToChannelId parameter instructs the API to return the comment threads of all videos of the channel and the channel comments as well.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "channelId": {
+	//       "description": "The channelId parameter instructs the API to return the comment threads for all the channel comments (not including comments left on videos).",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of comment thread IDs for the resources that should be retrieved.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxResults": {
+	//       "default": "20",
+	//       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "maximum": "100",
+	//       "minimum": "1",
+	//       "type": "integer"
+	//     },
+	//     "moderationStatus": {
+	//       "default": "published",
+	//       "description": "Set this parameter to limit the returned comment threads to a particular moderation state.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "enum": [
+	//         "heldForReview",
+	//         "likelySpam",
+	//         "published"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Returns only comment threads awaiting review by a moderator.",
+	//         "Returns only comment threads classified as likely being spam.",
+	//         "Returns only published comment threads."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "pageToken": {
+	//       "description": "The pageToken parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identifies the next page of the result that can be retrieved.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the commentThread resource parts that the API response will include. Supported values are id, snippet and replies.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "searchTerms": {
+	//       "description": "The searchTerms parameter instructs the API to limit the returned comments to those which contain the specified search terms.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "textFormat": {
+	//       "default": "FORMAT_HTML",
+	//       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users in html formatted or in plain text.",
+	//       "enum": [
+	//         "html",
+	//         "plainText"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Returns the comments in HTML format.",
+	//         "Returns the comments in plain text format."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "videoId": {
+	//       "description": "The videoId parameter instructs the API to return the comment threads for the video specified by the video id.",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "commentThreads",
+	//   "response": {
+	//     "$ref": "CommentThreadListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.commentThreads.update":
+
+type CommentThreadsUpdateCall struct {
+	s             *Service
+	part          string
+	commentthread *CommentThread
+	opt_          map[string]interface{}
+}
+
+// Update: Modifies an existing comment.
+func (r *CommentThreadsService) Update(part string, commentthread *CommentThread) *CommentThreadsUpdateCall {
+	c := &CommentThreadsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.commentthread = commentthread
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentThreadsUpdateCall) Fields(s ...googleapi.Field) *CommentThreadsUpdateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentThreadsUpdateCall) Do() (*CommentThread, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.commentthread)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "commentThreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentThread
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Modifies an existing comment.",
+	//   "httpMethod": "PUT",
+	//   "id": "youtube.commentThreads.update",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id, snippet and replies. However only snippet contains properties that can be updated.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "commentThreads",
+	//   "request": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "response": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.delete":
+
+type CommentsDeleteCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// Delete: Deletes a comment.
+func (r *CommentsService) Delete(id string) *CommentsDeleteCall {
+	c := &CommentsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsDeleteCall) Fields(s ...googleapi.Field) *CommentsDeleteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsDeleteCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Deletes a comment.",
+	//   "httpMethod": "DELETE",
+	//   "id": "youtube.comments.delete",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "id": {
+	//       "description": "The id parameter specifies the comment ID for the resource that should be deleted.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.insert":
+
+type CommentsInsertCall struct {
+	s       *Service
+	part    string
+	comment *Comment
+	opt_    map[string]interface{}
+}
+
+// Insert: Creates a new comment.
+//
+// Note: to create a top level comment
+// it is also necessary to create a comment thread. Both are
+// accomplished through the commentThreads resource.
+func (r *CommentsService) Insert(part string, comment *Comment) *CommentsInsertCall {
+	c := &CommentsInsertCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.comment = comment
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsInsertCall) Fields(s ...googleapi.Field) *CommentsInsertCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsInsertCall) Do() (*Comment, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.comment)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *Comment
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Creates a new comment.\n\nNote: to create a top level comment it is also necessary to create a comment thread. Both are accomplished through the commentThreads resource.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.comments.insert",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "request": {
+	//     "$ref": "Comment"
+	//   },
+	//   "response": {
+	//     "$ref": "Comment"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.list":
+
+type CommentsListCall struct {
+	s    *Service
+	part string
+	opt_ map[string]interface{}
+}
+
+// List: Returns a list of comments that match the API request
+// parameters.
+func (r *CommentsService) List(part string) *CommentsListCall {
+	c := &CommentsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	return c
+}
+
+// Id sets the optional parameter "id": The id parameter specifies a
+// comma-separated list of comment IDs for the resources that should be
+// retrieved.
+func (c *CommentsListCall) Id(id string) *CommentsListCall {
+	c.opt_["id"] = id
+	return c
+}
+
+// MaxResults sets the optional parameter "maxResults": The maxResults
+// parameter specifies the maximum number of items that should be
+// returned in the result set.
+//
+// Note: This parameter is not supported
+// for use in conjunction with the id parameter.
+func (c *CommentsListCall) MaxResults(maxResults int64) *CommentsListCall {
+	c.opt_["maxResults"] = maxResults
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": The pageToken
+// parameter identifies a specific page in the result set that should be
+// returned. In an API response, the nextPageToken property identifies
+// the next page of the result that can be retrieved.
+//
+// Note: This
+// parameter is not supported for use in conjunction with the id
+// parameter.
+func (c *CommentsListCall) PageToken(pageToken string) *CommentsListCall {
+	c.opt_["pageToken"] = pageToken
+	return c
+}
+
+// ParentId sets the optional parameter "parentId": The parentId
+// parameter specifies the ID of the comment for which replies should be
+// retrieved.
+//
+// Note: Currently YouTube features only one level of
+// replies (ie replies to top level comments). However replies to
+// replies may be supported in the future.
+func (c *CommentsListCall) ParentId(parentId string) *CommentsListCall {
+	c.opt_["parentId"] = parentId
+	return c
+}
+
+// TextFormat sets the optional parameter "textFormat": Set this
+// parameter's value to html or plainText to instruct the API to return
+// the comments left by users formatted as HTML or as plain text.
+func (c *CommentsListCall) TextFormat(textFormat string) *CommentsListCall {
+	c.opt_["textFormat"] = textFormat
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsListCall) Fields(s ...googleapi.Field) *CommentsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsListCall) Do() (*CommentListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["id"]; ok {
+		params.Set("id", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["maxResults"]; ok {
+		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["pageToken"]; ok {
+		params.Set("pageToken", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["parentId"]; ok {
+		params.Set("parentId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["textFormat"]; ok {
+		params.Set("textFormat", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of comments that match the API request parameters.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.comments.list",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of comment IDs for the resources that should be retrieved.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxResults": {
+	//       "default": "20",
+	//       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "maximum": "100",
+	//       "minimum": "1",
+	//       "type": "integer"
+	//     },
+	//     "pageToken": {
+	//       "description": "The pageToken parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identifies the next page of the result that can be retrieved.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "parentId": {
+	//       "description": "The parentId parameter specifies the ID of the comment for which replies should be retrieved.\n\nNote: Currently YouTube features only one level of replies (ie replies to top level comments). However replies to replies may be supported in the future.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the comment resource parts that the API response will include. Supported values are id and snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "textFormat": {
+	//       "default": "FORMAT_HTML",
+	//       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users formatted as HTML or as plain text.",
+	//       "enum": [
+	//         "html",
+	//         "plainText"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Returns the comments in HTML format.",
+	//         "Returns the comments in plain text format."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "response": {
+	//     "$ref": "CommentListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.markAsSpam":
+
+type CommentsMarkAsSpamCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// MarkAsSpam: Expresses the caller's opinion that a comment is spam.
+func (r *CommentsService) MarkAsSpam(id string) *CommentsMarkAsSpamCall {
+	c := &CommentsMarkAsSpamCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsMarkAsSpamCall) Fields(s ...googleapi.Field) *CommentsMarkAsSpamCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsMarkAsSpamCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments/markAsSpam")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Expresses the caller's opinion that a comment is spam.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.comments.markAsSpam",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of IDs of comments which should get flagged as spam.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments/markAsSpam",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.setModerationStatus":
+
+type CommentsSetModerationStatusCall struct {
+	s                *Service
+	id               string
+	moderationStatus string
+	opt_             map[string]interface{}
+}
+
+// SetModerationStatus: Sets the moderation status of one or more
+// comments.
+func (r *CommentsService) SetModerationStatus(id string, moderationStatus string) *CommentsSetModerationStatusCall {
+	c := &CommentsSetModerationStatusCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	c.moderationStatus = moderationStatus
+	return c
+}
+
+// BanAuthor sets the optional parameter "banAuthor": The banAuthor
+// paramter, if set to true, adds the author of the comment to the ban
+// list. This means all future comments of the author will
+// autmomatically be rejected.
+//
+// Note: This parameter is only valid in
+// combination with moderationStatus 'rejected'.
+func (c *CommentsSetModerationStatusCall) BanAuthor(banAuthor bool) *CommentsSetModerationStatusCall {
+	c.opt_["banAuthor"] = banAuthor
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsSetModerationStatusCall) Fields(s ...googleapi.Field) *CommentsSetModerationStatusCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsSetModerationStatusCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	params.Set("moderationStatus", fmt.Sprintf("%v", c.moderationStatus))
+	if v, ok := c.opt_["banAuthor"]; ok {
+		params.Set("banAuthor", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments/setModerationStatus")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Sets the moderation status of one or more comments.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.comments.setModerationStatus",
+	//   "parameterOrder": [
+	//     "id",
+	//     "moderationStatus"
+	//   ],
+	//   "parameters": {
+	//     "banAuthor": {
+	//       "default": "false",
+	//       "description": "The banAuthor paramter, if set to true, adds the author of the comment to the ban list. This means all future comments of the author will autmomatically be rejected.\n\nNote: This parameter is only valid in combination with moderationStatus 'rejected'.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of IDs of comments whose moderation status should be updated.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "moderationStatus": {
+	//       "description": "Determines the new moderation status of the specified comments.",
+	//       "enum": [
+	//         "heldForReview",
+	//         "published",
+	//         "rejected"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Marks a comment as awaiting review by a moderator.",
+	//         "Clears a comment for public display.",
+	//         "Rejects a comment as not fit for display.\n\nNote: currently there is no way to list or otherwise discover a rejected comment. However it is possible to change its moderation status as long as its ID is still known.\n\nNote: Currently, if you reject a comment you effectively also hide all its replies as there is no longer any way to discover them. This may change in the future."
+	//       ],
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments/setModerationStatus",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.update":
+
+type CommentsUpdateCall struct {
+	s       *Service
+	part    string
+	comment *Comment
+	opt_    map[string]interface{}
+}
+
+// Update: Modifies an existing comment.
+func (r *CommentsService) Update(part string, comment *Comment) *CommentsUpdateCall {
+	c := &CommentsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.comment = comment
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsUpdateCall) Fields(s ...googleapi.Field) *CommentsUpdateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsUpdateCall) Do() (*Comment, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.comment)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *Comment
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Modifies an existing comment.",
+	//   "httpMethod": "PUT",
+	//   "id": "youtube.comments.update",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be updated.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "request": {
+	//     "$ref": "Comment"
+	//   },
+	//   "response": {
+	//     "$ref": "Comment"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -7520,6 +9798,14 @@ func (c *PlaylistsListCall) ChannelId(channelId string) *PlaylistsListCall {
 	return c
 }
 
+// Hl sets the optional parameter "hl": The hl parameter should be used
+// for filter out the properties that are not in the given language.
+// Used for the snippet part.
+func (c *PlaylistsListCall) Hl(hl string) *PlaylistsListCall {
+	c.opt_["hl"] = hl
+	return c
+}
+
 // Id sets the optional parameter "id": The id parameter specifies a
 // comma-separated list of the YouTube playlist ID(s) for the
 // resource(s) that are being retrieved. In a playlist resource, the id
@@ -7617,6 +9903,9 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	if v, ok := c.opt_["channelId"]; ok {
 		params.Set("channelId", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["id"]; ok {
 		params.Set("id", fmt.Sprintf("%v", v))
 	}
@@ -7666,6 +9955,11 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	//   "parameters": {
 	//     "channelId": {
 	//       "description": "This value indicates that the API should only return the specified channel's playlists.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "hl": {
+	//       "description": "The hl parameter should be used for filter out the properties that are not in the given language. Used for the snippet part.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7893,6 +10187,18 @@ func (c *SearchListCall) EventType(eventType string) *SearchListCall {
 // onBehalfOfContentOwner must be provided.
 func (c *SearchListCall) ForContentOwner(forContentOwner bool) *SearchListCall {
 	c.opt_["forContentOwner"] = forContentOwner
+	return c
+}
+
+// ForDeveloper sets the optional parameter "forDeveloper": The
+// forDeveloper parameter restricts the search to only retrieve videos
+// uploaded via the developer's application or website. The API server
+// uses the request's authorization credentials to identify the
+// developer. Therefore, a developer can restrict results to videos
+// uploaded through the developer's own app or website but not to videos
+// uploaded through other apps or sites.
+func (c *SearchListCall) ForDeveloper(forDeveloper bool) *SearchListCall {
+	c.opt_["forDeveloper"] = forDeveloper
 	return c
 }
 
@@ -8155,6 +10461,9 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	if v, ok := c.opt_["forContentOwner"]; ok {
 		params.Set("forContentOwner", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["forDeveloper"]; ok {
+		params.Set("forDeveloper", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["forMine"]; ok {
 		params.Set("forMine", fmt.Sprintf("%v", v))
 	}
@@ -8294,6 +10603,11 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//     },
 	//     "forContentOwner": {
 	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe forContentOwner parameter restricts the search to only retrieve resources owned by the content owner specified by the onBehalfOfContentOwner parameter. The user must be authenticated using a CMS account linked to the specified content owner and onBehalfOfContentOwner must be provided.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
+	//     "forDeveloper": {
+	//       "description": "The forDeveloper parameter restricts the search to only retrieve videos uploaded via the developer's application or website. The API server uses the request's authorization credentials to identify the developer. Therefore, a developer can restrict results to videos uploaded through the developer's own app or website but not to videos uploaded through other apps or sites.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },

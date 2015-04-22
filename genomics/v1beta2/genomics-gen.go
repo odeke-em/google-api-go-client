@@ -71,6 +71,7 @@ func New(client *http.Client) (*Service, error) {
 	s.Reads = NewReadsService(s)
 	s.References = NewReferencesService(s)
 	s.Referencesets = NewReferencesetsService(s)
+	s.StreamingReadstore = NewStreamingReadstoreService(s)
 	s.Variants = NewVariantsService(s)
 	s.Variantsets = NewVariantsetsService(s)
 	return s, nil
@@ -100,6 +101,8 @@ type Service struct {
 	References *ReferencesService
 
 	Referencesets *ReferencesetsService
+
+	StreamingReadstore *StreamingReadstoreService
 
 	Variants *VariantsService
 
@@ -236,6 +239,15 @@ func NewReferencesetsService(s *Service) *ReferencesetsService {
 }
 
 type ReferencesetsService struct {
+	s *Service
+}
+
+func NewStreamingReadstoreService(s *Service) *StreamingReadstoreService {
+	rs := &StreamingReadstoreService{s: s}
+	return rs
+}
+
+type StreamingReadstoreService struct {
 	s *Service
 }
 
@@ -938,7 +950,7 @@ type Read struct {
 	AlignedSequence string `json:"alignedSequence,omitempty"`
 
 	// Alignment: The linear alignment for this alignment record. This field
-	// will be null if the read is unmapped.
+	// will be unset if the read is unmapped.
 	Alignment *LinearAlignment `json:"alignment,omitempty"`
 
 	// DuplicateFragment: The fragment is a PCR or optical duplicate (SAM
@@ -963,9 +975,10 @@ type Read struct {
 	// Info: A map of additional read alignment information.
 	Info map[string][]string `json:"info,omitempty"`
 
-	// NextMatePosition: The mapping of the primary alignment of the
+	// NextMatePosition: The position of the primary alignment of the
 	// (readNumber+1)%numberReads read in the fragment. It replaces mate
-	// position and mate strand in SAM.
+	// position and mate strand in SAM. This field will be unset if that
+	// read is unmapped or if the fragment only has a single read.
 	NextMatePosition *Position `json:"nextMatePosition,omitempty"`
 
 	// NumberReads: The number of reads in the fragment (extension to SAM
@@ -1270,7 +1283,8 @@ type SearchCallSetsRequest struct {
 	// this string.
 	Name string `json:"name,omitempty"`
 
-	// PageSize: The maximum number of call sets to return.
+	// PageSize: The maximum number of call sets to return. If unspecified,
+	// defaults to 1000.
 	PageSize int64 `json:"pageSize,omitempty"`
 
 	// PageToken: The continuation token, which is used to page through
@@ -1517,16 +1531,17 @@ type SearchVariantsRequest struct {
 	// will never be returned.
 	CallSetIds []string `json:"callSetIds,omitempty"`
 
-	// End: Required. The end of the window (0-based, exclusive) for which
-	// overlapping variants should be returned.
+	// End: The end of the window, 0-based exclusive. If unspecified or 0,
+	// defaults to the length of the reference.
 	End int64 `json:"end,omitempty,string"`
 
 	// MaxCalls: The maximum number of calls to return. However, at least
 	// one variant will always be returned, even if it has more calls than
-	// this limit.
+	// this limit. If unspecified, defaults to 5000.
 	MaxCalls int64 `json:"maxCalls,omitempty"`
 
-	// PageSize: The maximum number of variants to return.
+	// PageSize: The maximum number of variants to return. If unspecified,
+	// defaults to 5000.
 	PageSize int64 `json:"pageSize,omitempty"`
 
 	// PageToken: The continuation token, which is used to page through
@@ -1538,8 +1553,9 @@ type SearchVariantsRequest struct {
 	// sequence.
 	ReferenceName string `json:"referenceName,omitempty"`
 
-	// Start: Required. The beginning of the window (0-based, inclusive) for
-	// which overlapping variants should be returned.
+	// Start: The beginning of the window (0-based, inclusive) for which
+	// overlapping variants should be returned. If unspecified, defaults to
+	// 0.
 	Start int64 `json:"start,omitempty,string"`
 
 	// VariantName: Only return variants which have exactly this name.
@@ -1559,6 +1575,28 @@ type SearchVariantsResponse struct {
 
 	// Variants: The list of matching Variants.
 	Variants []*Variant `json:"variants,omitempty"`
+}
+
+type StreamReadsRequest struct {
+	// End: The end position of the range on the reference, 0-based
+	// exclusive. If specified, referenceName must also be specified.
+	End int64 `json:"end,omitempty,string"`
+
+	// ReadGroupSetIds: The ID of the read groups set within which to search
+	// for reads. Exactly one ID must be provided.
+	ReadGroupSetIds []string `json:"readGroupSetIds,omitempty"`
+
+	// ReferenceName: The reference sequence name, for example chr1, 1, or
+	// chrX. If set to *, only unmapped reads are returned.
+	ReferenceName string `json:"referenceName,omitempty"`
+
+	// Start: The start position of the range on the reference, 0-based
+	// inclusive. If specified, referenceName must also be specified.
+	Start int64 `json:"start,omitempty,string"`
+}
+
+type StreamReadsResponse struct {
+	Alignments []*Read `json:"alignments,omitempty"`
 }
 
 type Transcript struct {
@@ -5574,6 +5612,86 @@ func (c *ReferencesetsSearchCall) Do() (*SearchReferenceSetsResponse, error) {
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
+	// }
+
+}
+
+// method id "genomics.streamingReadstore.streamreads":
+
+type StreamingReadstoreStreamreadsCall struct {
+	s                  *Service
+	streamreadsrequest *StreamReadsRequest
+	opt_               map[string]interface{}
+}
+
+// Streamreads: Gets a stream of reads for one or more read group sets.
+// Reads search operates over a genomic coordinate space of reference
+// sequence & position defined over the reference sequences to which the
+// requested read group sets are aligned.
+//
+// If a target positional range
+// is specified, all reads whose alignment to the reference genome
+// overlap the range are returned.
+//
+// All reads returned are ordered by
+// genomic coordinate (reference sequence & position). Reads with
+// equivalent genomic coordinates are returned in a deterministic order.
+func (r *StreamingReadstoreService) Streamreads(streamreadsrequest *StreamReadsRequest) *StreamingReadstoreStreamreadsCall {
+	c := &StreamingReadstoreStreamreadsCall{s: r.s, opt_: make(map[string]interface{})}
+	c.streamreadsrequest = streamreadsrequest
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *StreamingReadstoreStreamreadsCall) Fields(s ...googleapi.Field) *StreamingReadstoreStreamreadsCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *StreamingReadstoreStreamreadsCall) Do() (*StreamReadsResponse, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.streamreadsrequest)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "streamingReadstore/streamreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *StreamReadsResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Gets a stream of reads for one or more read group sets. Reads search operates over a genomic coordinate space of reference sequence \u0026 position defined over the reference sequences to which the requested read group sets are aligned.\n\nIf a target positional range is specified, all reads whose alignment to the reference genome overlap the range are returned.\n\nAll reads returned are ordered by genomic coordinate (reference sequence \u0026 position). Reads with equivalent genomic coordinates are returned in a deterministic order.",
+	//   "httpMethod": "POST",
+	//   "id": "genomics.streamingReadstore.streamreads",
+	//   "path": "streamingReadstore/streamreads",
+	//   "request": {
+	//     "$ref": "StreamReadsRequest"
+	//   },
+	//   "response": {
+	//     "$ref": "StreamReadsResponse"
+	//   }
 	// }
 
 }

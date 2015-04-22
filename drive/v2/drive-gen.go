@@ -56,6 +56,9 @@ const (
 	// with this app
 	DriveFileScope = "https://www.googleapis.com/auth/drive.file"
 
+	// View and manage metadata of files in your Google Drive
+	DriveMetadataScope = "https://www.googleapis.com/auth/drive.metadata"
+
 	// View metadata for files in your Google Drive
 	DriveMetadataReadonlyScope = "https://www.googleapis.com/auth/drive.metadata.readonly"
 
@@ -429,7 +432,7 @@ type App struct {
 
 	// OpenUrlTemplate: The template url for opening files with this app.
 	// The template will contain {ids} and/or {exportIds} to be replaced by
-	// the actual file ids.
+	// the actual file ids. See  Open Files  for the full documentation.
 	OpenUrlTemplate string `json:"openUrlTemplate,omitempty"`
 
 	// PrimaryFileExtensions: The list of primary file extensions.
@@ -1498,6 +1501,7 @@ func (c *AboutGetCall) Do() (*About, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -1579,6 +1583,7 @@ func (c *AppsGetCall) Do() (*App, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -1779,6 +1784,7 @@ func (c *ChangesGetCall) Do() (*Change, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -1930,6 +1936,7 @@ func (c *ChangesListCall) Do() (*ChangeList, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ],
@@ -2094,6 +2101,7 @@ func (c *ChangesWatchCall) Do() (*Channel, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ],
@@ -2166,6 +2174,7 @@ func (c *ChannelsStopCall) Do() error {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -2336,6 +2345,7 @@ func (c *ChildrenGetCall) Do() (*ChildReference, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -2553,6 +2563,7 @@ func (c *ChildrenListCall) Do() (*ChildList, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -3530,9 +3541,19 @@ func (r *FilesService) Get(fileId string) *FilesGetCall {
 
 // AcknowledgeAbuse sets the optional parameter "acknowledgeAbuse":
 // Whether the user is acknowledging the risk of downloading known
-// malware or other abusive files.
+// malware or other abusive files. Ignored unless alt=media is
+// specified.
 func (c *FilesGetCall) AcknowledgeAbuse(acknowledgeAbuse bool) *FilesGetCall {
 	c.opt_["acknowledgeAbuse"] = acknowledgeAbuse
+	return c
+}
+
+// Alt sets the optional parameter "alt": Specifies the type of resource
+// representation to return. The default is 'json' to return file
+// metadata. Specifying 'media' will cause the file content to be
+// returned.
+func (c *FilesGetCall) Alt(alt string) *FilesGetCall {
+	c.opt_["alt"] = alt
 	return c
 }
 
@@ -3540,6 +3561,14 @@ func (c *FilesGetCall) AcknowledgeAbuse(acknowledgeAbuse bool) *FilesGetCall {
 // is deprecated and has no function.
 func (c *FilesGetCall) Projection(projection string) *FilesGetCall {
 	c.opt_["projection"] = projection
+	return c
+}
+
+// RevisionId sets the optional parameter "revisionId": Specifies the
+// Revision ID that should be downloaded. Ignored unless alt=media is
+// specified.
+func (c *FilesGetCall) RevisionId(revisionId string) *FilesGetCall {
+	c.opt_["revisionId"] = revisionId
 	return c
 }
 
@@ -3566,8 +3595,14 @@ func (c *FilesGetCall) Do() (*File, error) {
 	if v, ok := c.opt_["acknowledgeAbuse"]; ok {
 		params.Set("acknowledgeAbuse", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["alt"]; ok {
+		params.Set("alt", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["projection"]; ok {
 		params.Set("projection", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["revisionId"]; ok {
+		params.Set("revisionId", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["updateViewedDate"]; ok {
 		params.Set("updateViewedDate", fmt.Sprintf("%v", v))
@@ -3605,9 +3640,14 @@ func (c *FilesGetCall) Do() (*File, error) {
 	//   "parameters": {
 	//     "acknowledgeAbuse": {
 	//       "default": "false",
-	//       "description": "Whether the user is acknowledging the risk of downloading known malware or other abusive files.",
+	//       "description": "Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified.",
 	//       "location": "query",
 	//       "type": "boolean"
+	//     },
+	//     "alt": {
+	//       "description": "Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.",
+	//       "location": "query",
+	//       "type": "string"
 	//     },
 	//     "fileId": {
 	//       "description": "The ID for the file in question.",
@@ -3628,6 +3668,11 @@ func (c *FilesGetCall) Do() (*File, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "revisionId": {
+	//       "description": "Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "updateViewedDate": {
 	//       "default": "false",
 	//       "description": "Whether to update the view date after successfully retrieving the file.",
@@ -3644,6 +3689,7 @@ func (c *FilesGetCall) Do() (*File, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ],
@@ -4113,6 +4159,7 @@ func (c *FilesListCall) Do() (*FileList, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -4397,6 +4444,7 @@ func (c *FilesPatchCall) Do() (*File, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.scripts"
 	//   ]
 	// }
@@ -4476,7 +4524,8 @@ func (c *FilesTouchCall) Do() (*File, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
-	//     "https://www.googleapis.com/auth/drive.file"
+	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata"
 	//   ]
 	// }
 
@@ -5008,6 +5057,7 @@ func (c *FilesUpdateCall) Do() (*File, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.scripts"
 	//   ],
 	//   "supportsMediaUpload": true
@@ -5034,9 +5084,19 @@ func (r *FilesService) Watch(fileId string, channel *Channel) *FilesWatchCall {
 
 // AcknowledgeAbuse sets the optional parameter "acknowledgeAbuse":
 // Whether the user is acknowledging the risk of downloading known
-// malware or other abusive files.
+// malware or other abusive files. Ignored unless alt=media is
+// specified.
 func (c *FilesWatchCall) AcknowledgeAbuse(acknowledgeAbuse bool) *FilesWatchCall {
 	c.opt_["acknowledgeAbuse"] = acknowledgeAbuse
+	return c
+}
+
+// Alt sets the optional parameter "alt": Specifies the type of resource
+// representation to return. The default is 'json' to return file
+// metadata. Specifying 'media' will cause the file content to be
+// returned.
+func (c *FilesWatchCall) Alt(alt string) *FilesWatchCall {
+	c.opt_["alt"] = alt
 	return c
 }
 
@@ -5044,6 +5104,14 @@ func (c *FilesWatchCall) AcknowledgeAbuse(acknowledgeAbuse bool) *FilesWatchCall
 // is deprecated and has no function.
 func (c *FilesWatchCall) Projection(projection string) *FilesWatchCall {
 	c.opt_["projection"] = projection
+	return c
+}
+
+// RevisionId sets the optional parameter "revisionId": Specifies the
+// Revision ID that should be downloaded. Ignored unless alt=media is
+// specified.
+func (c *FilesWatchCall) RevisionId(revisionId string) *FilesWatchCall {
+	c.opt_["revisionId"] = revisionId
 	return c
 }
 
@@ -5075,8 +5143,14 @@ func (c *FilesWatchCall) Do() (*Channel, error) {
 	if v, ok := c.opt_["acknowledgeAbuse"]; ok {
 		params.Set("acknowledgeAbuse", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["alt"]; ok {
+		params.Set("alt", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["projection"]; ok {
 		params.Set("projection", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["revisionId"]; ok {
+		params.Set("revisionId", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["updateViewedDate"]; ok {
 		params.Set("updateViewedDate", fmt.Sprintf("%v", v))
@@ -5115,9 +5189,14 @@ func (c *FilesWatchCall) Do() (*Channel, error) {
 	//   "parameters": {
 	//     "acknowledgeAbuse": {
 	//       "default": "false",
-	//       "description": "Whether the user is acknowledging the risk of downloading known malware or other abusive files.",
+	//       "description": "Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified.",
 	//       "location": "query",
 	//       "type": "boolean"
+	//     },
+	//     "alt": {
+	//       "description": "Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.",
+	//       "location": "query",
+	//       "type": "string"
 	//     },
 	//     "fileId": {
 	//       "description": "The ID for the file in question.",
@@ -5135,6 +5214,11 @@ func (c *FilesWatchCall) Do() (*Channel, error) {
 	//         "Deprecated",
 	//         "Deprecated"
 	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "revisionId": {
+	//       "description": "Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -5158,6 +5242,7 @@ func (c *FilesWatchCall) Do() (*Channel, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ],
@@ -5330,6 +5415,7 @@ func (c *ParentsGetCall) Do() (*ParentReference, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -5499,6 +5585,7 @@ func (c *ParentsListCall) Do() (*ParentList, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -5668,6 +5755,7 @@ func (c *PermissionsGetCall) Do() (*Permission, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -5749,6 +5837,7 @@ func (c *PermissionsGetIdForEmailCall) Do() (*PermissionId, error) {
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.apps.readonly",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -5949,6 +6038,7 @@ func (c *PermissionsListCall) Do() (*PermissionList, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -6277,7 +6367,8 @@ func (c *PropertiesDeleteCall) Do() error {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
-	//     "https://www.googleapis.com/auth/drive.file"
+	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata"
 	//   ]
 	// }
 
@@ -6382,6 +6473,7 @@ func (c *PropertiesGetCall) Do() (*Property, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -6472,7 +6564,8 @@ func (c *PropertiesInsertCall) Do() (*Property, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
-	//     "https://www.googleapis.com/auth/drive.file"
+	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata"
 	//   ]
 	// }
 
@@ -6551,6 +6644,7 @@ func (c *PropertiesListCall) Do() (*PropertyList, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -6667,7 +6761,8 @@ func (c *PropertiesPatchCall) Do() (*Property, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
-	//     "https://www.googleapis.com/auth/drive.file"
+	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata"
 	//   ]
 	// }
 
@@ -6782,7 +6877,8 @@ func (c *PropertiesUpdateCall) Do() (*Property, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
-	//     "https://www.googleapis.com/auth/drive.file"
+	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata"
 	//   ]
 	// }
 
@@ -7890,6 +7986,7 @@ func (c *RevisionsGetCall) Do() (*Revision, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]
@@ -7970,6 +8067,7 @@ func (c *RevisionsListCall) Do() (*RevisionList, error) {
 	//     "https://www.googleapis.com/auth/drive",
 	//     "https://www.googleapis.com/auth/drive.appdata",
 	//     "https://www.googleapis.com/auth/drive.file",
+	//     "https://www.googleapis.com/auth/drive.metadata",
 	//     "https://www.googleapis.com/auth/drive.metadata.readonly",
 	//     "https://www.googleapis.com/auth/drive.readonly"
 	//   ]

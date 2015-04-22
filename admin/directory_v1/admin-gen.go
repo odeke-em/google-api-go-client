@@ -414,6 +414,10 @@ type ChromeOsDevice struct {
 	// ActiveTimeRanges: List of active time ranges (Read-only)
 	ActiveTimeRanges []*ChromeOsDeviceActiveTimeRanges `json:"activeTimeRanges,omitempty"`
 
+	// AnnotatedAssetId: AssetId specified during enrollment or through
+	// later annotation
+	AnnotatedAssetId string `json:"annotatedAssetId,omitempty"`
+
 	// AnnotatedLocation: Address or location of the device as noted by the
 	// administrator
 	AnnotatedLocation string `json:"annotatedLocation,omitempty"`
@@ -790,8 +794,14 @@ type OrgUnit struct {
 	// Name: Name of OrgUnit
 	Name string `json:"name,omitempty"`
 
+	// OrgUnitId: Id of OrgUnit
+	OrgUnitId string `json:"orgUnitId,omitempty"`
+
 	// OrgUnitPath: Path of OrgUnit
 	OrgUnitPath string `json:"orgUnitPath,omitempty"`
+
+	// ParentOrgUnitId: Id of parent OrgUnit
+	ParentOrgUnitId string `json:"parentOrgUnitId,omitempty"`
 
 	// ParentOrgUnitPath: Path of parent OrgUnit
 	ParentOrgUnitPath string `json:"parentOrgUnitPath,omitempty"`
@@ -4587,7 +4597,7 @@ func (c *OrgunitsDeleteCall) Do() error {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -4671,7 +4681,7 @@ func (c *OrgunitsGetCall) Do() (*OrgUnit, error) {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -4793,7 +4803,7 @@ func (r *OrgunitsService) List(customerId string) *OrgunitsListCall {
 }
 
 // OrgUnitPath sets the optional parameter "orgUnitPath": the
-// URL-encoded organization unit
+// URL-encoded organization unit's path or its Id
 func (c *OrgunitsListCall) OrgUnitPath(orgUnitPath string) *OrgunitsListCall {
 	c.opt_["orgUnitPath"] = orgUnitPath
 	return c
@@ -4863,7 +4873,7 @@ func (c *OrgunitsListCall) Do() (*OrgUnits, error) {
 	//     },
 	//     "orgUnitPath": {
 	//       "default": "",
-	//       "description": "the URL-encoded organization unit",
+	//       "description": "the URL-encoded organization unit's path or its Id",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -4971,7 +4981,7 @@ func (c *OrgunitsPatchCall) Do() (*OrgUnit, error) {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -5069,7 +5079,7 @@ func (c *OrgunitsUpdateCall) Do() (*OrgUnit, error) {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
