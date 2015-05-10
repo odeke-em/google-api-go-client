@@ -161,8 +161,10 @@ type Cluster struct {
 	// error listing the currently supported versions.
 	ClusterApiVersion string `json:"clusterApiVersion,omitempty"`
 
-	// ContainerIpv4Cidr: [Output only] The IP addresses of the container
-	// pods in this cluster, in  CIDR notation (e.g. 1.2.3.4/29).
+	// ContainerIpv4Cidr: The IP addresses of the container pods in this
+	// cluster, in  CIDR notation (e.g. 10.96.0.0/14). Leave blank to have
+	// one automatically chosen or specify a /14 block in 10.0.0.0/8 or
+	// 172.16.0.0/12.
 	ContainerIpv4Cidr string `json:"containerIpv4Cidr,omitempty"`
 
 	// CreationTimestamp: [Output only] The time the cluster was created, in
@@ -182,21 +184,18 @@ type Cluster struct {
 	// master. The endpoint can be accessed from the internet at
 	// https://username:password@endpoint/.
 	//
-	// See the masterAuth property of
-	// this resource for username and password information.
+	// See the masterAuth property of this resource for username and
+	// password information.
 	Endpoint string `json:"endpoint,omitempty"`
 
-	// MasterAuth: The HTTP basic authentication information for accessing
-	// the master. Because the master endpoint is open to the internet, you
-	// should create a strong password.
+	// MasterAuth: The authentication information for accessing the master.
 	MasterAuth *MasterAuth `json:"masterAuth,omitempty"`
 
 	// Name: The name of this cluster. The name must be unique within this
 	// project and zone, and can be up to 40 characters with the following
 	// restrictions:
 	// - Lowercase letters, numbers, and hyphens only.
-	// -
-	// Must start with a letter.
+	// - Must start with a letter.
 	// - Must end with a number or a letter.
 	Name string `json:"name,omitempty"`
 
@@ -265,12 +264,19 @@ type ListOperationsResponse struct {
 }
 
 type MasterAuth struct {
-	// Password: The password to use when accessing the Kubernetes master
-	// endpoint.
+	// BearerToken: The token used to authenticate API requests to the
+	// master. The token is be included in an HTTP Authorization Header
+	// included in all requests to the master endpoint. The format of the
+	// header is: "Authorization: Bearer ".
+	BearerToken string `json:"bearerToken,omitempty"`
+
+	// Password: The password to use for HTTP basic authentication when
+	// accessing the Kubernetes master endpoint. Because the master endpoint
+	// is open to the internet, you should create a strong password.
 	Password string `json:"password,omitempty"`
 
-	// User: The username to use when accessing the Kubernetes master
-	// endpoint.
+	// User: The username to use for HTTP basic authentication when
+	// accessing the Kubernetes master endpoint.
 	User string `json:"user,omitempty"`
 }
 
@@ -278,8 +284,7 @@ type NodeConfig struct {
 	// MachineType: The name of a Google Compute Engine machine type (e.g.
 	// n1-standard-1).
 	//
-	// If unspecified, the default machine type is
-	// n1-standard-1.
+	// If unspecified, the default machine type is n1-standard-1.
 	MachineType string `json:"machineType,omitempty"`
 
 	// ServiceAccounts: The optional list of ServiceAccounts, each with
@@ -287,10 +292,8 @@ type NodeConfig struct {
 	// In addition to the service accounts and scopes specified, the
 	// "default" account will always be created with the following scopes to
 	// ensure the correct functioning of the cluster:
-	// -
-	// https://www.googleapis.com/auth/compute,
-	// -
-	// https://www.googleapis.com/auth/devstorage.read_only
+	// - https://www.googleapis.com/auth/compute,
+	// - https://www.googleapis.com/auth/devstorage.read_only
 	ServiceAccounts []*ServiceAccount `json:"serviceAccounts,omitempty"`
 
 	// SourceImage: The fully-specified name of a Google Compute Engine
@@ -520,17 +523,15 @@ type ProjectsZonesClustersCreateCall struct {
 // type of Google Compute Engine instances, plus a Kubernetes master
 // instance.
 //
-// The cluster is created in the project's default
-// network.
+// The cluster is created in the project's default network.
 //
-// A firewall is added that allows traffic into port 443 on
-// the master, which enables HTTPS. A firewall and a route is added for
-// each node to allow the containers on that node to communicate with
-// all other instances in the cluster.
+// A firewall is added that allows traffic into port 443 on the master,
+// which enables HTTPS. A firewall and a route is added for each node to
+// allow the containers on that node to communicate with all other
+// instances in the cluster.
 //
-// Finally, a route named
-// k8s-iproute-10-xx-0-0 is created to track that the cluster's
-// 10.xx.0.0/16 CIDR has been assigned.
+// Finally, a route named k8s-iproute-10-xx-0-0 is created to track that
+// the cluster's 10.xx.0.0/16 CIDR has been assigned.
 func (r *ProjectsZonesClustersService) Create(projectId string, zoneId string, createclusterrequest *CreateClusterRequest) *ProjectsZonesClustersCreateCall {
 	c := &ProjectsZonesClustersCreateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -630,8 +631,8 @@ type ProjectsZonesClustersDeleteCall struct {
 // Delete: Deletes the cluster, including the Kubernetes master and all
 // worker nodes.
 //
-// Firewalls and routes that were configured at cluster
-// creation are also deleted.
+// Firewalls and routes that were configured at cluster creation are
+// also deleted.
 func (r *ProjectsZonesClustersService) Delete(projectId string, zoneId string, clusterId string) *ProjectsZonesClustersDeleteCall {
 	c := &ProjectsZonesClustersDeleteCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -1093,10 +1094,10 @@ type ProjectsZonesTokensGetCall struct {
 }
 
 // Get: Gets a compute-rw scoped OAuth2 access token for
-// .
-// Authentication is performed to ensure that the caller is a member of
-// and that the request is coming from the expected master VM for the
-// specified cluster. See go/gke-cross-project-auth for more details.
+// . Authentication is performed to ensure that the caller is a member
+// of  and that the request is coming from the expected master VM for
+// the specified cluster. See go/gke-cross-project-auth for more
+// details.
 func (r *ProjectsZonesTokensService) Get(masterProjectId string, zoneId string, projectNumber int64, clusterName string) *ProjectsZonesTokensGetCall {
 	c := &ProjectsZonesTokensGetCall{s: r.s, opt_: make(map[string]interface{})}
 	c.masterProjectId = masterProjectId

@@ -180,7 +180,11 @@ type Account struct {
 	// AdultContent: Indicates whether the merchant sells adult content.
 	AdultContent bool `json:"adultContent,omitempty"`
 
-	// AdwordsLinks: List of linked AdWords accounts.
+	// AdwordsLinks: List of linked AdWords accounts, active or pending
+	// approval. To create a new link request, add a new link with status
+	// active to the list. It will remain is state pending until approved or
+	// rejected in the AdWords interface. To delete an active link or to
+	// cancel a link request, remove it from the list.
 	AdwordsLinks []*AccountAdwordsLink `json:"adwordsLinks,omitempty"`
 
 	// Id: Merchant Center account ID.
@@ -214,7 +218,15 @@ type AccountAdwordsLink struct {
 	AdwordsId uint64 `json:"adwordsId,omitempty,string"`
 
 	// Status: Status of the link between this Merchant Center account and
-	// the AdWords account.
+	// the AdWords account. Upon retrieval, it represents the actual status
+	// of the link and can be either active if it was approved in Google
+	// AdWords or pending if it's pending approval. Upon insertion, it
+	// represents the intended status of the link. Re-uploading a link with
+	// status active when it's still pending or with status pending when
+	// it's already active will have no effect: the status will remain
+	// unchanged. Re-uploading a link with deprecated status inactive is
+	// equivalent to not submitting the link at all and will delete the link
+	// if it was active or cancel the link request if it was pending.
 	Status string `json:"status,omitempty"`
 }
 
@@ -328,8 +340,7 @@ type AccountShippingLocationGroup struct {
 	// PostalCodes: A postal code representing a city or a set of cities.
 	//
 	// - A single postal code (e.g., 12345)
-	// - A postal code prefix followed
-	// by a star (e.g., 1234*)
+	// - A postal code prefix followed by a star (e.g., 1234*)
 	PostalCodes []string `json:"postalCodes,omitempty"`
 }
 
@@ -523,11 +534,9 @@ type AccountUser struct {
 type AccountsAuthInfoResponse struct {
 	// AccountIdentifiers: The account identifiers corresponding to the
 	// authenticated user.
-	// - For an individual account: only the merchant ID
-	// is defined
+	// - For an individual account: only the merchant ID is defined
 	// - For an aggregator: only the aggregator ID is defined
-	// -
-	// For a subaccount of an MCA: both the merchant ID and the aggregator
+	// - For a subaccount of an MCA: both the merchant ID and the aggregator
 	// ID are defined.
 	AccountIdentifiers []*AccountIdentifier `json:"accountIdentifiers,omitempty"`
 
@@ -2454,6 +2463,13 @@ func (r *AccountshippingService) Custombatch(accountshippingcustombatchrequest *
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountshippingCustombatchCall) DryRun(dryRun bool) *AccountshippingCustombatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -2471,6 +2487,9 @@ func (c *AccountshippingCustombatchCall) Do() (*AccountshippingCustomBatchRespon
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -2497,6 +2516,13 @@ func (c *AccountshippingCustombatchCall) Do() (*AccountshippingCustomBatchRespon
 	//   "description": "Retrieves and updates the shipping settings of multiple accounts in a single request.",
 	//   "httpMethod": "POST",
 	//   "id": "content.accountshipping.custombatch",
+	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
 	//   "path": "accountshipping/batch",
 	//   "request": {
 	//     "$ref": "AccountshippingCustomBatchRequest"
@@ -2729,6 +2755,13 @@ func (r *AccountshippingService) Patch(merchantId uint64, accountId uint64, acco
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountshippingPatchCall) DryRun(dryRun bool) *AccountshippingPatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -2746,6 +2779,9 @@ func (c *AccountshippingPatchCall) Do() (*AccountShipping, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -2786,6 +2822,11 @@ func (c *AccountshippingPatchCall) Do() (*AccountShipping, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
@@ -2828,6 +2869,13 @@ func (r *AccountshippingService) Update(merchantId uint64, accountId uint64, acc
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountshippingUpdateCall) DryRun(dryRun bool) *AccountshippingUpdateCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -2845,6 +2893,9 @@ func (c *AccountshippingUpdateCall) Do() (*AccountShipping, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -2885,6 +2936,11 @@ func (c *AccountshippingUpdateCall) Do() (*AccountShipping, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
@@ -3193,6 +3249,13 @@ func (r *AccounttaxService) Custombatch(accounttaxcustombatchrequest *Accounttax
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccounttaxCustombatchCall) DryRun(dryRun bool) *AccounttaxCustombatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -3210,6 +3273,9 @@ func (c *AccounttaxCustombatchCall) Do() (*AccounttaxCustomBatchResponse, error)
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -3236,6 +3302,13 @@ func (c *AccounttaxCustombatchCall) Do() (*AccounttaxCustomBatchResponse, error)
 	//   "description": "Retrieves and updates tax settings of multiple accounts in a single request.",
 	//   "httpMethod": "POST",
 	//   "id": "content.accounttax.custombatch",
+	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
 	//   "path": "accounttax/batch",
 	//   "request": {
 	//     "$ref": "AccounttaxCustomBatchRequest"
@@ -3467,6 +3540,13 @@ func (r *AccounttaxService) Patch(merchantId uint64, accountId uint64, accountta
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccounttaxPatchCall) DryRun(dryRun bool) *AccounttaxPatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -3484,6 +3564,9 @@ func (c *AccounttaxPatchCall) Do() (*AccountTax, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -3524,6 +3607,11 @@ func (c *AccounttaxPatchCall) Do() (*AccountTax, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
@@ -3566,6 +3654,13 @@ func (r *AccounttaxService) Update(merchantId uint64, accountId uint64, accountt
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccounttaxUpdateCall) DryRun(dryRun bool) *AccounttaxUpdateCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -3583,6 +3678,9 @@ func (c *AccounttaxUpdateCall) Do() (*AccountTax, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -3623,6 +3721,11 @@ func (c *AccounttaxUpdateCall) Do() (*AccountTax, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
