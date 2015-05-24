@@ -53,13 +53,13 @@ const (
 	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
 
 	// Manage your data and permissions in Google Cloud Storage
-	DevstorageFull_controlScope = "https://www.googleapis.com/auth/devstorage.full_control"
+	DevstorageFullControlScope = "https://www.googleapis.com/auth/devstorage.full_control"
 
 	// View your data in Google Cloud Storage
-	DevstorageRead_onlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
+	DevstorageReadOnlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
 
 	// Manage your data in Google Cloud Storage
-	DevstorageRead_writeScope = "https://www.googleapis.com/auth/devstorage.read_write"
+	DevstorageReadWriteScope = "https://www.googleapis.com/auth/devstorage.read_write"
 )
 
 func New(client *http.Client) (*Service, error) {
@@ -239,6 +239,10 @@ type Dataset struct {
 	// LastModifiedTime: [Output-only] The date when this dataset or any of
 	// its tables was last modified, in milliseconds since the epoch.
 	LastModifiedTime int64 `json:"lastModifiedTime,omitempty,string"`
+
+	// Location: [Experimental] The location where the data resides. If not
+	// present, the data will be stored in the US.
+	Location string `json:"location,omitempty"`
 
 	// SelfLink: [Output-only] A URL that can be used to access the resource
 	// again. You can use this URL in Get or Update requests to the
@@ -455,8 +459,8 @@ type Job struct {
 	// polling an asynchronous job to see if the job is complete.
 	Status *JobStatus `json:"status,omitempty"`
 
-	// User_email: [Output-only] Email address of the user who ran the job.
-	User_email string `json:"user_email,omitempty"`
+	// UserEmail: [Output-only] Email address of the user who ran the job.
+	UserEmail string `json:"user_email,omitempty"`
 }
 
 type JobConfiguration struct {
@@ -807,9 +811,9 @@ type JobListJobs struct {
 	// Status: [Full-projection-only] Describes the state of the job.
 	Status *JobStatus `json:"status,omitempty"`
 
-	// User_email: [Full-projection-only] Email address of the user who ran
+	// UserEmail: [Full-projection-only] Email address of the user who ran
 	// the job.
-	User_email string `json:"user_email,omitempty"`
+	UserEmail string `json:"user_email,omitempty"`
 }
 
 type JobReference struct {
@@ -2315,6 +2319,10 @@ func (c *JobsListCall) PageToken(pageToken string) *JobsListCall {
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields
+//
+// Possible values:
+//   "full" - Includes all job data
+//   "minimal" - Does not include the job configuration
 func (c *JobsListCall) Projection(projection string) *JobsListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -2322,6 +2330,11 @@ func (c *JobsListCall) Projection(projection string) *JobsListCall {
 
 // StateFilter sets the optional parameter "stateFilter": Filter for job
 // state
+//
+// Possible values:
+//   "done" - Finished jobs
+//   "pending" - Pending jobs
+//   "running" - Running jobs
 func (c *JobsListCall) StateFilter(stateFilter string) *JobsListCall {
 	c.opt_["stateFilter"] = stateFilter
 	return c

@@ -156,13 +156,13 @@ type UrlCrawlErrorsCountsQueryResponse struct {
 }
 
 type UrlCrawlErrorsSample struct {
-	// First_detected: The time the error was first detected, in RFC 3339
+	// FirstDetected: The time the error was first detected, in RFC 3339
 	// format.
-	First_detected string `json:"first_detected,omitempty"`
+	FirstDetected string `json:"first_detected,omitempty"`
 
-	// Last_crawled: The time when the URL was last crawled, in RFC 3339
+	// LastCrawled: The time when the URL was last crawled, in RFC 3339
 	// format.
-	Last_crawled string `json:"last_crawled,omitempty"`
+	LastCrawled string `json:"last_crawled,omitempty"`
 
 	// PageUrl: The URL of an error, relative to the site.
 	PageUrl string `json:"pageUrl,omitempty"`
@@ -877,6 +877,16 @@ func (r *UrlcrawlerrorscountsService) Query(siteUrl string) *Urlcrawlerrorscount
 // Category sets the optional parameter "category": The crawl error
 // category, for example 'serverError'. If not specified, we return
 // results for all categories.
+//
+// Possible values:
+//   "authPermissions"
+//   "manyToOneRedirect"
+//   "notFollowed"
+//   "notFound"
+//   "other"
+//   "roboted"
+//   "serverError"
+//   "soft404"
 func (c *UrlcrawlerrorscountsQueryCall) Category(category string) *UrlcrawlerrorscountsQueryCall {
 	c.opt_["category"] = category
 	return c
@@ -892,6 +902,11 @@ func (c *UrlcrawlerrorscountsQueryCall) LatestCountsOnly(latestCountsOnly bool) 
 // Platform sets the optional parameter "platform": The user agent type
 // (platform) that made the request, for example 'web'. If not
 // specified, we return results for all platforms.
+//
+// Possible values:
+//   "mobile"
+//   "smartphoneOnly"
+//   "web"
 func (c *UrlcrawlerrorscountsQueryCall) Platform(platform string) *UrlcrawlerrorscountsQueryCall {
 	c.opt_["platform"] = platform
 	return c

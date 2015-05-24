@@ -795,11 +795,11 @@ type CustomMetric struct {
 	// "analytics#customMetric". It is a read-only field.
 	Kind string `json:"kind,omitempty"`
 
-	// Max_value: Max value of custom metric.
-	Max_value string `json:"max_value,omitempty"`
+	// MaxValue: Max value of custom metric.
+	MaxValue string `json:"max_value,omitempty"`
 
-	// Min_value: Min value of custom metric.
-	Min_value string `json:"min_value,omitempty"`
+	// MinValue: Min value of custom metric.
+	MinValue string `json:"min_value,omitempty"`
 
 	// Name: Name of the custom metric.
 	Name string `json:"name,omitempty"`
@@ -1271,11 +1271,19 @@ type FilterAdvancedDetails struct {
 	// FieldA: Field A.
 	FieldA string `json:"fieldA,omitempty"`
 
+	// FieldAIndex: The Index of the custom dimension. Required if field is
+	// a CUSTOM_DIMENSION.
+	FieldAIndex int64 `json:"fieldAIndex,omitempty"`
+
 	// FieldARequired: Indicates if field A is required to match.
 	FieldARequired bool `json:"fieldARequired,omitempty"`
 
 	// FieldB: Field B.
 	FieldB string `json:"fieldB,omitempty"`
+
+	// FieldBIndex: The Index of the custom dimension. Required if field is
+	// a CUSTOM_DIMENSION.
+	FieldBIndex int64 `json:"fieldBIndex,omitempty"`
 
 	// FieldBRequired: Indicates if field B is required to match.
 	FieldBRequired bool `json:"fieldBRequired,omitempty"`
@@ -1286,6 +1294,10 @@ type FilterAdvancedDetails struct {
 	// OutputToField: Output field.
 	OutputToField string `json:"outputToField,omitempty"`
 
+	// OutputToFieldIndex: The Index of the custom dimension. Required if
+	// field is a CUSTOM_DIMENSION.
+	OutputToFieldIndex int64 `json:"outputToFieldIndex,omitempty"`
+
 	// OverrideOutputField: Indicates if the existing value of the output
 	// field, if any, should be overridden by the output expression.
 	OverrideOutputField bool `json:"overrideOutputField,omitempty"`
@@ -1294,6 +1306,10 @@ type FilterAdvancedDetails struct {
 type FilterLowercaseDetails struct {
 	// Field: Field to use in the filter.
 	Field string `json:"field,omitempty"`
+
+	// FieldIndex: The Index of the custom dimension. Required if field is a
+	// CUSTOM_DIMENSION.
+	FieldIndex int64 `json:"fieldIndex,omitempty"`
 }
 
 type FilterParentLink struct {
@@ -1311,6 +1327,10 @@ type FilterSearchAndReplaceDetails struct {
 	// Field: Field to use in the filter.
 	Field string `json:"field,omitempty"`
 
+	// FieldIndex: The Index of the custom dimension. Required if field is a
+	// CUSTOM_DIMENSION.
+	FieldIndex int64 `json:"fieldIndex,omitempty"`
+
 	// ReplaceString: Term to replace the search term with.
 	ReplaceString string `json:"replaceString,omitempty"`
 
@@ -1321,6 +1341,10 @@ type FilterSearchAndReplaceDetails struct {
 type FilterUppercaseDetails struct {
 	// Field: Field to use in the filter.
 	Field string `json:"field,omitempty"`
+
+	// FieldIndex: The Index of the custom dimension. Required if field is a
+	// CUSTOM_DIMENSION.
+	FieldIndex int64 `json:"fieldIndex,omitempty"`
 }
 
 type FilterExpression struct {
@@ -1417,7 +1441,13 @@ type FilterExpression struct {
 	// - SOCIAL_NETWORK,
 	// - SOCIAL_ACTION,
 	// - SOCIAL_ACTION_TARGET,
+	// - Custom dimension
+	// - CUSTOM_DIMENSION (See accompanying field index),
 	Field string `json:"field,omitempty"`
+
+	// FieldIndex: The Index of the custom dimension. Set only if the field
+	// is a is CUSTOM_DIMENSION.
+	FieldIndex int64 `json:"fieldIndex,omitempty"`
 
 	// Kind: Kind value for filter expression
 	Kind string `json:"kind,omitempty"`
@@ -2734,6 +2764,11 @@ func (c *DataGaGetCall) MaxResults(maxResults int64) *DataGaGetCall {
 
 // Output sets the optional parameter "output": The selected format for
 // the response. Default format is JSON.
+//
+// Possible values:
+//   "dataTable" - Returns the response in Google Charts Data Table
+// format. This is useful in creating visualization using Google Charts.
+//   "json" - Returns the response in standard JSON format.
 func (c *DataGaGetCall) Output(output string) *DataGaGetCall {
 	c.opt_["output"] = output
 	return c
@@ -2741,6 +2776,13 @@ func (c *DataGaGetCall) Output(output string) *DataGaGetCall {
 
 // SamplingLevel sets the optional parameter "samplingLevel": The
 // desired sampling level.
+//
+// Possible values:
+//   "DEFAULT" - Returns response with a sample size that balances speed
+// and accuracy.
+//   "FASTER" - Returns a fast response with a smaller sample size.
+//   "HIGHER_PRECISION" - Returns a more accurate response using a large
+// sample size, but this may result in the response being slower.
 func (c *DataGaGetCall) SamplingLevel(samplingLevel string) *DataGaGetCall {
 	c.opt_["samplingLevel"] = samplingLevel
 	return c
@@ -2992,6 +3034,13 @@ func (c *DataMcfGetCall) MaxResults(maxResults int64) *DataMcfGetCall {
 
 // SamplingLevel sets the optional parameter "samplingLevel": The
 // desired sampling level.
+//
+// Possible values:
+//   "DEFAULT" - Returns response with a sample size that balances speed
+// and accuracy.
+//   "FASTER" - Returns a fast response with a smaller sample size.
+//   "HIGHER_PRECISION" - Returns a more accurate response using a large
+// sample size, but this may result in the response being slower.
 func (c *DataMcfGetCall) SamplingLevel(samplingLevel string) *DataMcfGetCall {
 	c.opt_["samplingLevel"] = samplingLevel
 	return c

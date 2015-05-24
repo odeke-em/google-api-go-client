@@ -425,8 +425,8 @@ type Annotationdata struct {
 
 	Data interface{} `json:"data,omitempty"`
 
-	// Encoded_data: Base64 encoded data for this annotation data.
-	Encoded_data string `json:"encoded_data,omitempty"`
+	// EncodedData: Base64 encoded data for this annotation data.
+	EncodedData string `json:"encoded_data,omitempty"`
 
 	// Id: Unique id for this annotation data.
 	Id string `json:"id,omitempty"`
@@ -523,7 +523,7 @@ type BooksCloudloadingResource struct {
 }
 
 type BooksVolumesRecommendedRateResponse struct {
-	Consistency_token string `json:"consistency_token,omitempty"`
+	ConsistencyToken string `json:"consistency_token,omitempty"`
 }
 
 type Bookshelf struct {
@@ -960,9 +960,9 @@ type Metadata struct {
 }
 
 type MetadataItems struct {
-	Download_url string `json:"download_url,omitempty"`
+	DownloadUrl string `json:"download_url,omitempty"`
 
-	Encrypted_key string `json:"encrypted_key,omitempty"`
+	EncryptedKey string `json:"encrypted_key,omitempty"`
 
 	Language string `json:"language,omitempty"`
 
@@ -2009,17 +2009,17 @@ func (r *CloudloadingService) AddBook() *CloudloadingAddBookCall {
 	return c
 }
 
-// Drive_document_id sets the optional parameter "drive_document_id": A
+// DriveDocumentId sets the optional parameter "drive_document_id": A
 // drive document id. The upload_client_token must not be set.
-func (c *CloudloadingAddBookCall) Drive_document_id(drive_document_id string) *CloudloadingAddBookCall {
-	c.opt_["drive_document_id"] = drive_document_id
+func (c *CloudloadingAddBookCall) DriveDocumentId(driveDocumentId string) *CloudloadingAddBookCall {
+	c.opt_["drive_document_id"] = driveDocumentId
 	return c
 }
 
-// Mime_type sets the optional parameter "mime_type": The document MIME
+// MimeType sets the optional parameter "mime_type": The document MIME
 // type. It can be set only if the drive_document_id is set.
-func (c *CloudloadingAddBookCall) Mime_type(mime_type string) *CloudloadingAddBookCall {
-	c.opt_["mime_type"] = mime_type
+func (c *CloudloadingAddBookCall) MimeType(mimeType string) *CloudloadingAddBookCall {
+	c.opt_["mime_type"] = mimeType
 	return c
 }
 
@@ -2030,10 +2030,9 @@ func (c *CloudloadingAddBookCall) Name(name string) *CloudloadingAddBookCall {
 	return c
 }
 
-// Upload_client_token sets the optional parameter
-// "upload_client_token":
-func (c *CloudloadingAddBookCall) Upload_client_token(upload_client_token string) *CloudloadingAddBookCall {
-	c.opt_["upload_client_token"] = upload_client_token
+// UploadClientToken sets the optional parameter "upload_client_token":
+func (c *CloudloadingAddBookCall) UploadClientToken(uploadClientToken string) *CloudloadingAddBookCall {
+	c.opt_["upload_client_token"] = uploadClientToken
 	return c
 }
 
@@ -3662,6 +3661,11 @@ func (r *MyconfigService) RequestAccess(source string, volumeId string, nonce st
 
 // LicenseTypes sets the optional parameter "licenseTypes": The type of
 // access license to request. If not specified, the default is BOTH.
+//
+// Possible values:
+//   "BOTH" - Both concurrent and download licenses.
+//   "CONCURRENT" - Concurrent access license.
+//   "DOWNLOAD" - Offline download access license.
 func (c *MyconfigRequestAccessCall) LicenseTypes(licenseTypes string) *MyconfigRequestAccessCall {
 	c.opt_["licenseTypes"] = licenseTypes
 	return c
@@ -3806,6 +3810,9 @@ func (r *MyconfigService) SyncVolumeLicenses(source string, nonce string, cpksve
 
 // Features sets the optional parameter "features": List of features
 // supported by the client, i.e., 'RENTALS'
+//
+// Possible values:
+//   "RENTALS" - Client supports rentals.
 func (c *MyconfigSyncVolumeLicensesCall) Features(features string) *MyconfigSyncVolumeLicensesCall {
 	c.opt_["features"] = features
 	return c
@@ -4655,6 +4662,11 @@ func (r *MylibraryBookshelvesService) AddVolume(shelf string, volumeId string) *
 
 // Reason sets the optional parameter "reason": The reason for which the
 // book is added to the library.
+//
+// Possible values:
+//   "IOS_PREX" - Volumes added from the PREX flow on iOS.
+//   "IOS_SEARCH" - Volumes added from the Search flow on iOS.
+//   "ONBOARDING" - Volumes added from the Onboarding flow.
 func (c *MylibraryBookshelvesAddVolumeCall) Reason(reason string) *MylibraryBookshelvesAddVolumeCall {
 	c.opt_["reason"] = reason
 	return c
@@ -5134,6 +5146,9 @@ func (r *MylibraryBookshelvesService) RemoveVolume(shelf string, volumeId string
 
 // Reason sets the optional parameter "reason": The reason for which the
 // book is removed from the library.
+//
+// Possible values:
+//   "ONBOARDING" - Samples removed from the Onboarding flow.
 func (c *MylibraryBookshelvesRemoveVolumeCall) Reason(reason string) *MylibraryBookshelvesRemoveVolumeCall {
 	c.opt_["reason"] = reason
 	return c
@@ -5261,6 +5276,10 @@ func (c *MylibraryBookshelvesVolumesListCall) MaxResults(maxResults int64) *Myli
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "full" - Includes all volume data.
+//   "lite" - Includes a subset of fields in volumeInfo and accessInfo.
 func (c *MylibraryBookshelvesVolumesListCall) Projection(projection string) *MylibraryBookshelvesVolumesListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -5550,6 +5569,14 @@ func (r *MylibraryReadingpositionsService) SetPosition(volumeId string, timestam
 
 // Action sets the optional parameter "action": Action that caused this
 // reading position to be set.
+//
+// Possible values:
+//   "bookmark" - User chose bookmark within volume.
+//   "chapter" - User selected chapter from list.
+//   "next-page" - Next page event.
+//   "prev-page" - Previous page event.
+//   "scroll" - User navigated to page.
+//   "search" - User chose search results within volume.
 func (c *MylibraryReadingpositionsSetPositionCall) Action(action string) *MylibraryReadingpositionsSetPositionCall {
 	c.opt_["action"] = action
 	return c
@@ -5804,6 +5831,10 @@ func (c *OnboardingListCategoryVolumesCall) Locale(locale string) *OnboardingLis
 // "maxAllowedMaturityRating": The maximum allowed maturity rating of
 // returned volumes. Books with a higher maturity rating are filtered
 // out.
+//
+// Possible values:
+//   "mature" - Show books which are rated mature or lower.
+//   "not-mature" - Show books which are rated not mature.
 func (c *OnboardingListCategoryVolumesCall) MaxAllowedMaturityRating(maxAllowedMaturityRating string) *OnboardingListCategoryVolumesCall {
 	c.opt_["maxAllowedMaturityRating"] = maxAllowedMaturityRating
 	return c
@@ -6426,6 +6457,10 @@ func (c *VolumesGetCall) Partner(partner string) *VolumesGetCall {
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "full" - Includes all volume data.
+//   "lite" - Includes a subset of fields in volumeInfo and accessInfo.
 func (c *VolumesGetCall) Projection(projection string) *VolumesGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -6438,10 +6473,10 @@ func (c *VolumesGetCall) Source(source string) *VolumesGetCall {
 	return c
 }
 
-// User_library_consistent_read sets the optional parameter
+// UserLibraryConsistentRead sets the optional parameter
 // "user_library_consistent_read":
-func (c *VolumesGetCall) User_library_consistent_read(user_library_consistent_read bool) *VolumesGetCall {
-	c.opt_["user_library_consistent_read"] = user_library_consistent_read
+func (c *VolumesGetCall) UserLibraryConsistentRead(userLibraryConsistentRead bool) *VolumesGetCall {
+	c.opt_["user_library_consistent_read"] = userLibraryConsistentRead
 	return c
 }
 
@@ -6570,12 +6605,22 @@ func (r *VolumesService) List(q string) *VolumesListCall {
 
 // Download sets the optional parameter "download": Restrict to volumes
 // by download availability.
+//
+// Possible values:
+//   "epub" - All volumes with epub.
 func (c *VolumesListCall) Download(download string) *VolumesListCall {
 	c.opt_["download"] = download
 	return c
 }
 
 // Filter sets the optional parameter "filter": Filter search results.
+//
+// Possible values:
+//   "ebooks" - All Google eBooks.
+//   "free-ebooks" - Google eBook with full volume text viewability.
+//   "full" - Public can view entire volume text.
+//   "paid-ebooks" - Google eBook with a price.
+//   "partial" - Public able to see parts of text.
 func (c *VolumesListCall) Filter(filter string) *VolumesListCall {
 	c.opt_["filter"] = filter
 	return c
@@ -6590,6 +6635,10 @@ func (c *VolumesListCall) LangRestrict(langRestrict string) *VolumesListCall {
 
 // LibraryRestrict sets the optional parameter "libraryRestrict":
 // Restrict search to this user's library.
+//
+// Possible values:
+//   "my-library" - Restrict to the user's library, any shelf.
+//   "no-restrict" - Do not restrict based on user's library.
 func (c *VolumesListCall) LibraryRestrict(libraryRestrict string) *VolumesListCall {
 	c.opt_["libraryRestrict"] = libraryRestrict
 	return c
@@ -6603,6 +6652,10 @@ func (c *VolumesListCall) MaxResults(maxResults int64) *VolumesListCall {
 }
 
 // OrderBy sets the optional parameter "orderBy": Sort search results.
+//
+// Possible values:
+//   "newest" - Most recently published.
+//   "relevance" - Relevance to search terms.
 func (c *VolumesListCall) OrderBy(orderBy string) *VolumesListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -6617,6 +6670,11 @@ func (c *VolumesListCall) Partner(partner string) *VolumesListCall {
 
 // PrintType sets the optional parameter "printType": Restrict to books
 // or magazines.
+//
+// Possible values:
+//   "all" - All volume content types.
+//   "books" - Just books.
+//   "magazines" - Just magazines.
 func (c *VolumesListCall) PrintType(printType string) *VolumesListCall {
 	c.opt_["printType"] = printType
 	return c
@@ -6624,6 +6682,10 @@ func (c *VolumesListCall) PrintType(printType string) *VolumesListCall {
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "full" - Includes all volume data.
+//   "lite" - Includes a subset of fields in volumeInfo and accessInfo.
 func (c *VolumesListCall) Projection(projection string) *VolumesListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -6882,6 +6944,11 @@ func (r *VolumesAssociatedService) List(volumeId string) *VolumesAssociatedListC
 
 // Association sets the optional parameter "association": Association
 // type.
+//
+// Possible values:
+//   "end-of-sample" - Recommendations for display end-of-sample.
+//   "end-of-volume" - Recommendations for display end-of-volume.
+//   "related-for-play" - Related volumes for Play Store.
 func (c *VolumesAssociatedListCall) Association(association string) *VolumesAssociatedListCall {
 	c.opt_["association"] = association
 	return c
@@ -6899,6 +6966,10 @@ func (c *VolumesAssociatedListCall) Locale(locale string) *VolumesAssociatedList
 // "maxAllowedMaturityRating": The maximum allowed maturity rating of
 // returned recommendations. Books with a higher maturity rating are
 // filtered out.
+//
+// Possible values:
+//   "mature" - Show books which are rated mature or lower.
+//   "not-mature" - Show books which are rated not mature.
 func (c *VolumesAssociatedListCall) MaxAllowedMaturityRating(maxAllowedMaturityRating string) *VolumesAssociatedListCall {
 	c.opt_["maxAllowedMaturityRating"] = maxAllowedMaturityRating
 	return c
@@ -7037,6 +7108,15 @@ func (r *VolumesMybooksService) List() *VolumesMybooksListCall {
 
 // AcquireMethod sets the optional parameter "acquireMethod": How the
 // book was aquired
+//
+// Possible values:
+//   "PREORDERED" - Preordered books (not yet available)
+//   "PREVIOUSLY_RENTED" - User-rented books past their expiration time
+//   "PUBLIC_DOMAIN" - Public domain books
+//   "PURCHASED" - Purchased books
+//   "RENTED" - User-rented books
+//   "SAMPLE" - Sample books
+//   "UPLOADED" - User uploaded books
 func (c *VolumesMybooksListCall) AcquireMethod(acquireMethod string) *VolumesMybooksListCall {
 	c.opt_["acquireMethod"] = acquireMethod
 	return c
@@ -7060,6 +7140,11 @@ func (c *VolumesMybooksListCall) MaxResults(maxResults int64) *VolumesMybooksLis
 // ProcessingState sets the optional parameter "processingState": The
 // processing state of the user uploaded volumes to be returned.
 // Applicable only if the UPLOADED is specified in the acquireMethod.
+//
+// Possible values:
+//   "COMPLETED_FAILED" - The volume processing hase failed.
+//   "COMPLETED_SUCCESS" - The volume processing was completed.
+//   "RUNNING" - The volume processing is not completed.
 func (c *VolumesMybooksListCall) ProcessingState(processingState string) *VolumesMybooksListCall {
 	c.opt_["processingState"] = processingState
 	return c
@@ -7237,6 +7322,10 @@ func (c *VolumesRecommendedListCall) Locale(locale string) *VolumesRecommendedLi
 // "maxAllowedMaturityRating": The maximum allowed maturity rating of
 // returned recommendations. Books with a higher maturity rating are
 // filtered out.
+//
+// Possible values:
+//   "mature" - Show books which are rated mature or lower.
+//   "not-mature" - Show books which are rated not mature.
 func (c *VolumesRecommendedListCall) MaxAllowedMaturityRating(maxAllowedMaturityRating string) *VolumesRecommendedListCall {
 	c.opt_["maxAllowedMaturityRating"] = maxAllowedMaturityRating
 	return c
@@ -7485,6 +7574,11 @@ func (c *VolumesUseruploadedListCall) MaxResults(maxResults int64) *VolumesUseru
 
 // ProcessingState sets the optional parameter "processingState": The
 // processing state of the user uploaded volumes to be returned.
+//
+// Possible values:
+//   "COMPLETED_FAILED" - The volume processing hase failed.
+//   "COMPLETED_SUCCESS" - The volume processing was completed.
+//   "RUNNING" - The volume processing is not completed.
 func (c *VolumesUseruploadedListCall) ProcessingState(processingState string) *VolumesUseruploadedListCall {
 	c.opt_["processingState"] = processingState
 	return c

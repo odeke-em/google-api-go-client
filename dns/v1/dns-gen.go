@@ -143,6 +143,10 @@ type Change struct {
 	StartTime string `json:"startTime,omitempty"`
 
 	// Status: Status of the operation (output only).
+	//
+	// Possible values:
+	//   "done"
+	//   "pending"
 	Status string `json:"status,omitempty"`
 }
 
@@ -544,6 +548,9 @@ func (c *ChangesListCall) PageToken(pageToken string) *ChangesListCall {
 
 // SortBy sets the optional parameter "sortBy": Sorting criterion. The
 // only supported value is change sequence.
+//
+// Possible values:
+//   "changeSequence" (default)
 func (c *ChangesListCall) SortBy(sortBy string) *ChangesListCall {
 	c.opt_["sortBy"] = sortBy
 	return c

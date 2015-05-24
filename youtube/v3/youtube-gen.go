@@ -480,6 +480,10 @@ type ActivityContentDetailsPromotedItem struct {
 
 	// CtaType: The type of call-to-action, a message to the user indicating
 	// action that can be taken.
+	//
+	// Possible values:
+	//   "unspecified"
+	//   "visitAdvertiserSite"
 	CtaType string `json:"ctaType,omitempty"`
 
 	// CustomCtaButtonText: The custom call-to-action button text. If
@@ -510,6 +514,12 @@ type ActivityContentDetailsPromotedItem struct {
 
 type ActivityContentDetailsRecommendation struct {
 	// Reason: The reason that the resource is recommended to the user.
+	//
+	// Possible values:
+	//   "unspecified"
+	//   "videoFavorited"
+	//   "videoLiked"
+	//   "videoWatched"
 	Reason string `json:"reason,omitempty"`
 
 	// ResourceId: The resourceId object contains information that
@@ -536,6 +546,12 @@ type ActivityContentDetailsSocial struct {
 	ResourceId *ResourceId `json:"resourceId,omitempty"`
 
 	// Type: The name of the social network.
+	//
+	// Possible values:
+	//   "facebook"
+	//   "googlePlus"
+	//   "twitter"
+	//   "unspecified"
 	Type string `json:"type,omitempty"`
 }
 
@@ -619,6 +635,19 @@ type ActivitySnippet struct {
 	Title string `json:"title,omitempty"`
 
 	// Type: The type of activity that the resource describes.
+	//
+	// Possible values:
+	//   "bulletin"
+	//   "channelItem"
+	//   "comment"
+	//   "favorite"
+	//   "like"
+	//   "playlistItem"
+	//   "promotedItem"
+	//   "recommendation"
+	//   "social"
+	//   "subscription"
+	//   "upload"
 	Type string `json:"type,omitempty"`
 }
 
@@ -659,11 +688,22 @@ type CaptionListResponse struct {
 type CaptionSnippet struct {
 	// AudioTrackType: The type of audio track associated with the caption
 	// track.
+	//
+	// Possible values:
+	//   "commentary"
+	//   "descriptive"
+	//   "primary"
+	//   "unknown"
 	AudioTrackType string `json:"audioTrackType,omitempty"`
 
 	// FailureReason: The reason that YouTube failed to process the caption
 	// track. This property is only present if the state property's value is
 	// failed.
+	//
+	// Possible values:
+	//   "processingFailed"
+	//   "unknownFormat"
+	//   "unsupportedFormat"
 	FailureReason string `json:"failureReason,omitempty"`
 
 	// IsAutoSynced: Indicates whether YouTube synchronized the caption
@@ -708,9 +748,19 @@ type CaptionSnippet struct {
 	Name string `json:"name,omitempty"`
 
 	// Status: The caption track's status.
+	//
+	// Possible values:
+	//   "failed"
+	//   "serving"
+	//   "syncing"
 	Status string `json:"status,omitempty"`
 
 	// TrackKind: The caption track's type.
+	//
+	// Possible values:
+	//   "ASR"
+	//   "forced"
+	//   "standard"
 	TrackKind string `json:"trackKind,omitempty"`
 
 	// VideoId: The ID that YouTube uses to uniquely identify the video
@@ -730,6 +780,10 @@ type CdnSettings struct {
 
 	// IngestionType: The method or protocol used to transmit the video
 	// stream.
+	//
+	// Possible values:
+	//   "dash"
+	//   "rtmp"
 	IngestionType string `json:"ingestionType,omitempty"`
 }
 
@@ -884,6 +938,11 @@ type ChannelContentOwnerDetails struct {
 
 type ChannelConversionPing struct {
 	// Context: Defines the context of the ping.
+	//
+	// Possible values:
+	//   "cview"
+	//   "subscribe"
+	//   "unsubscribe"
 	Context string `json:"context,omitempty"`
 
 	// ConversionUrl: The url (without the schema) that the player shall
@@ -1026,6 +1085,11 @@ type ChannelSectionSnippet struct {
 	Position int64 `json:"position,omitempty"`
 
 	// Style: The style of the channel section.
+	//
+	// Possible values:
+	//   "channelsectionStyleUndefined"
+	//   "horizontalRow"
+	//   "verticalList"
 	Style string `json:"style,omitempty"`
 
 	// Title: The channel section's title for multiple_playlists and
@@ -1033,6 +1097,25 @@ type ChannelSectionSnippet struct {
 	Title string `json:"title,omitempty"`
 
 	// Type: The type of the channel section.
+	//
+	// Possible values:
+	//   "allPlaylists"
+	//   "channelsectionTypeUndefined"
+	//   "completedEvents"
+	//   "likedPlaylists"
+	//   "likes"
+	//   "liveEvents"
+	//   "multipleChannels"
+	//   "multiplePlaylists"
+	//   "popularUploads"
+	//   "postedPlaylists"
+	//   "postedVideos"
+	//   "recentActivity"
+	//   "recentPosts"
+	//   "recentUploads"
+	//   "singlePlaylist"
+	//   "subscriptions"
+	//   "upcomingEvents"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1150,9 +1233,20 @@ type ChannelStatus struct {
 	IsLinked bool `json:"isLinked,omitempty"`
 
 	// LongUploadsStatus: The long uploads status of this channel. See
+	//
+	// Possible values:
+	//   "allowed"
+	//   "disallowed"
+	//   "eligible"
+	//   "longUploadsUnspecified"
 	LongUploadsStatus string `json:"longUploadsStatus,omitempty"`
 
 	// PrivacyStatus: Privacy status of the channel.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 }
 
@@ -1236,6 +1330,12 @@ type CommentSnippet struct {
 
 	// ModerationStatus: The comment's moderation status. Will not be set if
 	// the comments were requested through the id filter.
+	//
+	// Possible values:
+	//   "heldForReview"
+	//   "likelySpam"
+	//   "published"
+	//   "rejected"
 	ModerationStatus string `json:"moderationStatus,omitempty"`
 
 	// ParentId: The unique id of the parent comment, only set for replies.
@@ -1268,6 +1368,12 @@ type CommentSnippet struct {
 	// ViewerRating: The rating the viewer has given to this comment. For
 	// the time being this will never return RATE_TYPE_DISLIKE and instead
 	// return RATE_TYPE_NONE. This may change in the future.
+	//
+	// Possible values:
+	//   "dislike"
+	//   "like"
+	//   "none"
+	//   "unspecified"
 	ViewerRating string `json:"viewerRating,omitempty"`
 }
 
@@ -1355,227 +1461,754 @@ type CommentThreadSnippet struct {
 type ContentRating struct {
 	// AcbRating: Rating system in Australia - Australian Classification
 	// Board
+	//
+	// Possible values:
+	//   "acbC"
+	//   "acbE"
+	//   "acbG"
+	//   "acbM"
+	//   "acbMa15plus"
+	//   "acbP"
+	//   "acbPg"
+	//   "acbR18plus"
+	//   "acbUnrated"
 	AcbRating string `json:"acbRating,omitempty"`
 
 	// AgcomRating: Rating system for Italy - Autorit� per le Garanzie
 	// nelle Comunicazioni
+	//
+	// Possible values:
+	//   "agcomT"
+	//   "agcomUnrated"
+	//   "agcomVm14"
+	//   "agcomVm18"
 	AgcomRating string `json:"agcomRating,omitempty"`
 
 	// AnatelRating: Rating system for Chile - Asociaci�n Nacional de
 	// Televisi�n
+	//
+	// Possible values:
+	//   "anatelA"
+	//   "anatelF"
+	//   "anatelI"
+	//   "anatelI10"
+	//   "anatelI12"
+	//   "anatelI7"
+	//   "anatelR"
+	//   "anatelUnrated"
 	AnatelRating string `json:"anatelRating,omitempty"`
 
 	// BbfcRating: British Board of Film Classification
+	//
+	// Possible values:
+	//   "bbfc12"
+	//   "bbfc12a"
+	//   "bbfc15"
+	//   "bbfc18"
+	//   "bbfcPg"
+	//   "bbfcR18"
+	//   "bbfcU"
+	//   "bbfcUnrated"
 	BbfcRating string `json:"bbfcRating,omitempty"`
 
 	// BfvcRating: Rating system for Thailand - Board of Filmand Video
 	// Censors
+	//
+	// Possible values:
+	//   "bfvc13"
+	//   "bfvc15"
+	//   "bfvc18"
+	//   "bfvc20"
+	//   "bfvcB"
+	//   "bfvcE"
+	//   "bfvcG"
+	//   "bfvcUnrated"
 	BfvcRating string `json:"bfvcRating,omitempty"`
 
 	// BmukkRating: Rating system for Austria - Bundesministeriums f�r
 	// Unterricht, Kunst und Kultur!
+	//
+	// Possible values:
+	//   "bmukk10"
+	//   "bmukk12"
+	//   "bmukk14"
+	//   "bmukk16"
+	//   "bmukk6"
+	//   "bmukk8"
+	//   "bmukkAa"
+	//   "bmukkUnrated"
 	BmukkRating string `json:"bmukkRating,omitempty"`
 
 	// CatvRating: Rating system for Canadian TV - Canadian TV
 	// Classification System
+	//
+	// Possible values:
+	//   "catv14plus"
+	//   "catv18plus"
+	//   "catvC"
+	//   "catvC8"
+	//   "catvG"
+	//   "catvPg"
+	//   "catvUnrated"
 	CatvRating string `json:"catvRating,omitempty"`
 
 	// CatvfrRating: Rating system for French Canadian TV - Regie du cinema
+	//
+	// Possible values:
+	//   "catvfr13plus"
+	//   "catvfr16plus"
+	//   "catvfr18plus"
+	//   "catvfr8plus"
+	//   "catvfrG"
+	//   "catvfrUnrated"
 	CatvfrRating string `json:"catvfrRating,omitempty"`
 
 	// CbfcRating: Rating system in India - Central Board of Film
 	// Certification
+	//
+	// Possible values:
+	//   "cbfcA"
+	//   "cbfcS"
+	//   "cbfcU"
+	//   "cbfcUA"
+	//   "cbfcUnrated"
 	CbfcRating string `json:"cbfcRating,omitempty"`
 
 	// CccRating: Rating system for Chile - Consejo de Calificaci�n
 	// Cinematogr�fica
+	//
+	// Possible values:
+	//   "ccc14"
+	//   "ccc18"
+	//   "ccc18s"
+	//   "ccc18v"
+	//   "ccc6"
+	//   "cccTe"
+	//   "cccUnrated"
 	CccRating string `json:"cccRating,omitempty"`
 
 	// CceRating: Rating system for Portugal - Comiss�o de
 	// Classifica��o de Espect�culos
+	//
+	// Possible values:
+	//   "cceM12"
+	//   "cceM16"
+	//   "cceM18"
+	//   "cceM4"
+	//   "cceM6"
+	//   "cceUnrated"
 	CceRating string `json:"cceRating,omitempty"`
 
 	// ChfilmRating: Rating system for Switzerland - Switzerland Rating
 	// System
+	//
+	// Possible values:
+	//   "chfilm0"
+	//   "chfilm12"
+	//   "chfilm16"
+	//   "chfilm18"
+	//   "chfilm6"
+	//   "chfilmUnrated"
 	ChfilmRating string `json:"chfilmRating,omitempty"`
 
 	// ChvrsRating: Canadian Home Video Rating System
+	//
+	// Possible values:
+	//   "chvrs14a"
+	//   "chvrs18a"
+	//   "chvrsE"
+	//   "chvrsG"
+	//   "chvrsPg"
+	//   "chvrsR"
+	//   "chvrsUnrated"
 	ChvrsRating string `json:"chvrsRating,omitempty"`
 
 	// CicfRating: Rating system for Belgium - Belgium Rating System
+	//
+	// Possible values:
+	//   "cicfE"
+	//   "cicfKntEna"
+	//   "cicfKtEa"
+	//   "cicfUnrated"
 	CicfRating string `json:"cicfRating,omitempty"`
 
 	// CnaRating: Rating system for Romania - CONSILIUL NATIONAL AL
 	// AUDIOVIZUALULUI - CNA
+	//
+	// Possible values:
+	//   "cna12"
+	//   "cna15"
+	//   "cna18"
+	//   "cna18plus"
+	//   "cnaAp"
+	//   "cnaUnrated"
 	CnaRating string `json:"cnaRating,omitempty"`
 
 	// CsaRating: Rating system for France - Conseil sup�rieur de
 	// l?audiovisuel
+	//
+	// Possible values:
+	//   "csa10"
+	//   "csa12"
+	//   "csa16"
+	//   "csa18"
+	//   "csaInterdiction"
+	//   "csaUnrated"
 	CsaRating string `json:"csaRating,omitempty"`
 
 	// CscfRating: Rating system for Luxembourg - Commission de surveillance
 	// de la classification des films
+	//
+	// Possible values:
+	//   "cscf12"
+	//   "cscf16"
+	//   "cscf18"
+	//   "cscf6"
+	//   "cscfA"
+	//   "cscfUnrated"
 	CscfRating string `json:"cscfRating,omitempty"`
 
 	// CzfilmRating: Rating system for Czech republic - Czech republic
 	// Rating System
+	//
+	// Possible values:
+	//   "czfilm12"
+	//   "czfilm14"
+	//   "czfilm18"
+	//   "czfilmU"
+	//   "czfilmUnrated"
 	CzfilmRating string `json:"czfilmRating,omitempty"`
 
 	// DjctqRating: Rating system in Brazil - Department of Justice, Rating,
 	// Titles and Qualification
+	//
+	// Possible values:
+	//   "djctq10"
+	//   "djctq12"
+	//   "djctq14"
+	//   "djctq16"
+	//   "djctq18"
+	//   "djctqL"
+	//   "djctqUnrated"
 	DjctqRating string `json:"djctqRating,omitempty"`
 
 	DjctqRatingReasons []string `json:"djctqRatingReasons,omitempty"`
 
 	// EefilmRating: Rating system for Estonia - Estonia Rating System
+	//
+	// Possible values:
+	//   "eefilmK12"
+	//   "eefilmK14"
+	//   "eefilmK16"
+	//   "eefilmK6"
+	//   "eefilmL"
+	//   "eefilmMs12"
+	//   "eefilmMs6"
+	//   "eefilmPere"
+	//   "eefilmUnrated"
 	EefilmRating string `json:"eefilmRating,omitempty"`
 
 	// EgfilmRating: Rating system for Egypt - Egypt Rating System
+	//
+	// Possible values:
+	//   "egfilm18"
+	//   "egfilmBn"
+	//   "egfilmGn"
+	//   "egfilmUnrated"
 	EgfilmRating string `json:"egfilmRating,omitempty"`
 
 	// EirinRating: Rating system in Japan - Eiga Rinri Kanri Iinkai
+	//
+	// Possible values:
+	//   "eirinG"
+	//   "eirinPg12"
+	//   "eirinR15plus"
+	//   "eirinR18plus"
+	//   "eirinUnrated"
 	EirinRating string `json:"eirinRating,omitempty"`
 
 	// FcbmRating: Rating system for Malaysia - Film Censorship Board of
 	// Malaysia
+	//
+	// Possible values:
+	//   "fcbm18"
+	//   "fcbm18pa"
+	//   "fcbm18pl"
+	//   "fcbm18sg"
+	//   "fcbm18sx"
+	//   "fcbmP13"
+	//   "fcbmU"
+	//   "fcbmUnrated"
 	FcbmRating string `json:"fcbmRating,omitempty"`
 
 	// FcoRating: Rating system for Hong kong - Office for Film, Newspaper
 	// and Article Administration
+	//
+	// Possible values:
+	//   "fcoI"
+	//   "fcoIia"
+	//   "fcoIib"
+	//   "fcoIii"
+	//   "fcoUnrated"
 	FcoRating string `json:"fcoRating,omitempty"`
 
 	// FmocRating: Rating system in France - French Minister of Culture
+	//
+	// Possible values:
+	//   "fmoc10"
+	//   "fmoc12"
+	//   "fmoc16"
+	//   "fmoc18"
+	//   "fmocE"
+	//   "fmocU"
+	//   "fmocUnrated"
 	FmocRating string `json:"fmocRating,omitempty"`
 
 	// FpbRating: Rating system for South africa - Film & Publication Board
+	//
+	// Possible values:
+	//   "fpb1012Pg"
+	//   "fpb13"
+	//   "fpb16"
+	//   "fpb18"
+	//   "fpb79Pg"
+	//   "fpbA"
+	//   "fpbPg"
+	//   "fpbUnrated"
+	//   "fpbX18"
+	//   "fpbXx"
 	FpbRating string `json:"fpbRating,omitempty"`
 
 	// FskRating: Rating system in Germany - Voluntary Self Regulation of
 	// the Movie Industry
+	//
+	// Possible values:
+	//   "fsk0"
+	//   "fsk12"
+	//   "fsk16"
+	//   "fsk18"
+	//   "fsk6"
+	//   "fskUnrated"
 	FskRating string `json:"fskRating,omitempty"`
 
 	// GrfilmRating: Rating system for Greece - Greece Rating System
+	//
+	// Possible values:
+	//   "grfilmE"
+	//   "grfilmK"
+	//   "grfilmK13"
+	//   "grfilmK17"
+	//   "grfilmUnrated"
 	GrfilmRating string `json:"grfilmRating,omitempty"`
 
 	// IcaaRating: Rating system in Spain - Instituto de Cinematografia y de
 	// las Artes Audiovisuales
+	//
+	// Possible values:
+	//   "icaa12"
+	//   "icaa13"
+	//   "icaa16"
+	//   "icaa18"
+	//   "icaa7"
+	//   "icaaApta"
+	//   "icaaUnrated"
+	//   "icaaX"
 	IcaaRating string `json:"icaaRating,omitempty"`
 
 	// IfcoRating: Rating system in Ireland - Irish Film Classification
 	// Office
+	//
+	// Possible values:
+	//   "ifco12"
+	//   "ifco15"
+	//   "ifco18"
+	//   "ifcoG"
+	//   "ifcoPg"
+	//   "ifcoUnrated"
 	IfcoRating string `json:"ifcoRating,omitempty"`
 
 	// IlfilmRating: Rating system for Israel - Israel Rating System
+	//
+	// Possible values:
+	//   "ilfilm12"
+	//   "ilfilm16"
+	//   "ilfilm18"
+	//   "ilfilmAa"
+	//   "ilfilmUnrated"
 	IlfilmRating string `json:"ilfilmRating,omitempty"`
 
 	// IncaaRating: Rating system for Argentina - Instituto Nacional de Cine
 	// y Artes Audiovisuales
+	//
+	// Possible values:
+	//   "incaaAtp"
+	//   "incaaC"
+	//   "incaaSam13"
+	//   "incaaSam16"
+	//   "incaaSam18"
+	//   "incaaUnrated"
 	IncaaRating string `json:"incaaRating,omitempty"`
 
 	// KfcbRating: Rating system for Kenya - Kenya Film Classification Board
+	//
+	// Possible values:
+	//   "kfcb16plus"
+	//   "kfcbG"
+	//   "kfcbPg"
+	//   "kfcbR"
+	//   "kfcbUnrated"
 	KfcbRating string `json:"kfcbRating,omitempty"`
 
 	// KijkwijzerRating: Rating system for Netherlands - Nederlands
 	// Instituut voor de Classificatie van Audiovisuele Media
+	//
+	// Possible values:
+	//   "kijkwijzer12"
+	//   "kijkwijzer16"
+	//   "kijkwijzer6"
+	//   "kijkwijzer9"
+	//   "kijkwijzerAl"
+	//   "kijkwijzerUnrated"
 	KijkwijzerRating string `json:"kijkwijzerRating,omitempty"`
 
 	// KmrbRating: Rating system in South Korea - Korea Media Rating Board
+	//
+	// Possible values:
+	//   "kmrb12plus"
+	//   "kmrb15plus"
+	//   "kmrbAll"
+	//   "kmrbR"
+	//   "kmrbTeenr"
+	//   "kmrbUnrated"
 	KmrbRating string `json:"kmrbRating,omitempty"`
 
 	// LsfRating: Rating system for Indonesia - Lembaga Sensor Film
+	//
+	// Possible values:
+	//   "lsfA"
+	//   "lsfBo"
+	//   "lsfD"
+	//   "lsfR"
+	//   "lsfSu"
+	//   "lsfUnrated"
 	LsfRating string `json:"lsfRating,omitempty"`
 
 	// MccaaRating: Rating system for Malta - Film Age-Classification Board
+	//
+	// Possible values:
+	//   "mccaa12"
+	//   "mccaa12a"
+	//   "mccaa14"
+	//   "mccaa15"
+	//   "mccaa16"
+	//   "mccaa18"
+	//   "mccaaPg"
+	//   "mccaaU"
+	//   "mccaaUnrated"
 	MccaaRating string `json:"mccaaRating,omitempty"`
 
 	// MccypRating: Rating system for Denmark - The Media Council for
 	// Children and Young People
+	//
+	// Possible values:
+	//   "mccyp11"
+	//   "mccyp15"
+	//   "mccyp7"
+	//   "mccypA"
+	//   "mccypUnrated"
 	MccypRating string `json:"mccypRating,omitempty"`
 
 	// MdaRating: Rating system for Singapore - Media Development Authority
+	//
+	// Possible values:
+	//   "mdaG"
+	//   "mdaM18"
+	//   "mdaNc16"
+	//   "mdaPg"
+	//   "mdaPg13"
+	//   "mdaR21"
+	//   "mdaUnrated"
 	MdaRating string `json:"mdaRating,omitempty"`
 
 	// MedietilsynetRating: Rating system for Norway - Medietilsynet
+	//
+	// Possible values:
+	//   "medietilsynet11"
+	//   "medietilsynet15"
+	//   "medietilsynet18"
+	//   "medietilsynet7"
+	//   "medietilsynetA"
+	//   "medietilsynetUnrated"
 	MedietilsynetRating string `json:"medietilsynetRating,omitempty"`
 
 	// MekuRating: Rating system for Finland - Finnish Centre for Media
 	// Education and Audiovisual Media
+	//
+	// Possible values:
+	//   "meku12"
+	//   "meku16"
+	//   "meku18"
+	//   "meku7"
+	//   "mekuS"
+	//   "mekuUnrated"
 	MekuRating string `json:"mekuRating,omitempty"`
 
 	// MibacRating: Rating system in Italy - Ministero dei Beni e delle
 	// Attivita Culturali e del Turismo
+	//
+	// Possible values:
+	//   "mibacT"
+	//   "mibacUnrated"
+	//   "mibacVap"
+	//   "mibacVm12"
+	//   "mibacVm14"
+	//   "mibacVm18"
 	MibacRating string `json:"mibacRating,omitempty"`
 
 	// MocRating: Rating system for Colombia - MoC
+	//
+	// Possible values:
+	//   "moc12"
+	//   "moc15"
+	//   "moc18"
+	//   "moc7"
+	//   "mocBanned"
+	//   "mocE"
+	//   "mocT"
+	//   "mocUnrated"
+	//   "mocX"
 	MocRating string `json:"mocRating,omitempty"`
 
 	// MoctwRating: Rating system for Taiwan - Ministry of Culture - Tawan
+	//
+	// Possible values:
+	//   "moctwG"
+	//   "moctwP"
+	//   "moctwPg"
+	//   "moctwR"
+	//   "moctwUnrated"
 	MoctwRating string `json:"moctwRating,omitempty"`
 
 	// MpaaRating: Motion Picture Association of America rating for the
 	// content.
+	//
+	// Possible values:
+	//   "mpaaG"
+	//   "mpaaNc17"
+	//   "mpaaPg"
+	//   "mpaaPg13"
+	//   "mpaaR"
+	//   "mpaaUnrated"
 	MpaaRating string `json:"mpaaRating,omitempty"`
 
 	// MtrcbRating: Rating system for Philippines - MOVIE AND TELEVISION
 	// REVIEW AND CLASSIFICATION BOARD
+	//
+	// Possible values:
+	//   "mtrcbG"
+	//   "mtrcbPg"
+	//   "mtrcbR13"
+	//   "mtrcbR16"
+	//   "mtrcbR18"
+	//   "mtrcbUnrated"
+	//   "mtrcbX"
 	MtrcbRating string `json:"mtrcbRating,omitempty"`
 
 	// NbcRating: Rating system for Maldives - National Bureau of
 	// Classification
+	//
+	// Possible values:
+	//   "nbc12plus"
+	//   "nbc15plus"
+	//   "nbc18plus"
+	//   "nbc18plusr"
+	//   "nbcG"
+	//   "nbcPg"
+	//   "nbcPu"
+	//   "nbcUnrated"
 	NbcRating string `json:"nbcRating,omitempty"`
 
 	// NbcplRating: Rating system for Poland - National Broadcasting Council
+	//
+	// Possible values:
+	//   "nbcpl18plus"
+	//   "nbcplI"
+	//   "nbcplIi"
+	//   "nbcplIii"
+	//   "nbcplIv"
+	//   "nbcplUnrated"
 	NbcplRating string `json:"nbcplRating,omitempty"`
 
 	// NfrcRating: Rating system for Bulgaria - National Film Centre
+	//
+	// Possible values:
+	//   "nfrcA"
+	//   "nfrcB"
+	//   "nfrcC"
+	//   "nfrcD"
+	//   "nfrcUnrated"
+	//   "nfrcX"
 	NfrcRating string `json:"nfrcRating,omitempty"`
 
 	// NfvcbRating: Rating system for Nigeria - National Film and Video
 	// Censors Board
+	//
+	// Possible values:
+	//   "nfvcb12"
+	//   "nfvcb12a"
+	//   "nfvcb15"
+	//   "nfvcb18"
+	//   "nfvcbG"
+	//   "nfvcbPg"
+	//   "nfvcbRe"
+	//   "nfvcbUnrated"
 	NfvcbRating string `json:"nfvcbRating,omitempty"`
 
 	// NkclvRating: Rating system for Latvia - National Film Center of
 	// Latvia
+	//
+	// Possible values:
+	//   "nkclv12plus"
+	//   "nkclv18plus"
+	//   "nkclv7plus"
+	//   "nkclvU"
+	//   "nkclvUnrated"
 	NkclvRating string `json:"nkclvRating,omitempty"`
 
 	// OflcRating: Rating system in New Zealand - Office of Film and
 	// Literature Classification
+	//
+	// Possible values:
+	//   "oflcG"
+	//   "oflcM"
+	//   "oflcPg"
+	//   "oflcR13"
+	//   "oflcR15"
+	//   "oflcR16"
+	//   "oflcR18"
+	//   "oflcRp13"
+	//   "oflcRp16"
+	//   "oflcUnrated"
 	OflcRating string `json:"oflcRating,omitempty"`
 
 	// PefilmRating: Rating system for Peru - Peru Rating System
+	//
+	// Possible values:
+	//   "pefilm14"
+	//   "pefilm18"
+	//   "pefilmPg"
+	//   "pefilmPt"
+	//   "pefilmUnrated"
 	PefilmRating string `json:"pefilmRating,omitempty"`
 
 	// RcnofRating: Rating system for Hungary - Rating Committee of the
 	// National Office of Film
+	//
+	// Possible values:
+	//   "rcnofI"
+	//   "rcnofIi"
+	//   "rcnofIii"
+	//   "rcnofIv"
+	//   "rcnofUnrated"
+	//   "rcnofV"
+	//   "rcnofVi"
 	RcnofRating string `json:"rcnofRating,omitempty"`
 
 	// ResorteviolenciaRating: Rating system for Venezuela - SiBCI
+	//
+	// Possible values:
+	//   "resorteviolenciaA"
+	//   "resorteviolenciaB"
+	//   "resorteviolenciaC"
+	//   "resorteviolenciaD"
+	//   "resorteviolenciaE"
+	//   "resorteviolenciaUnrated"
 	ResorteviolenciaRating string `json:"resorteviolenciaRating,omitempty"`
 
 	// RtcRating: Rating system in Mexico - General Directorate of Radio,
 	// Television and Cinematography
+	//
+	// Possible values:
+	//   "rtcA"
+	//   "rtcAa"
+	//   "rtcB"
+	//   "rtcB15"
+	//   "rtcC"
+	//   "rtcD"
+	//   "rtcUnrated"
 	RtcRating string `json:"rtcRating,omitempty"`
 
 	// RteRating: Rating system for Ireland - Raidi� Teilif�s �ireann
+	//
+	// Possible values:
+	//   "rteCh"
+	//   "rteGa"
+	//   "rteMa"
+	//   "rtePs"
+	//   "rteUnrated"
 	RteRating string `json:"rteRating,omitempty"`
 
 	// RussiaRating: Rating system in Russia
+	//
+	// Possible values:
+	//   "russia0"
+	//   "russia12"
+	//   "russia16"
+	//   "russia18"
+	//   "russia6"
+	//   "russiaUnrated"
 	RussiaRating string `json:"russiaRating,omitempty"`
 
 	// SkfilmRating: Rating system for Slovakia - Slovakia Rating System
+	//
+	// Possible values:
+	//   "skfilmG"
+	//   "skfilmP2"
+	//   "skfilmP5"
+	//   "skfilmP8"
+	//   "skfilmUnrated"
 	SkfilmRating string `json:"skfilmRating,omitempty"`
 
 	// SmaisRating: Rating system for Iceland - SMAIS
+	//
+	// Possible values:
+	//   "smais12"
+	//   "smais14"
+	//   "smais16"
+	//   "smais18"
+	//   "smais7"
+	//   "smaisL"
+	//   "smaisUnrated"
 	SmaisRating string `json:"smaisRating,omitempty"`
 
 	// SmsaRating: Rating system for Sweden - Statens medier�d (National
 	// Media Council)
+	//
+	// Possible values:
+	//   "smsa11"
+	//   "smsa15"
+	//   "smsa7"
+	//   "smsaA"
+	//   "smsaUnrated"
 	SmsaRating string `json:"smsaRating,omitempty"`
 
 	// TvpgRating: TV Parental Guidelines rating of the content.
+	//
+	// Possible values:
+	//   "pg14"
+	//   "tvpgG"
+	//   "tvpgMa"
+	//   "tvpgPg"
+	//   "tvpgUnrated"
+	//   "tvpgY"
+	//   "tvpgY7"
+	//   "tvpgY7Fv"
 	TvpgRating string `json:"tvpgRating,omitempty"`
 
 	// YtRating: Internal YouTube rating.
+	//
+	// Possible values:
+	//   "ytAgeRestricted"
 	YtRating string `json:"ytRating,omitempty"`
 }
 
@@ -1865,9 +2498,18 @@ type InvideoBranding struct {
 type InvideoPosition struct {
 	// CornerPosition: Describes in which corner of the video the visual
 	// widget will appear.
+	//
+	// Possible values:
+	//   "bottomLeft"
+	//   "bottomRight"
+	//   "topLeft"
+	//   "topRight"
 	CornerPosition string `json:"cornerPosition,omitempty"`
 
 	// Type: Defines the position type.
+	//
+	// Possible values:
+	//   "corner"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1908,6 +2550,10 @@ type InvideoTiming struct {
 	// the offsetMs field represents an offset from the start of the video.
 	// If the value is offsetFromEnd, then the offsetMs field represents an
 	// offset from the end of the video.
+	//
+	// Possible values:
+	//   "offsetFromEnd"
+	//   "offsetFromStart"
 	Type string `json:"type,omitempty"`
 }
 
@@ -2089,10 +2735,28 @@ type LiveBroadcastStatus struct {
 
 	// LifeCycleStatus: The broadcast's status. The status can be updated
 	// using the API's liveBroadcasts.transition method.
+	//
+	// Possible values:
+	//   "abandoned"
+	//   "complete"
+	//   "completeStarting"
+	//   "created"
+	//   "live"
+	//   "liveStarting"
+	//   "ready"
+	//   "reclaimed"
+	//   "revoked"
+	//   "testStarting"
+	//   "testing"
 	LifeCycleStatus string `json:"lifeCycleStatus,omitempty"`
 
 	// LiveBroadcastPriority: Priority of the live broadcast event (internal
 	// state).
+	//
+	// Possible values:
+	//   "high"
+	//   "low"
+	//   "normal"
 	LiveBroadcastPriority string `json:"liveBroadcastPriority,omitempty"`
 
 	// PrivacyStatus: The broadcast's privacy status. Note that the
@@ -2100,9 +2764,19 @@ type LiveBroadcastStatus struct {
 	// settings are identical to those supported for videos. In addition,
 	// you can set this field by modifying the broadcast resource or by
 	// setting the privacyStatus field of the corresponding video resource.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 
 	// RecordingStatus: The broadcast's recording status.
+	//
+	// Possible values:
+	//   "notRecording"
+	//   "recorded"
+	//   "recording"
 	RecordingStatus string `json:"recordingStatus,omitempty"`
 }
 
@@ -2210,6 +2884,12 @@ type LiveStreamSnippet struct {
 type LiveStreamStatus struct {
 	IsDefaultStream bool `json:"isDefaultStream,omitempty"`
 
+	// Possible values:
+	//   "active"
+	//   "created"
+	//   "error"
+	//   "inactive"
+	//   "ready"
 	StreamStatus string `json:"streamStatus,omitempty"`
 }
 
@@ -2419,6 +3099,11 @@ type PlaylistItemSnippet struct {
 
 type PlaylistItemStatus struct {
 	// PrivacyStatus: This resource's privacy status.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 }
 
@@ -2505,6 +3190,11 @@ type PlaylistSnippet struct {
 
 type PlaylistStatus struct {
 	// PrivacyStatus: The playlist's privacy status.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 }
 
@@ -2534,6 +3224,11 @@ type PromotedItemId struct {
 	RecentlyUploadedBy string `json:"recentlyUploadedBy,omitempty"`
 
 	// Type: Describes the type of the promoted item.
+	//
+	// Possible values:
+	//   "recentUpload"
+	//   "video"
+	//   "website"
 	Type string `json:"type,omitempty"`
 
 	// VideoId: If the promoted item represents a video, this field
@@ -2641,6 +3336,11 @@ type SearchResultSnippet struct {
 	// LiveBroadcastContent: It indicates if the resource (video or channel)
 	// has upcoming/active live broadcast content. Or it's "none" if there
 	// is not any upcoming/active live broadcasts.
+	//
+	// Possible values:
+	//   "live"
+	//   "none"
+	//   "upcoming"
 	LiveBroadcastContent string `json:"liveBroadcastContent,omitempty"`
 
 	// PublishedAt: The creation date and time of the resource that the
@@ -2686,6 +3386,10 @@ type Subscription struct {
 type SubscriptionContentDetails struct {
 	// ActivityType: The type of activity this subscription is for (only
 	// uploads, everything).
+	//
+	// Possible values:
+	//   "all"
+	//   "uploads"
 	ActivityType string `json:"activityType,omitempty"`
 
 	// NewItemCount: The number of new items in the subscription since its
@@ -3001,6 +3705,12 @@ type VideoAgeGating struct {
 	Restricted bool `json:"restricted,omitempty"`
 
 	// VideoGameRating: Video game rating, if any.
+	//
+	// Possible values:
+	//   "anyone"
+	//   "m15Plus"
+	//   "m16Plus"
+	//   "m17Plus"
 	VideoGameRating string `json:"videoGameRating,omitempty"`
 }
 
@@ -3066,6 +3776,10 @@ type VideoCategorySnippet struct {
 type VideoContentDetails struct {
 	// Caption: The value of captions indicates whether the video has
 	// captions or not.
+	//
+	// Possible values:
+	//   "false"
+	//   "true"
 	Caption string `json:"caption,omitempty"`
 
 	// ContentRating: Specifies the ratings that the video received under
@@ -3079,6 +3793,10 @@ type VideoContentDetails struct {
 
 	// Definition: The value of definition indicates whether the video is
 	// available in high definition or only in standard definition.
+	//
+	// Possible values:
+	//   "hd"
+	//   "sd"
 	Definition string `json:"definition,omitempty"`
 
 	// Dimension: The value of dimension indicates whether the video is
@@ -3123,6 +3841,12 @@ type VideoContentDetailsRegionRestriction struct {
 
 type VideoConversionPing struct {
 	// Context: Defines the context of the ping.
+	//
+	// Possible values:
+	//   "comment"
+	//   "dislike"
+	//   "like"
+	//   "share"
 	Context string `json:"context,omitempty"`
 
 	// ConversionUrl: The url (without the schema) that the app shall send
@@ -3179,6 +3903,15 @@ type VideoFileDetails struct {
 	// processing engine. Currently, YouTube only processes video files, but
 	// this field is present whether a video file or another type of file
 	// was uploaded.
+	//
+	// Possible values:
+	//   "archive"
+	//   "audio"
+	//   "document"
+	//   "image"
+	//   "other"
+	//   "project"
+	//   "video"
 	FileType string `json:"fileType,omitempty"`
 
 	// RecordingLocation: Geographic coordinates that identify the place
@@ -3226,6 +3959,13 @@ type VideoFileDetailsVideoStream struct {
 
 	// Rotation: The amount that YouTube needs to rotate the original source
 	// content to properly display the video.
+	//
+	// Possible values:
+	//   "clockwise"
+	//   "counterClockwise"
+	//   "none"
+	//   "other"
+	//   "upsideDown"
 	Rotation string `json:"rotation,omitempty"`
 
 	// Vendor: A value that uniquely identifies a video vendor. Typically,
@@ -3357,6 +4097,12 @@ type VideoProcessingDetails struct {
 	// ProcessingFailureReason: The reason that YouTube failed to process
 	// the video. This property will only have a value if the
 	// processingStatus property's value is failed.
+	//
+	// Possible values:
+	//   "other"
+	//   "streamingFailed"
+	//   "transcodeFailed"
+	//   "uploadFailed"
 	ProcessingFailureReason string `json:"processingFailureReason,omitempty"`
 
 	// ProcessingIssuesAvailability: This value indicates whether the video
@@ -3376,6 +4122,12 @@ type VideoProcessingDetails struct {
 	// ProcessingStatus: The video's processing status. This value indicates
 	// whether YouTube was able to process the video or if the video is
 	// still being processed.
+	//
+	// Possible values:
+	//   "failed"
+	//   "processing"
+	//   "succeeded"
+	//   "terminated"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// TagSuggestionsAvailability: This value indicates whether keyword
@@ -3419,6 +4171,11 @@ type VideoProjectDetails struct {
 }
 
 type VideoRating struct {
+	// Possible values:
+	//   "dislike"
+	//   "like"
+	//   "none"
+	//   "unspecified"
 	Rating string `json:"rating,omitempty"`
 
 	VideoId string `json:"videoId,omitempty"`
@@ -3458,6 +4215,11 @@ type VideoSnippet struct {
 	// LiveBroadcastContent: Indicates if the video is an upcoming/active
 	// live broadcast. Or it's "none" if the video is not an upcoming/active
 	// live broadcast.
+	//
+	// Possible values:
+	//   "live"
+	//   "none"
+	//   "upcoming"
 	LiveBroadcastContent string `json:"liveBroadcastContent,omitempty"`
 
 	// Localized: Localized snippet selected with the hl parameter. If no
@@ -3511,12 +4273,29 @@ type VideoStatus struct {
 	// FailureReason: This value explains why a video failed to upload. This
 	// property is only present if the uploadStatus property indicates that
 	// the upload failed.
+	//
+	// Possible values:
+	//   "codec"
+	//   "conversion"
+	//   "emptyFile"
+	//   "invalidFile"
+	//   "tooSmall"
+	//   "uploadAborted"
 	FailureReason string `json:"failureReason,omitempty"`
 
 	// License: The video's license.
+	//
+	// Possible values:
+	//   "creativeCommon"
+	//   "youtube"
 	License string `json:"license,omitempty"`
 
 	// PrivacyStatus: The video's privacy status.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 
 	// PublicStatsViewable: This value indicates if the extended video
@@ -3532,9 +4311,27 @@ type VideoStatus struct {
 	// RejectionReason: This value explains why YouTube rejected an uploaded
 	// video. This property is only present if the uploadStatus property
 	// indicates that the upload was rejected.
+	//
+	// Possible values:
+	//   "claim"
+	//   "copyright"
+	//   "duplicate"
+	//   "inappropriate"
+	//   "length"
+	//   "termsOfUse"
+	//   "trademark"
+	//   "uploaderAccountClosed"
+	//   "uploaderAccountSuspended"
 	RejectionReason string `json:"rejectionReason,omitempty"`
 
 	// UploadStatus: The status of the uploaded video.
+	//
+	// Possible values:
+	//   "deleted"
+	//   "failed"
+	//   "processed"
+	//   "rejected"
+	//   "uploaded"
 	UploadStatus string `json:"uploadStatus,omitempty"`
 }
 
@@ -4069,6 +4866,13 @@ func (c *CaptionsDownloadCall) OnBehalfOf(onBehalfOf string) *CaptionsDownloadCa
 // that the caption track should be returned in a specific format. If
 // the parameter is not included in the request, the track is returned
 // in its original format.
+//
+// Possible values:
+//   "sbv" - SubViewer subtitle.
+//   "scc" - Scenarist Closed Caption format.
+//   "srt" - SubRip subtitle.
+//   "ttml" - Timed Text Markup Language caption.
+//   "vtt" - Web Video Text Tracks caption.
 func (c *CaptionsDownloadCall) Tfmt(tfmt string) *CaptionsDownloadCall {
 	c.opt_["tfmt"] = tfmt
 	return c
@@ -6064,6 +6868,13 @@ func (c *CommentThreadsListCall) MaxResults(maxResults int64) *CommentThreadsLis
 //
 // Note: This parameter is not supported for use in conjunction with the
 // id parameter.
+//
+// Possible values:
+//   "heldForReview" - Returns only comment threads awaiting review by a
+// moderator.
+//   "likelySpam" - Returns only comment threads classified as likely
+// being spam.
+//   "published" (default) - Returns only published comment threads.
 func (c *CommentThreadsListCall) ModerationStatus(moderationStatus string) *CommentThreadsListCall {
 	c.opt_["moderationStatus"] = moderationStatus
 	return c
@@ -6095,6 +6906,10 @@ func (c *CommentThreadsListCall) SearchTerms(searchTerms string) *CommentThreads
 // TextFormat sets the optional parameter "textFormat": Set this
 // parameter's value to html or plainText to instruct the API to return
 // the comments left by users in html formatted or in plain text.
+//
+// Possible values:
+//   "html" - Returns the comments in HTML format.
+//   "plainText" - Returns the comments in plain text format.
 func (c *CommentThreadsListCall) TextFormat(textFormat string) *CommentThreadsListCall {
 	c.opt_["textFormat"] = textFormat
 	return c
@@ -6570,6 +7385,10 @@ func (c *CommentsListCall) ParentId(parentId string) *CommentsListCall {
 // TextFormat sets the optional parameter "textFormat": Set this
 // parameter's value to html or plainText to instruct the API to return
 // the comments left by users formatted as HTML or as plain text.
+//
+// Possible values:
+//   "html" - Returns the comments in HTML format.
+//   "plainText" - Returns the comments in plain text format.
 func (c *CommentsListCall) TextFormat(textFormat string) *CommentsListCall {
 	c.opt_["textFormat"] = textFormat
 	return c
@@ -7939,6 +8758,12 @@ func (r *LiveBroadcastsService) List(part string) *LiveBroadcastsListCall {
 // BroadcastStatus sets the optional parameter "broadcastStatus": The
 // broadcastStatus parameter filters the API response to only include
 // broadcasts with the specified status.
+//
+// Possible values:
+//   "active" - Return current live broadcasts.
+//   "all" - Return all broadcasts.
+//   "completed" - Return broadcasts that have already ended.
+//   "upcoming" - Return broadcasts that have not yet started.
 func (c *LiveBroadcastsListCall) BroadcastStatus(broadcastStatus string) *LiveBroadcastsListCall {
 	c.opt_["broadcastStatus"] = broadcastStatus
 	return c
@@ -10214,6 +11039,10 @@ func (c *SearchListCall) ChannelId(channelId string) *SearchListCall {
 // ChannelType sets the optional parameter "channelType": The
 // channelType parameter lets you restrict a search to a particular type
 // of channel.
+//
+// Possible values:
+//   "any" - Return all channels.
+//   "show" - Only retrieve shows.
 func (c *SearchListCall) ChannelType(channelType string) *SearchListCall {
 	c.opt_["channelType"] = channelType
 	return c
@@ -10221,6 +11050,11 @@ func (c *SearchListCall) ChannelType(channelType string) *SearchListCall {
 
 // EventType sets the optional parameter "eventType": The eventType
 // parameter restricts a search to broadcast events.
+//
+// Possible values:
+//   "completed" - Only include completed broadcasts.
+//   "live" - Only include active broadcasts.
+//   "upcoming" - Only include upcoming broadcasts.
 func (c *SearchListCall) EventType(eventType string) *SearchListCall {
 	c.opt_["eventType"] = eventType
 	return c
@@ -10314,6 +11148,18 @@ func (c *SearchListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *
 // Order sets the optional parameter "order": The order parameter
 // specifies the method that will be used to order resources in the API
 // response.
+//
+// Possible values:
+//   "date" - Resources are sorted in reverse chronological order based
+// on the date they were created.
+//   "rating" - Resources are sorted from highest to lowest rating.
+//   "relevance" - Resources are sorted based on their relevance to the
+// search query. This is the default value for this parameter.
+//   "title" - Resources are sorted alphabetically by title.
+//   "videoCount" - Channels are sorted in descending order of their
+// number of uploaded videos.
+//   "viewCount" - Resources are sorted from highest to lowest number of
+// views.
 func (c *SearchListCall) Order(order string) *SearchListCall {
 	c.opt_["order"] = order
 	return c
@@ -10388,6 +11234,17 @@ func (c *SearchListCall) RelevanceLanguage(relevanceLanguage string) *SearchList
 // SafeSearch sets the optional parameter "safeSearch": The safeSearch
 // parameter indicates whether the search results should include
 // restricted content as well as standard content.
+//
+// Possible values:
+//   "moderate" - YouTube will filter some content from search results
+// and, at the least, will filter content that is restricted in your
+// locale. Based on their content, search results could be removed from
+// search results or demoted in search results. This is the default
+// parameter value.
+//   "none" - YouTube will not filter the search result set.
+//   "strict" - YouTube will try to exclude all restricted content from
+// the search result set. Based on their content, search results could
+// be removed from search results or demoted in search results.
 func (c *SearchListCall) SafeSearch(safeSearch string) *SearchListCall {
 	c.opt_["safeSearch"] = safeSearch
 	return c
@@ -10413,6 +11270,11 @@ func (c *SearchListCall) Type(type_ string) *SearchListCall {
 // VideoCaption sets the optional parameter "videoCaption": The
 // videoCaption parameter indicates whether the API should filter video
 // search results based on whether they have captions.
+//
+// Possible values:
+//   "any" - Do not filter results based on caption availability.
+//   "closedCaption" - Only include videos that have captions.
+//   "none" - Only include videos that do not have captions.
 func (c *SearchListCall) VideoCaption(videoCaption string) *SearchListCall {
 	c.opt_["videoCaption"] = videoCaption
 	return c
@@ -10431,6 +11293,11 @@ func (c *SearchListCall) VideoCategoryId(videoCategoryId string) *SearchListCall
 // either high definition (HD) or standard definition (SD) videos. HD
 // videos are available for playback in at least 720p, though higher
 // resolutions, like 1080p, might also be available.
+//
+// Possible values:
+//   "any" - Return all videos, regardless of their resolution.
+//   "high" - Only retrieve HD videos.
+//   "standard" - Only retrieve videos in standard definition.
 func (c *SearchListCall) VideoDefinition(videoDefinition string) *SearchListCall {
 	c.opt_["videoDefinition"] = videoDefinition
 	return c
@@ -10439,6 +11306,12 @@ func (c *SearchListCall) VideoDefinition(videoDefinition string) *SearchListCall
 // VideoDimension sets the optional parameter "videoDimension": The
 // videoDimension parameter lets you restrict a search to only retrieve
 // 2D or 3D videos.
+//
+// Possible values:
+//   "2d" - Restrict search results to exclude 3D videos.
+//   "3d" - Restrict search results to only include 3D videos.
+//   "any" - Include both 3D and non-3D videos in returned results. This
+// is the default value.
 func (c *SearchListCall) VideoDimension(videoDimension string) *SearchListCall {
 	c.opt_["videoDimension"] = videoDimension
 	return c
@@ -10447,6 +11320,14 @@ func (c *SearchListCall) VideoDimension(videoDimension string) *SearchListCall {
 // VideoDuration sets the optional parameter "videoDuration": The
 // videoDuration parameter filters video search results based on their
 // duration.
+//
+// Possible values:
+//   "any" - Do not filter video search results based on their duration.
+// This is the default value.
+//   "long" - Only include videos longer than 20 minutes.
+//   "medium" - Only include videos that are between four and 20 minutes
+// long (inclusive).
+//   "short" - Only include videos that are less than four minutes long.
 func (c *SearchListCall) VideoDuration(videoDuration string) *SearchListCall {
 	c.opt_["videoDuration"] = videoDuration
 	return c
@@ -10455,6 +11336,10 @@ func (c *SearchListCall) VideoDuration(videoDuration string) *SearchListCall {
 // VideoEmbeddable sets the optional parameter "videoEmbeddable": The
 // videoEmbeddable parameter lets you to restrict a search to only
 // videos that can be embedded into a webpage.
+//
+// Possible values:
+//   "any" - Return all videos, embeddable or not.
+//   "true" - Only retrieve embeddable videos.
 func (c *SearchListCall) VideoEmbeddable(videoEmbeddable string) *SearchListCall {
 	c.opt_["videoEmbeddable"] = videoEmbeddable
 	return c
@@ -10465,6 +11350,15 @@ func (c *SearchListCall) VideoEmbeddable(videoEmbeddable string) *SearchListCall
 // with a particular license. YouTube lets video uploaders choose to
 // attach either the Creative Commons license or the standard YouTube
 // license to each of their videos.
+//
+// Possible values:
+//   "any" - Return all videos, regardless of which license they have,
+// that match the query parameters.
+//   "creativeCommon" - Only return videos that have a Creative Commons
+// license. Users can reuse videos with this license in other videos
+// that they create. Learn more.
+//   "youtube" - Only return videos that have the standard YouTube
+// license.
 func (c *SearchListCall) VideoLicense(videoLicense string) *SearchListCall {
 	c.opt_["videoLicense"] = videoLicense
 	return c
@@ -10473,6 +11367,10 @@ func (c *SearchListCall) VideoLicense(videoLicense string) *SearchListCall {
 // VideoSyndicated sets the optional parameter "videoSyndicated": The
 // videoSyndicated parameter lets you to restrict a search to only
 // videos that can be played outside youtube.com.
+//
+// Possible values:
+//   "any" - Return all videos, syndicated or not.
+//   "true" - Only retrieve syndicated videos.
 func (c *SearchListCall) VideoSyndicated(videoSyndicated string) *SearchListCall {
 	c.opt_["videoSyndicated"] = videoSyndicated
 	return c
@@ -10480,6 +11378,11 @@ func (c *SearchListCall) VideoSyndicated(videoSyndicated string) *SearchListCall
 
 // VideoType sets the optional parameter "videoType": The videoType
 // parameter lets you restrict a search to a particular type of videos.
+//
+// Possible values:
+//   "any" - Return all videos.
+//   "episode" - Only retrieve episodes of shows.
+//   "movie" - Only retrieve movies.
 func (c *SearchListCall) VideoType(videoType string) *SearchListCall {
 	c.opt_["videoType"] = videoType
 	return c
@@ -11188,6 +12091,11 @@ func (c *SubscriptionsListCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentO
 // Order sets the optional parameter "order": The order parameter
 // specifies the method that will be used to sort resources in the API
 // response.
+//
+// Possible values:
+//   "alphabetical" - Sort alphabetically.
+//   "relevance" - Sort by relevance.
+//   "unread" - Sort by order of activity.
 func (c *SubscriptionsListCall) Order(order string) *SubscriptionsListCall {
 	c.opt_["order"] = order
 	return c
@@ -12293,6 +13201,10 @@ func (r *VideosService) List(part string) *VideosListCall {
 
 // Chart sets the optional parameter "chart": The chart parameter
 // identifies the chart that you want to retrieve.
+//
+// Possible values:
+//   "mostPopular" - Return the most popular videos for the specified
+// content region and video category.
 func (c *VideosListCall) Chart(chart string) *VideosListCall {
 	c.opt_["chart"] = chart
 	return c
@@ -12341,6 +13253,10 @@ func (c *VideosListCall) MaxResults(maxResults int64) *VideosListCall {
 // MyRating sets the optional parameter "myRating": Set this parameter's
 // value to like or dislike to instruct the API to only return videos
 // liked or disliked by the authenticated user.
+//
+// Possible values:
+//   "dislike" - Returns only videos disliked by the authenticated user.
+//   "like" - Returns only video liked by the authenticated user.
 func (c *VideosListCall) MyRating(myRating string) *VideosListCall {
 	c.opt_["myRating"] = myRating
 	return c

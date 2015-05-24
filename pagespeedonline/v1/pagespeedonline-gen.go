@@ -183,8 +183,8 @@ type ResultScreenshot struct {
 	// Height: Height of screenshot in pixels.
 	Height int64 `json:"height,omitempty"`
 
-	// Mime_type: Mime type of image data. E.g. "image/jpeg".
-	Mime_type string `json:"mime_type,omitempty"`
+	// MimeType: Mime type of image data. E.g. "image/jpeg".
+	MimeType string `json:"mime_type,omitempty"`
 
 	// Width: Width of screenshot in pixels.
 	Width int64 `json:"width,omitempty"`
@@ -217,11 +217,11 @@ func (r *PagespeedapiService) Runpagespeed(url string) *PagespeedapiRunpagespeed
 	return c
 }
 
-// Filter_third_party_resources sets the optional parameter
+// FilterThirdPartyResources sets the optional parameter
 // "filter_third_party_resources": Indicates if third party resources
 // should be filtered out before PageSpeed analysis.
-func (c *PagespeedapiRunpagespeedCall) Filter_third_party_resources(filter_third_party_resources bool) *PagespeedapiRunpagespeedCall {
-	c.opt_["filter_third_party_resources"] = filter_third_party_resources
+func (c *PagespeedapiRunpagespeedCall) FilterThirdPartyResources(filterThirdPartyResources bool) *PagespeedapiRunpagespeedCall {
+	c.opt_["filter_third_party_resources"] = filterThirdPartyResources
 	return c
 }
 
@@ -248,6 +248,10 @@ func (c *PagespeedapiRunpagespeedCall) Screenshot(screenshot bool) *Pagespeedapi
 
 // Strategy sets the optional parameter "strategy": The analysis
 // strategy to use
+//
+// Possible values:
+//   "desktop" - Fetch and analyze the URL for desktop browsers
+//   "mobile" - Fetch and analyze the URL for mobile devices
 func (c *PagespeedapiRunpagespeedCall) Strategy(strategy string) *PagespeedapiRunpagespeedCall {
 	c.opt_["strategy"] = strategy
 	return c

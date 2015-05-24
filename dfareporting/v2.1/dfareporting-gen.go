@@ -762,6 +762,10 @@ type Account struct {
 
 	// AccountProfile: Profile for this account. This is a read-only field
 	// that can be left blank.
+	//
+	// Possible values:
+	//   "ACCOUNT_PROFILE_BASIC"
+	//   "ACCOUNT_PROFILE_STANDARD"
 	AccountProfile string `json:"accountProfile,omitempty"`
 
 	// Active: Whether this account is active.
@@ -769,6 +773,13 @@ type Account struct {
 
 	// ActiveAdsLimitTier: Maximum number of active ads allowed for this
 	// account.
+	//
+	// Possible values:
+	//   "ACTIVE_ADS_TIER_100K"
+	//   "ACTIVE_ADS_TIER_200K"
+	//   "ACTIVE_ADS_TIER_300K"
+	//   "ACTIVE_ADS_TIER_40K"
+	//   "ACTIVE_ADS_TIER_75K"
 	ActiveAdsLimitTier string `json:"activeAdsLimitTier,omitempty"`
 
 	// ActiveViewOptOut: Whether to serve creatives with Active View tags.
@@ -889,6 +900,13 @@ type AccountActiveAdSummary struct {
 
 	// ActiveAdsLimitTier: Maximum number of active ads allowed for the
 	// account.
+	//
+	// Possible values:
+	//   "ACTIVE_ADS_TIER_100K"
+	//   "ACTIVE_ADS_TIER_200K"
+	//   "ACTIVE_ADS_TIER_300K"
+	//   "ACTIVE_ADS_TIER_40K"
+	//   "ACTIVE_ADS_TIER_75K"
 	ActiveAdsLimitTier string `json:"activeAdsLimitTier,omitempty"`
 
 	// AvailableAds: Ads that can be activated for the account.
@@ -917,6 +935,10 @@ type AccountPermission struct {
 
 	// Level: Administrative level required to enable this account
 	// permission.
+	//
+	// Possible values:
+	//   "ADMINISTRATOR"
+	//   "USER"
 	Level string `json:"level,omitempty"`
 
 	// Name: Name of this account permission.
@@ -1024,10 +1046,20 @@ type AccountUserProfile struct {
 	SubaccountId int64 `json:"subaccountId,omitempty,string"`
 
 	// TraffickerType: Trafficker type of this user profile.
+	//
+	// Possible values:
+	//   "EXTERNAL_TRAFFICKER"
+	//   "INTERNAL_NON_TRAFFICKER"
+	//   "INTERNAL_TRAFFICKER"
 	TraffickerType string `json:"traffickerType,omitempty"`
 
 	// UserAccessType: User type of the user profile. This is a read-only
 	// field that can be left blank.
+	//
+	// Possible values:
+	//   "INTERNAL_ADMINISTRATOR"
+	//   "NORMAL_USER"
+	//   "SUPER_USER"
 	UserAccessType string `json:"userAccessType,omitempty"`
 
 	// UserRoleFilter: Filter that describes which user roles are visible to
@@ -1127,6 +1159,13 @@ type Ad struct {
 	// ads, respectively. APP and APP_INTERSTITIAL are for rendering in
 	// mobile apps. IN_STREAM_VIDEO refers to rendering an in-stream video
 	// ads developed with the VAST standard.
+	//
+	// Possible values:
+	//   "APP"
+	//   "APP_INTERSTITIAL"
+	//   "IN_STREAM_VIDEO"
+	//   "WEB"
+	//   "WEB_INTERSTITIAL"
 	Compatibility string `json:"compatibility,omitempty"`
 
 	// CreateInfo: Information about the creation of this ad.This is a
@@ -1202,10 +1241,10 @@ type Ad struct {
 	// PlacementAssignments: Placement assignments for this ad.
 	PlacementAssignments []*PlacementAssignment `json:"placementAssignments,omitempty"`
 
-	// Remarketing_list_expression: Applicable when type is
+	// RemarketingListExpression: Applicable when type is
 	// AD_SERVING_STANDARD_AD. Remarketing list targeting expression for
 	// this ad.
-	Remarketing_list_expression *ListTargetingExpression `json:"remarketing_list_expression,omitempty"`
+	RemarketingListExpression *ListTargetingExpression `json:"remarketing_list_expression,omitempty"`
 
 	// Size: Size of this ad. Applicable when type is AD_SERVING_DEFAULT_AD.
 	Size *Size `json:"size,omitempty"`
@@ -1234,6 +1273,12 @@ type Ad struct {
 	// Type: Type of ad. This is a required field on insertion. Note that
 	// default ads (AD_SERVING_DEFAULT_AD) cannot be created directly (see
 	// Creative resource).
+	//
+	// Possible values:
+	//   "AD_SERVING_CLICK_TRACKER"
+	//   "AD_SERVING_DEFAULT_AD"
+	//   "AD_SERVING_STANDARD_AD"
+	//   "AD_SERVING_TRACKING"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1246,6 +1291,13 @@ type AdSlot struct {
 	// interstitial ads respectively. APP and APP_INTERSTITIAL are for
 	// rendering in mobile apps. IN_STREAM_VIDEO refers to rendering in
 	// in-stream video ads developed with the VAST standard.
+	//
+	// Possible values:
+	//   "PLANNING_RENDERING_ENVIRONMENT_TYPE_APP"
+	//   "PLANNING_RENDERING_ENVIRONMENT_TYPE_APP_INTERSTITIAL"
+	//   "PLANNING_RENDERING_ENVIRONMENT_TYPE_IN_STREAM_VIDEO"
+	//   "PLANNING_RENDERING_ENVIRONMENT_TYPE_WEB"
+	//   "PLANNING_RENDERING_ENVIRONMENT_TYPE_WEB_INTERSTITIAL"
 	Compatibility string `json:"compatibility,omitempty"`
 
 	// Height: Height of this ad slot.
@@ -1259,6 +1311,10 @@ type AdSlot struct {
 	Name string `json:"name,omitempty"`
 
 	// PaymentSourceType: Payment source type of this ad slot.
+	//
+	// Possible values:
+	//   "PLANNING_PAYMENT_SOURCE_TYPE_AGENCY_PAID"
+	//   "PLANNING_PAYMENT_SOURCE_TYPE_PUBLISHER_PAID"
 	PaymentSourceType string `json:"paymentSourceType,omitempty"`
 
 	// Primary: Primary ad slot of a roadblock inventory item.
@@ -1347,6 +1403,10 @@ type Advertiser struct {
 	OriginalFloodlightConfigurationId int64 `json:"originalFloodlightConfigurationId,omitempty,string"`
 
 	// Status: Status of this advertiser.
+	//
+	// Possible values:
+	//   "APPROVED"
+	//   "ON_HOLD"
 	Status string `json:"status,omitempty"`
 
 	// SubaccountId: Subaccount ID of this advertiser.This is a read-only
@@ -1933,17 +1993,26 @@ type Creative struct {
 	// ArtworkType: Type of artwork used for the creative. This is a
 	// read-only field. Applicable to the following creative types: all
 	// RICH_MEDIA, and all VPAID.
+	//
+	// Possible values:
+	//   "ARTWORK_TYPE_FLASH"
+	//   "ARTWORK_TYPE_HTML5"
+	//   "ARTWORK_TYPE_MIXED"
 	ArtworkType string `json:"artworkType,omitempty"`
 
 	// AuthoringTool: Authoring tool for HTML5 banner creatives. This is a
 	// read-only field. Applicable to the following creative types:
 	// HTML5_BANNER.
+	//
+	// Possible values:
+	//   "NINJA"
+	//   "SWIFFY"
 	AuthoringTool string `json:"authoringTool,omitempty"`
 
-	// Auto_advance_images: Whether images are automatically advanced for
+	// AutoAdvanceImages: Whether images are automatically advanced for
 	// enhanced image creatives. Applicable to the following creative types:
 	// ENHANCED_IMAGE.
-	Auto_advance_images bool `json:"auto_advance_images,omitempty"`
+	AutoAdvanceImages bool `json:"auto_advance_images,omitempty"`
 
 	// BackgroundColor: The 6-character HTML color code, beginning with #,
 	// for the background of the window area where the Flash file is
@@ -2194,6 +2263,31 @@ type Creative struct {
 
 	// Type: Type of this creative.This is a required field. Applicable to
 	// all creative types.
+	//
+	// Possible values:
+	//   "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO"
+	//   "CUSTOM_INPAGE"
+	//   "CUSTOM_INTERSTITIAL"
+	//   "ENHANCED_BANNER"
+	//   "ENHANCED_IMAGE"
+	//   "FLASH_INPAGE"
+	//   "HTML5_BANNER"
+	//   "IMAGE"
+	//   "INSTREAM_VIDEO"
+	//   "INTERNAL_REDIRECT"
+	//   "INTERSTITIAL_INTERNAL_REDIRECT"
+	//   "REDIRECT"
+	//   "RICH_MEDIA_EXPANDING"
+	//   "RICH_MEDIA_IM_EXPAND"
+	//   "RICH_MEDIA_INPAGE"
+	//   "RICH_MEDIA_INPAGE_FLOATING"
+	//   "RICH_MEDIA_INTERSTITIAL_FLOAT"
+	//   "RICH_MEDIA_MOBILE_IN_APP"
+	//   "RICH_MEDIA_MULTI_FLOATING"
+	//   "RICH_MEDIA_PEEL_DOWN"
+	//   "TRACKING_TEXT"
+	//   "VPAID_LINEAR"
+	//   "VPAID_NON_LINEAR"
 	Type string `json:"type,omitempty"`
 
 	// Version: The version number helps you keep track of multiple versions
@@ -2230,10 +2324,21 @@ type CreativeAsset struct {
 	// Alignment: Possible alignments for an asset. This is a read-only
 	// field. Applicable to the following creative types:
 	// RICH_MEDIA_MULTI_FLOATING.
+	//
+	// Possible values:
+	//   "ALIGNMENT_BOTTOM"
+	//   "ALIGNMENT_LEFT"
+	//   "ALIGNMENT_RIGHT"
+	//   "ALIGNMENT_TOP"
 	Alignment string `json:"alignment,omitempty"`
 
 	// ArtworkType: Artwork type of rich media creative. This is a read-only
 	// field. Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ARTWORK_TYPE_FLASH"
+	//   "ARTWORK_TYPE_HTML5"
+	//   "ARTWORK_TYPE_MIXED"
 	ArtworkType string `json:"artworkType,omitempty"`
 
 	// AssetIdentifier: Identifier of this asset. This is the same
@@ -2253,6 +2358,12 @@ type CreativeAsset struct {
 
 	// ChildAssetType: Rich media child asset type. This is a read-only
 	// field. Applicable to the following creative types: all VPAID.
+	//
+	// Possible values:
+	//   "CHILD_ASSET_TYPE_DATA"
+	//   "CHILD_ASSET_TYPE_FLASH"
+	//   "CHILD_ASSET_TYPE_IMAGE"
+	//   "CHILD_ASSET_TYPE_VIDEO"
 	ChildAssetType string `json:"childAssetType,omitempty"`
 
 	// CollapsedSize: Size of an asset when collapsed. This is a read-only
@@ -2276,6 +2387,17 @@ type CreativeAsset struct {
 
 	// DisplayType: Type of rich media asset. This is a read-only field.
 	// Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ASSET_DISPLAY_TYPE_EXPANDING"
+	//   "ASSET_DISPLAY_TYPE_FLASH_IN_FLASH"
+	//   "ASSET_DISPLAY_TYPE_FLASH_IN_FLASH_EXPANDING"
+	//   "ASSET_DISPLAY_TYPE_FLOATING"
+	//   "ASSET_DISPLAY_TYPE_INPAGE"
+	//   "ASSET_DISPLAY_TYPE_OVERLAY"
+	//   "ASSET_DISPLAY_TYPE_PEEL_DOWN"
+	//   "ASSET_DISPLAY_TYPE_VPAID_LINEAR"
+	//   "ASSET_DISPLAY_TYPE_VPAID_NON_LINEAR"
 	DisplayType string `json:"displayType,omitempty"`
 
 	// Duration: Duration in seconds for which an asset will be displayed.
@@ -2285,6 +2407,11 @@ type CreativeAsset struct {
 
 	// DurationType: Duration type for which an asset will be displayed.
 	// Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ASSET_DURATION_TYPE_AUTO"
+	//   "ASSET_DURATION_TYPE_CUSTOM"
+	//   "ASSET_DURATION_TYPE_NONE"
 	DurationType string `json:"durationType,omitempty"`
 
 	// ExpandedDimension: Detected expanded dimension for video asset. This
@@ -2343,11 +2470,21 @@ type CreativeAsset struct {
 
 	// PositionLeftUnit: Offset left unit for an asset. This is a read-only
 	// field. Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "OFFSET_UNIT_PERCENT"
+	//   "OFFSET_UNIT_PIXEL"
+	//   "OFFSET_UNIT_PIXEL_FROM_CENTER"
 	PositionLeftUnit string `json:"positionLeftUnit,omitempty"`
 
 	// PositionTopUnit: Offset top unit for an asset. This is a read-only
 	// field if the asset displayType is ASSET_DISPLAY_TYPE_OVERLAY.
 	// Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "OFFSET_UNIT_PERCENT"
+	//   "OFFSET_UNIT_PIXEL"
+	//   "OFFSET_UNIT_PIXEL_FROM_CENTER"
 	PositionTopUnit string `json:"positionTopUnit,omitempty"`
 
 	// ProgressiveServingUrl: Progressive URL for video asset. This is a
@@ -2395,6 +2532,16 @@ type CreativeAsset struct {
 	// ALTERNATE_VIDEO assets that are marked active serve as backup in case
 	// the VPAID creative cannot be served. Only PARENT_VIDEO assets can be
 	// added or removed for an INSTREAM_VIDEO or VPAID_LINEAR creative.
+	//
+	// Possible values:
+	//   "ADDITIONAL_FLASH"
+	//   "ADDITIONAL_IMAGE"
+	//   "ALTERNATE_VIDEO"
+	//   "BACKUP_IMAGE"
+	//   "OTHER"
+	//   "PARENT_VIDEO"
+	//   "PRIMARY"
+	//   "TRANSCODED_VIDEO"
 	Role string `json:"role,omitempty"`
 
 	// Size: Size associated with this creative asset. This is a required
@@ -2412,6 +2559,10 @@ type CreativeAsset struct {
 
 	// StartTimeType: Initial wait time type before making the asset
 	// visible. Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ASSET_START_TIME_TYPE_CUSTOM"
+	//   "ASSET_START_TIME_TYPE_NONE"
 	StartTimeType string `json:"startTimeType,omitempty"`
 
 	// StreamingServingUrl: Streaming URL for video asset. This is a
@@ -2438,6 +2589,11 @@ type CreativeAsset struct {
 	// following creative types: FLASH_INPAGE, RICH_MEDIA_EXPANDING,
 	// RICH_MEDIA_IM_EXPAND, RICH_MEDIA_INPAGE, and
 	// RICH_MEDIA_INPAGE_FLOATING.
+	//
+	// Possible values:
+	//   "OPAQUE"
+	//   "TRANSPARENT"
+	//   "WINDOW"
 	WindowMode string `json:"windowMode,omitempty"`
 
 	// ZIndex: zIndex value of an asset. This is a read-only field.
@@ -2466,6 +2622,13 @@ type CreativeAssetId struct {
 	// Type: Type of asset to upload. This is a required field. IMAGE is
 	// solely used for IMAGE creatives. Other image assets should use
 	// HTML_IMAGE.
+	//
+	// Possible values:
+	//   "FLASH"
+	//   "HTML"
+	//   "HTML_IMAGE"
+	//   "IMAGE"
+	//   "VIDEO"
 	Type string `json:"type,omitempty"`
 }
 
@@ -2595,6 +2758,11 @@ type CreativeCustomEvent struct {
 
 	// AdvertiserCustomEventType: Type of the event. This is a read-only
 	// field.
+	//
+	// Possible values:
+	//   "ADVERTISER_EVENT_COUNTER"
+	//   "ADVERTISER_EVENT_EXIT"
+	//   "ADVERTISER_EVENT_TIMER"
 	AdvertiserCustomEventType string `json:"advertiserCustomEventType,omitempty"`
 
 	// ArtworkLabel: Artwork label column, used to link events in DCM back
@@ -2604,6 +2772,11 @@ type CreativeCustomEvent struct {
 
 	// ArtworkType: Artwork type used by the creative.This is a read-only
 	// field.
+	//
+	// Possible values:
+	//   "ARTWORK_TYPE_FLASH"
+	//   "ARTWORK_TYPE_HTML5"
+	//   "ARTWORK_TYPE_MIXED"
 	ArtworkType string `json:"artworkType,omitempty"`
 
 	// ExitUrl: Exit URL of the event. This field is used only for exit
@@ -2619,6 +2792,13 @@ type CreativeCustomEvent struct {
 	PopupWindowProperties *PopupWindowProperties `json:"popupWindowProperties,omitempty"`
 
 	// TargetType: Target type used by the event.
+	//
+	// Possible values:
+	//   "TARGET_BLANK"
+	//   "TARGET_PARENT"
+	//   "TARGET_POPUP"
+	//   "TARGET_SELF"
+	//   "TARGET_TOP"
 	TargetType string `json:"targetType,omitempty"`
 
 	// VideoReportingId: Reporting ID, used to differentiate multiple videos
@@ -2751,6 +2931,10 @@ type CreativeGroupAssignment struct {
 
 	// CreativeGroupNumber: Creative group number of the creative group
 	// assignment.
+	//
+	// Possible values:
+	//   "CREATIVE_GROUP_ONE"
+	//   "CREATIVE_GROUP_TWO"
 	CreativeGroupNumber string `json:"creativeGroupNumber,omitempty"`
 }
 
@@ -2782,6 +2966,12 @@ type CreativeOptimizationConfiguration struct {
 	OptimizationActivitys []*OptimizationActivity `json:"optimizationActivitys,omitempty"`
 
 	// OptimizationModel: Optimization model for this configuration.
+	//
+	// Possible values:
+	//   "CLICK"
+	//   "POST_CLICK"
+	//   "POST_CLICK_AND_IMPRESSION"
+	//   "POST_IMPRESSION"
 	OptimizationModel string `json:"optimizationModel,omitempty"`
 }
 
@@ -2798,10 +2988,20 @@ type CreativeRotation struct {
 
 	// Type: Type of creative rotation. Can be used to specify whether to
 	// use sequential or random rotation.
+	//
+	// Possible values:
+	//   "CREATIVE_ROTATION_TYPE_RANDOM"
+	//   "CREATIVE_ROTATION_TYPE_SEQUENTIAL"
 	Type string `json:"type,omitempty"`
 
 	// WeightCalculationStrategy: Strategy for calculating weights. Used
 	// with CREATIVE_ROTATION_TYPE_RANDOM.
+	//
+	// Possible values:
+	//   "WEIGHT_STRATEGY_CUSTOM"
+	//   "WEIGHT_STRATEGY_EQUAL"
+	//   "WEIGHT_STRATEGY_HIGHEST_CTR"
+	//   "WEIGHT_STRATEGY_OPTIMIZED"
 	WeightCalculationStrategy string `json:"weightCalculationStrategy,omitempty"`
 }
 
@@ -2871,6 +3071,23 @@ type DateRange struct {
 
 	// RelativeDateRange: The date range relative to the date of when the
 	// report is run.
+	//
+	// Possible values:
+	//   "LAST_24_MONTHS"
+	//   "LAST_30_DAYS"
+	//   "LAST_365_DAYS"
+	//   "LAST_7_DAYS"
+	//   "LAST_90_DAYS"
+	//   "MONTH_TO_DATE"
+	//   "PREVIOUS_MONTH"
+	//   "PREVIOUS_QUARTER"
+	//   "PREVIOUS_WEEK"
+	//   "PREVIOUS_YEAR"
+	//   "QUARTER_TO_DATE"
+	//   "TODAY"
+	//   "WEEK_TO_DATE"
+	//   "YEAR_TO_DATE"
+	//   "YESTERDAY"
 	RelativeDateRange string `json:"relativeDateRange,omitempty"`
 
 	// StartDate: The start date of the date range, inclusive. A string of
@@ -2935,15 +3152,33 @@ type DeliverySchedule struct {
 	// Priority: Serving priority of an ad, with respect to other ads. The
 	// lower the priority number, the greater the priority with which it is
 	// served.
+	//
+	// Possible values:
+	//   "AD_PRIORITY_01"
+	//   "AD_PRIORITY_02"
+	//   "AD_PRIORITY_03"
+	//   "AD_PRIORITY_04"
+	//   "AD_PRIORITY_05"
+	//   "AD_PRIORITY_06"
+	//   "AD_PRIORITY_07"
+	//   "AD_PRIORITY_08"
+	//   "AD_PRIORITY_09"
+	//   "AD_PRIORITY_10"
+	//   "AD_PRIORITY_11"
+	//   "AD_PRIORITY_12"
+	//   "AD_PRIORITY_13"
+	//   "AD_PRIORITY_14"
+	//   "AD_PRIORITY_15"
+	//   "AD_PRIORITY_16"
 	Priority string `json:"priority,omitempty"`
 }
 
 type DfpSettings struct {
-	// Dfp_network_code: DFP network code for this directory site.
-	Dfp_network_code string `json:"dfp_network_code,omitempty"`
+	// DfpNetworkCode: DFP network code for this directory site.
+	DfpNetworkCode string `json:"dfp_network_code,omitempty"`
 
-	// Dfp_network_name: DFP network name for this directory site.
-	Dfp_network_name string `json:"dfp_network_name,omitempty"`
+	// DfpNetworkName: DFP network name for this directory site.
+	DfpNetworkName string `json:"dfp_network_name,omitempty"`
 
 	// ProgrammaticPlacementAccepted: Whether this directory site accepts
 	// programmatic placements.
@@ -2999,6 +3234,12 @@ type DimensionValue struct {
 	// length character sequences, and it can be escaped with a backslash.
 	// Note, only paid search dimensions ('dfa:paidSearch*') allow a
 	// matchType other than EXACT.
+	//
+	// Possible values:
+	//   "BEGINS_WITH"
+	//   "CONTAINS"
+	//   "EXACT"
+	//   "WILDCARD_EXPRESSION"
 	MatchType string `json:"matchType,omitempty"`
 
 	// Value: The value of the dimension.
@@ -3166,12 +3407,23 @@ type DirectorySiteContact struct {
 	Phone string `json:"phone,omitempty"`
 
 	// Role: Directory site contact role.
+	//
+	// Possible values:
+	//   "ADMIN"
+	//   "EDIT"
+	//   "VIEW"
 	Role string `json:"role,omitempty"`
 
 	// Title: Title or designation of this directory site contact.
 	Title string `json:"title,omitempty"`
 
 	// Type: Directory site contact type.
+	//
+	// Possible values:
+	//   "BILLING"
+	//   "OTHER"
+	//   "SALES"
+	//   "TECHNICAL"
 	Type string `json:"type,omitempty"`
 }
 
@@ -3183,6 +3435,10 @@ type DirectorySiteContactAssignment struct {
 	// Visibility: Visibility of this directory site contact assignment.
 	// When set to PUBLIC this contact assignment is visible to all account
 	// and agency users; when set to PRIVATE it is visible only to the site.
+	//
+	// Possible values:
+	//   "PRIVATE"
+	//   "PUBLIC"
 	Visibility string `json:"visibility,omitempty"`
 }
 
@@ -3204,12 +3460,12 @@ type DirectorySiteSettings struct {
 	// view creatives.
 	ActiveViewOptOut bool `json:"activeViewOptOut,omitempty"`
 
-	// Dfp_settings: Directory site DFP settings.
-	Dfp_settings *DfpSettings `json:"dfp_settings,omitempty"`
+	// DfpSettings: Directory site DFP settings.
+	DfpSettings *DfpSettings `json:"dfp_settings,omitempty"`
 
-	// Instream_video_placement_accepted: Whether this site accepts
-	// in-stream video ads.
-	Instream_video_placement_accepted bool `json:"instream_video_placement_accepted,omitempty"`
+	// InstreamVideoPlacementAccepted: Whether this site accepts in-stream
+	// video ads.
+	InstreamVideoPlacementAccepted bool `json:"instream_video_placement_accepted,omitempty"`
 
 	// InterstitialPlacementAccepted: Whether this site accepts interstitial
 	// ads.
@@ -3279,6 +3535,10 @@ type EventTag struct {
 
 	// SiteFilterType: Site filter type for this event tag. If no type is
 	// specified then the event tag will be applied to all sites.
+	//
+	// Possible values:
+	//   "BLACKLIST"
+	//   "WHITELIST"
 	SiteFilterType string `json:"siteFilterType,omitempty"`
 
 	// SiteIds: Filter list of site IDs associated with this event tag. The
@@ -3291,6 +3551,10 @@ type EventTag struct {
 
 	// Status: Status of this event tag. Must be ENABLED for this event tag
 	// to fire. This is a required field.
+	//
+	// Possible values:
+	//   "DISABLED"
+	//   "ENABLED"
 	Status string `json:"status,omitempty"`
 
 	// SubaccountId: Subaccount ID of this event tag. This is a read-only
@@ -3301,6 +3565,11 @@ type EventTag struct {
 	// third-party pixel, a third-party JavaScript URL, or a third-party
 	// click-through URL for either impression or click tracking. This is a
 	// required field.
+	//
+	// Possible values:
+	//   "CLICK_THROUGH_EVENT_TAG"
+	//   "IMPRESSION_IMAGE_EVENT_TAG"
+	//   "IMPRESSION_JAVASCRIPT_EVENT_TAG"
 	Type string `json:"type,omitempty"`
 
 	// Url: Payload URL for this event tag. The URL on a click-through event
@@ -3347,6 +3616,10 @@ type File struct {
 
 	// Format: The output format of the report. Only available once the file
 	// is available.
+	//
+	// Possible values:
+	//   "CSV"
+	//   "EXCEL"
 	Format string `json:"format,omitempty"`
 
 	// Id: The unique ID of this report file.
@@ -3363,6 +3636,12 @@ type File struct {
 	ReportId int64 `json:"reportId,omitempty,string"`
 
 	// Status: The status of the report file.
+	//
+	// Possible values:
+	//   "CANCELLED"
+	//   "FAILED"
+	//   "PROCESSING"
+	//   "REPORT_AVAILABLE"
 	Status string `json:"status,omitempty"`
 
 	// Urls: The URLs where the completed report file can be downloaded.
@@ -3447,10 +3726,24 @@ type FloodlightActivity struct {
 
 	// CacheBustingType: Code type used for cache busting in the generated
 	// tag.
+	//
+	// Possible values:
+	//   "ACTIVE_SERVER_PAGE"
+	//   "COLD_FUSION"
+	//   "JAVASCRIPT"
+	//   "JSP"
+	//   "PHP"
 	CacheBustingType string `json:"cacheBustingType,omitempty"`
 
 	// CountingMethod: Counting method for conversions for this floodlight
 	// activity. This is a required field.
+	//
+	// Possible values:
+	//   "ITEMS_SOLD_COUNTING"
+	//   "SESSION_COUNTING"
+	//   "STANDARD_COUNTING"
+	//   "TRANSACTIONS_COUNTING"
+	//   "UNIQUE_COUNTING"
 	CountingMethod string `json:"countingMethod,omitempty"`
 
 	// DefaultTags: Dynamic floodlight tags.
@@ -3474,6 +3767,10 @@ type FloodlightActivity struct {
 
 	// FloodlightActivityGroupType: Type of the associated floodlight
 	// activity group. This is a read-only field.
+	//
+	// Possible values:
+	//   "COUNTER"
+	//   "SALE"
 	FloodlightActivityGroupType string `json:"floodlightActivityGroupType,omitempty"`
 
 	// FloodlightConfigurationId: Floodlight configuration ID of this
@@ -3532,6 +3829,10 @@ type FloodlightActivity struct {
 
 	// TagFormat: Tag format type for the floodlight activity. If left
 	// blank, the tag format will default to HTML.
+	//
+	// Possible values:
+	//   "HTML"
+	//   "XHTML"
 	TagFormat string `json:"tagFormat,omitempty"`
 
 	// TagString: Value of the cat= paramter in the floodlight tag, which
@@ -3638,6 +3939,10 @@ type FloodlightActivityGroup struct {
 
 	// Type: Type of the floodlight activity group. This is a required field
 	// that is read-only after insertion.
+	//
+	// Possible values:
+	//   "COUNTER"
+	//   "SALE"
 	Type string `json:"type,omitempty"`
 }
 
@@ -3703,6 +4008,10 @@ type FloodlightConfiguration struct {
 
 	// FirstDayOfWeek: Day that will be counted as the first day of the week
 	// in reports. This is a required field.
+	//
+	// Possible values:
+	//   "MONDAY"
+	//   "SUNDAY"
 	FirstDayOfWeek string `json:"firstDayOfWeek,omitempty"`
 
 	// Id: ID of this floodlight configuration. This is a read-only,
@@ -3723,6 +4032,11 @@ type FloodlightConfiguration struct {
 
 	// NaturalSearchConversionAttributionOption: Types of attribution
 	// options for natural search conversions.
+	//
+	// Possible values:
+	//   "EXCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION"
+	//   "INCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION"
+	//   "INCLUDE_NATURAL_SEARCH_TIERED_CONVERSION_ATTRIBUTION"
 	NaturalSearchConversionAttributionOption string `json:"naturalSearchConversionAttributionOption,omitempty"`
 
 	// OmnitureSettings: Settings for DCM Omniture integration.
@@ -3796,6 +4110,10 @@ type FsCommand struct {
 	Left int64 `json:"left,omitempty"`
 
 	// PositionOption: Position in the browser where the window will open.
+	//
+	// Possible values:
+	//   "CENTERED"
+	//   "DISTANCE_FROM_TOP_LEFT_CORNER"
 	PositionOption string `json:"positionOption,omitempty"`
 
 	// Top: Distance from the top of the browser. Applicable when
@@ -4010,6 +4328,15 @@ type ListPopulationTerm struct {
 	// Operator: Comparison operator of this term. This field is only
 	// relevant when type is left unset or set to CUSTOM_VARIABLE_TERM or
 	// REFERRER_TERM.
+	//
+	// Possible values:
+	//   "NUM_EQUALS"
+	//   "NUM_GREATER_THAN"
+	//   "NUM_GREATER_THAN_EQUAL"
+	//   "NUM_LESS_THAN"
+	//   "NUM_LESS_THAN_EQUAL"
+	//   "STRING_CONTAINS"
+	//   "STRING_EQUALS"
 	Operator string `json:"operator,omitempty"`
 
 	// RemarketingListId: ID of the list in question. This field is only
@@ -4022,6 +4349,11 @@ type ListPopulationTerm struct {
 	// applicable. If set to LIST_MEMBERSHIP_TERM then remarketingListId and
 	// contains are applicable. If set to REFERRER_TERM then operator,
 	// value, and negation are applicable.
+	//
+	// Possible values:
+	//   "CUSTOM_VARIABLE_TERM"
+	//   "LIST_MEMBERSHIP_TERM"
+	//   "REFERRER_TERM"
 	Type string `json:"type,omitempty"`
 
 	// Value: Literal to compare the variable to. This field is only
@@ -4148,6 +4480,11 @@ type ObjectFilter struct {
 	// of the objects. ALL means the user has access to all objects.
 	// ASSIGNED means the user has access to the objects with IDs in the
 	// objectIds list.
+	//
+	// Possible values:
+	//   "ALL"
+	//   "ASSIGNED"
+	//   "NONE"
 	Status string `json:"status,omitempty"`
 }
 
@@ -4325,6 +4662,11 @@ type OrderContact struct {
 	ContactTitle string `json:"contactTitle,omitempty"`
 
 	// ContactType: Type of this contact.
+	//
+	// Possible values:
+	//   "PLANNING_ORDER_CONTACT_BUYER_BILLING_CONTACT"
+	//   "PLANNING_ORDER_CONTACT_BUYER_CONTACT"
+	//   "PLANNING_ORDER_CONTACT_SELLER_CONTACT"
 	ContactType string `json:"contactType,omitempty"`
 
 	// SignatureUserProfileId: ID of the user profile containing the
@@ -4380,6 +4722,10 @@ type OrderDocument struct {
 	Title string `json:"title,omitempty"`
 
 	// Type: Type of this order document
+	//
+	// Possible values:
+	//   "PLANNING_ORDER_TYPE_CHANGE_ORDER"
+	//   "PLANNING_ORDER_TYPE_INSERTION_ORDER"
 	Type string `json:"type,omitempty"`
 }
 
@@ -4466,6 +4812,13 @@ type Placement struct {
 	// rendering in mobile apps.IN_STREAM_VIDEO refers to rendering in
 	// in-stream video ads developed with the VAST standard. This field is
 	// required on insertion.
+	//
+	// Possible values:
+	//   "APP"
+	//   "APP_INTERSTITIAL"
+	//   "IN_STREAM_VIDEO"
+	//   "WEB"
+	//   "WEB_INTERSTITIAL"
 	Compatibility string `json:"compatibility,omitempty"`
 
 	// ContentCategoryId: ID of the content category assigned to this
@@ -4521,6 +4874,10 @@ type Placement struct {
 
 	// PaymentSource: Payment source for this placement. This is a required
 	// field that is read-only after insertion.
+	//
+	// Possible values:
+	//   "PLACEMENT_AGENCY_PAID"
+	//   "PLACEMENT_PUBLISHER_PAID"
 	PaymentSource string `json:"paymentSource,omitempty"`
 
 	// PlacementGroupId: ID of this placement's group, if applicable.
@@ -4571,6 +4928,14 @@ type Placement struct {
 	SslRequired bool `json:"sslRequired,omitempty"`
 
 	// Status: Third-party placement status.
+	//
+	// Possible values:
+	//   "ACKNOWLEDGE_ACCEPTANCE"
+	//   "ACKNOWLEDGE_REJECTION"
+	//   "DRAFT"
+	//   "PAYMENT_ACCEPTED"
+	//   "PAYMENT_REJECTED"
+	//   "PENDING_REVIEW"
 	Status string `json:"status,omitempty"`
 
 	// SubaccountId: Subaccount ID of this placement. This field can be left
@@ -4697,6 +5062,10 @@ type PlacementGroup struct {
 	// it will be served at the same time. A roadblock requires one of its
 	// assigned placements to be marked as primary for reporting. This field
 	// is required on insertion.
+	//
+	// Possible values:
+	//   "PLACEMENT_PACKAGE"
+	//   "PLACEMENT_ROADBLOCK"
 	PlacementGroupType string `json:"placementGroupType,omitempty"`
 
 	// PlacementStrategyId: ID of the placement strategy assigned to this
@@ -4843,6 +5212,10 @@ type PopupWindowProperties struct {
 
 	// PositionType: Popup window position either centered or at specific
 	// coordinate.
+	//
+	// Possible values:
+	//   "CENTER"
+	//   "COORDINATES"
 	PositionType string `json:"positionType,omitempty"`
 
 	// ShowAddressBar: Whether to display the browser address bar.
@@ -4895,6 +5268,11 @@ type PostalCodesListResponse struct {
 
 type Pricing struct {
 	// CapCostType: Cap cost type of this inventory item.
+	//
+	// Possible values:
+	//   "PLANNING_PLACEMENT_CAP_COST_TYPE_CUMULATIVE"
+	//   "PLANNING_PLACEMENT_CAP_COST_TYPE_MONTHLY"
+	//   "PLANNING_PLACEMENT_CAP_COST_TYPE_NONE"
 	CapCostType string `json:"capCostType,omitempty"`
 
 	// EndDate: End date of this inventory item.
@@ -4913,9 +5291,22 @@ type Pricing struct {
 	// items that not only acts as a single pricing point, but also assumes
 	// that all the tags in it will be served at the same time. A roadblock
 	// requires one of its assigned inventory items to be marked as primary.
+	//
+	// Possible values:
+	//   "PLANNING_PLACEMENT_GROUP_TYPE_PACKAGE"
+	//   "PLANNING_PLACEMENT_GROUP_TYPE_ROADBLOCK"
 	GroupType string `json:"groupType,omitempty"`
 
 	// PricingType: Pricing type of this inventory item.
+	//
+	// Possible values:
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_CLICKS"
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_CPA"
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_CPC"
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_CPM"
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_FLAT_RATE_CLICKS"
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
+	//   "PLANNING_PLACEMENT_PRICING_TYPE_IMPRESSIONS"
 	PricingType string `json:"pricingType,omitempty"`
 
 	// StartDate: Start date of this inventory item.
@@ -4924,6 +5315,11 @@ type Pricing struct {
 
 type PricingSchedule struct {
 	// CapCostOption: Placement cap cost option.
+	//
+	// Possible values:
+	//   "CAP_COST_CUMULATIVE"
+	//   "CAP_COST_MONTHLY"
+	//   "CAP_COST_NONE"
 	CapCostOption string `json:"capCostOption,omitempty"`
 
 	// DisregardOverdelivery: Whether cap costs are ignored by ad serving.
@@ -4952,6 +5348,13 @@ type PricingSchedule struct {
 
 	// PricingType: Placement pricing type. This field is required on
 	// insertion.
+	//
+	// Possible values:
+	//   "PRICING_TYPE_CPA"
+	//   "PRICING_TYPE_CPC"
+	//   "PRICING_TYPE_CPM"
+	//   "PRICING_TYPE_FLAT_RATE_CLICKS"
+	//   "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
 	PricingType string `json:"pricingType,omitempty"`
 
 	// StartDate: Placement start date. This date must be later than, or the
@@ -5021,9 +5424,22 @@ type Project struct {
 	AdvertiserId int64 `json:"advertiserId,omitempty,string"`
 
 	// AudienceAgeGroup: Audience age group of this project.
+	//
+	// Possible values:
+	//   "PLANNING_AUDIENCE_AGE_18_24"
+	//   "PLANNING_AUDIENCE_AGE_25_34"
+	//   "PLANNING_AUDIENCE_AGE_35_44"
+	//   "PLANNING_AUDIENCE_AGE_45_54"
+	//   "PLANNING_AUDIENCE_AGE_55_64"
+	//   "PLANNING_AUDIENCE_AGE_65_OR_MORE"
+	//   "PLANNING_AUDIENCE_AGE_UNKNOWN"
 	AudienceAgeGroup string `json:"audienceAgeGroup,omitempty"`
 
 	// AudienceGender: Audience gender of this project.
+	//
+	// Possible values:
+	//   "PLANNING_AUDIENCE_GENDER_FEMALE"
+	//   "PLANNING_AUDIENCE_GENDER_MALE"
 	AudienceGender string `json:"audienceGender,omitempty"`
 
 	// Budget: Budget of this project in the currency specified by the
@@ -5127,6 +5543,10 @@ type ReachReportCompatibleFields struct {
 
 type Recipient struct {
 	// DeliveryType: The delivery type for the recipient.
+	//
+	// Possible values:
+	//   "ATTACHMENT"
+	//   "LINK"
 	DeliveryType string `json:"deliveryType,omitempty"`
 
 	// Email: The email address of the recipient.
@@ -5207,6 +5627,13 @@ type RemarketingList struct {
 	ListSize int64 `json:"listSize,omitempty,string"`
 
 	// ListSource: Product from which this remarketing list was originated.
+	//
+	// Possible values:
+	//   "REMARKETING_LIST_SOURCE_DBM"
+	//   "REMARKETING_LIST_SOURCE_DFA"
+	//   "REMARKETING_LIST_SOURCE_DMP"
+	//   "REMARKETING_LIST_SOURCE_GA"
+	//   "REMARKETING_LIST_SOURCE_OTHER"
 	ListSource string `json:"listSource,omitempty"`
 
 	// Name: Name of the remarketing list. This is a required field. Must be
@@ -5278,6 +5705,10 @@ type Report struct {
 	// format is "CSV". Note that the actual format in the completed report
 	// file might differ if for instance the report's size exceeds the
 	// format's capabilities. "CSV" will then be the fallback format.
+	//
+	// Possible values:
+	//   "CSV"
+	//   "EXCEL"
 	Format string `json:"format,omitempty"`
 
 	// Id: The unique ID identifying this report resource.
@@ -5313,6 +5744,13 @@ type Report struct {
 	SubAccountId int64 `json:"subAccountId,omitempty,string"`
 
 	// Type: The type of the report.
+	//
+	// Possible values:
+	//   "CROSS_DIMENSION_REACH"
+	//   "FLOODLIGHT"
+	//   "PATH_TO_CONVERSION"
+	//   "REACH"
+	//   "STANDARD"
 	Type string `json:"type,omitempty"`
 }
 
@@ -5348,6 +5786,12 @@ type ReportCrossDimensionReachCriteria struct {
 	DateRange *DateRange `json:"dateRange,omitempty"`
 
 	// Dimension: The dimension option.
+	//
+	// Possible values:
+	//   "ADVERTISER"
+	//   "CAMPAIGN"
+	//   "SITE_BY_ADVERTISER"
+	//   "SITE_BY_CAMPAIGN"
 	Dimension string `json:"dimension,omitempty"`
 
 	// DimensionFilters: The list of filters on which dimensions are
@@ -5371,6 +5815,10 @@ type ReportDelivery struct {
 
 	// EmailOwnerDeliveryType: The type of delivery for the owner to
 	// receive, if enabled.
+	//
+	// Possible values:
+	//   "ATTACHMENT"
+	//   "LINK"
 	EmailOwnerDeliveryType string `json:"emailOwnerDeliveryType,omitempty"`
 
 	// Message: The message to be sent with each email.
@@ -5582,6 +6030,10 @@ type ReportSchedule struct {
 	// "DAY_OF_MONTH" would run subsequent reports on the 2nd of every
 	// Month, and "WEEK_OF_MONTH" would run subsequent reports on the first
 	// Monday of the month.
+	//
+	// Possible values:
+	//   "DAY_OF_MONTH"
+	//   "WEEK_OF_MONTH"
 	RunsOnDayOfMonth string `json:"runsOnDayOfMonth,omitempty"`
 
 	// StartDate: Start date of date range for which scheduled reports
@@ -5728,6 +6180,10 @@ type SiteContact struct {
 	Address string `json:"address,omitempty"`
 
 	// ContactType: Site contact type.
+	//
+	// Possible values:
+	//   "SALES_PERSON"
+	//   "TRAFFICKER"
 	ContactType string `json:"contactType,omitempty"`
 
 	// Email: Email address of this site contact. This is a required field.
@@ -5822,6 +6278,10 @@ type SortedDimension struct {
 	Name string `json:"name,omitempty"`
 
 	// SortOrder: An optional sort order for the dimension column.
+	//
+	// Possible values:
+	//   "ASCENDING"
+	//   "DESCENDING"
 	SortOrder string `json:"sortOrder,omitempty"`
 }
 
@@ -5871,6 +6331,21 @@ type TagData struct {
 	CreativeId int64 `json:"creativeId,omitempty,string"`
 
 	// Format: TagData tag format of this tag.
+	//
+	// Possible values:
+	//   "PLACEMENT_TAG_CLICK_COMMANDS"
+	//   "PLACEMENT_TAG_IFRAME_ILAYER"
+	//   "PLACEMENT_TAG_IFRAME_JAVASCRIPT"
+	//   "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH"
+	//   "PLACEMENT_TAG_INTERNAL_REDIRECT"
+	//   "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT"
+	//   "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT"
+	//   "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT"
+	//   "PLACEMENT_TAG_JAVASCRIPT"
+	//   "PLACEMENT_TAG_STANDARD"
+	//   "PLACEMENT_TAG_TRACKING"
+	//   "PLACEMENT_TAG_TRACKING_IFRAME"
+	//   "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
 	Format string `json:"format,omitempty"`
 
 	// ImpressionTag: Tag string for serving an ad.
@@ -5896,6 +6371,11 @@ type TagSetting struct {
 	// tags. This setting can be used to specify whether keyword
 	// placeholders are inserted in placement tags for this site. Publishers
 	// can then add keywords to those placeholders.
+	//
+	// Possible values:
+	//   "GENERATE_SEPARATE_TAG_FOR_EACH_KEYWORD"
+	//   "IGNORE"
+	//   "PLACEHOLDER_WITH_LIST_OF_KEYWORDS"
 	KeywordOption string `json:"keywordOption,omitempty"`
 }
 
@@ -5913,6 +6393,11 @@ type TargetWindow struct {
 
 	// TargetWindowOption: Type of browser window for which the backup image
 	// of the flash creative can be displayed.
+	//
+	// Possible values:
+	//   "CURRENT_WINDOW"
+	//   "CUSTOM"
+	//   "NEW_WINDOW"
 	TargetWindowOption string `json:"targetWindowOption,omitempty"`
 }
 
@@ -5952,6 +6437,13 @@ type TargetableRemarketingList struct {
 
 	// ListSource: Product from which this targetable remarketing list was
 	// originated.
+	//
+	// Possible values:
+	//   "REMARKETING_LIST_SOURCE_DBM"
+	//   "REMARKETING_LIST_SOURCE_DFA"
+	//   "REMARKETING_LIST_SOURCE_DMP"
+	//   "REMARKETING_LIST_SOURCE_GA"
+	//   "REMARKETING_LIST_SOURCE_OTHER"
 	ListSource string `json:"listSource,omitempty"`
 
 	// Name: Name of the targetable remarketing list. Is no greater than 128
@@ -6021,6 +6513,25 @@ type TechnologyTargeting struct {
 type ThirdPartyTrackingUrl struct {
 	// ThirdPartyUrlType: Third-party URL type for in-stream video
 	// creatives.
+	//
+	// Possible values:
+	//   "CLICK_TRACKING"
+	//   "IMPRESSION"
+	//   "RICH_MEDIA_BACKUP_IMPRESSION"
+	//   "RICH_MEDIA_IMPRESSION"
+	//   "RICH_MEDIA_RM_IMPRESSION"
+	//   "SURVEY"
+	//   "VIDEO_COMPLETE"
+	//   "VIDEO_CUSTOM"
+	//   "VIDEO_FIRST_QUARTILE"
+	//   "VIDEO_FULLSCREEN"
+	//   "VIDEO_MIDPOINT"
+	//   "VIDEO_MUTE"
+	//   "VIDEO_PAUSE"
+	//   "VIDEO_REWIND"
+	//   "VIDEO_START"
+	//   "VIDEO_STOP"
+	//   "VIDEO_THIRD_QUARTILE"
 	ThirdPartyUrlType string `json:"thirdPartyUrlType,omitempty"`
 
 	// Url: URL for the specified third-party URL type.
@@ -6029,6 +6540,10 @@ type ThirdPartyTrackingUrl struct {
 
 type UserDefinedVariableConfiguration struct {
 	// DataType: Data type for the variable. This is a required field.
+	//
+	// Possible values:
+	//   "NUMBER"
+	//   "STRING"
 	DataType string `json:"dataType,omitempty"`
 
 	// ReportName: User-friendly name for the variable which will appear in
@@ -6037,6 +6552,108 @@ type UserDefinedVariableConfiguration struct {
 	ReportName string `json:"reportName,omitempty"`
 
 	// VariableType: Variable name in the tag. This is a required field.
+	//
+	// Possible values:
+	//   "U1"
+	//   "U10"
+	//   "U100"
+	//   "U11"
+	//   "U12"
+	//   "U13"
+	//   "U14"
+	//   "U15"
+	//   "U16"
+	//   "U17"
+	//   "U18"
+	//   "U19"
+	//   "U2"
+	//   "U20"
+	//   "U21"
+	//   "U22"
+	//   "U23"
+	//   "U24"
+	//   "U25"
+	//   "U26"
+	//   "U27"
+	//   "U28"
+	//   "U29"
+	//   "U3"
+	//   "U30"
+	//   "U31"
+	//   "U32"
+	//   "U33"
+	//   "U34"
+	//   "U35"
+	//   "U36"
+	//   "U37"
+	//   "U38"
+	//   "U39"
+	//   "U4"
+	//   "U40"
+	//   "U41"
+	//   "U42"
+	//   "U43"
+	//   "U44"
+	//   "U45"
+	//   "U46"
+	//   "U47"
+	//   "U48"
+	//   "U49"
+	//   "U5"
+	//   "U50"
+	//   "U51"
+	//   "U52"
+	//   "U53"
+	//   "U54"
+	//   "U55"
+	//   "U56"
+	//   "U57"
+	//   "U58"
+	//   "U59"
+	//   "U6"
+	//   "U60"
+	//   "U61"
+	//   "U62"
+	//   "U63"
+	//   "U64"
+	//   "U65"
+	//   "U66"
+	//   "U67"
+	//   "U68"
+	//   "U69"
+	//   "U7"
+	//   "U70"
+	//   "U71"
+	//   "U72"
+	//   "U73"
+	//   "U74"
+	//   "U75"
+	//   "U76"
+	//   "U77"
+	//   "U78"
+	//   "U79"
+	//   "U8"
+	//   "U80"
+	//   "U81"
+	//   "U82"
+	//   "U83"
+	//   "U84"
+	//   "U85"
+	//   "U86"
+	//   "U87"
+	//   "U88"
+	//   "U89"
+	//   "U9"
+	//   "U90"
+	//   "U91"
+	//   "U92"
+	//   "U93"
+	//   "U94"
+	//   "U95"
+	//   "U96"
+	//   "U97"
+	//   "U98"
+	//   "U99"
 	VariableType string `json:"variableType,omitempty"`
 }
 
@@ -6120,6 +6737,13 @@ type UserRole struct {
 
 type UserRolePermission struct {
 	// Availability: Levels of availability for a user role permission.
+	//
+	// Possible values:
+	//   "ACCOUNT_ALWAYS"
+	//   "ACCOUNT_BY_DEFAULT"
+	//   "NOT_AVAILABLE_BY_DEFAULT"
+	//   "SUBACCOUNT_AND_ACCOUNT_ALWAYS"
+	//   "SUBACCOUNT_AND_ACCOUNT_BY_DEFAULT"
 	Availability string `json:"availability,omitempty"`
 
 	// Id: ID of this user role permission.
@@ -6833,6 +7457,10 @@ func (c *AccountUserProfilesListCall) SearchString(searchString string) *Account
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AccountUserProfilesListCall) SortField(sortField string) *AccountUserProfilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -6840,6 +7468,10 @@ func (c *AccountUserProfilesListCall) SortField(sortField string) *AccountUserPr
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AccountUserProfilesListCall) SortOrder(sortOrder string) *AccountUserProfilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -7349,6 +7981,10 @@ func (c *AccountsListCall) SearchString(searchString string) *AccountsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AccountsListCall) SortField(sortField string) *AccountsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -7356,6 +7992,10 @@ func (c *AccountsListCall) SortField(sortField string) *AccountsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AccountsListCall) SortOrder(sortOrder string) *AccountsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -7918,6 +8558,13 @@ func (c *AdsListCall) CampaignIds(campaignIds int64) *AdsListCall {
 // ads, respectively. APP and APP_INTERSTITIAL are for rendering in
 // mobile apps. IN_STREAM_VIDEO refers to rendering an in-stream video
 // ads developed with the VAST standard.
+//
+// Possible values:
+//   "APP"
+//   "APP_INTERSTITIAL"
+//   "IN_STREAM_VIDEO"
+//   "WEB"
+//   "WEB_INTERSTITIAL"
 func (c *AdsListCall) Compatibility(compatibility string) *AdsListCall {
 	c.opt_["compatibility"] = compatibility
 	return c
@@ -7940,6 +8587,31 @@ func (c *AdsListCall) CreativeOptimizationConfigurationIds(creativeOptimizationC
 
 // CreativeType sets the optional parameter "creativeType": Select only
 // ads with the specified creativeType.
+//
+// Possible values:
+//   "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO"
+//   "CUSTOM_INPAGE"
+//   "CUSTOM_INTERSTITIAL"
+//   "ENHANCED_BANNER"
+//   "ENHANCED_IMAGE"
+//   "FLASH_INPAGE"
+//   "HTML5_BANNER"
+//   "IMAGE"
+//   "INSTREAM_VIDEO"
+//   "INTERNAL_REDIRECT"
+//   "INTERSTITIAL_INTERNAL_REDIRECT"
+//   "REDIRECT"
+//   "RICH_MEDIA_EXPANDING"
+//   "RICH_MEDIA_IM_EXPAND"
+//   "RICH_MEDIA_INPAGE"
+//   "RICH_MEDIA_INPAGE_FLOATING"
+//   "RICH_MEDIA_INTERSTITIAL_FLOAT"
+//   "RICH_MEDIA_MOBILE_IN_APP"
+//   "RICH_MEDIA_MULTI_FLOATING"
+//   "RICH_MEDIA_PEEL_DOWN"
+//   "TRACKING_TEXT"
+//   "VPAID_LINEAR"
+//   "VPAID_NON_LINEAR"
 func (c *AdsListCall) CreativeType(creativeType string) *AdsListCall {
 	c.opt_["creativeType"] = creativeType
 	return c
@@ -8027,6 +8699,10 @@ func (c *AdsListCall) SizeIds(sizeIds int64) *AdsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AdsListCall) SortField(sortField string) *AdsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -8034,6 +8710,10 @@ func (c *AdsListCall) SortField(sortField string) *AdsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AdsListCall) SortOrder(sortOrder string) *AdsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -8055,6 +8735,12 @@ func (c *AdsListCall) SslRequired(sslRequired bool) *AdsListCall {
 
 // Type sets the optional parameter "type": Select only ads with these
 // types.
+//
+// Possible values:
+//   "AD_SERVING_CLICK_TRACKER"
+//   "AD_SERVING_DEFAULT_AD"
+//   "AD_SERVING_STANDARD_AD"
+//   "AD_SERVING_TRACKING"
 func (c *AdsListCall) Type(type_ string) *AdsListCall {
 	c.opt_["type"] = type_
 	return c
@@ -8924,6 +9610,10 @@ func (c *AdvertiserGroupsListCall) SearchString(searchString string) *Advertiser
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AdvertiserGroupsListCall) SortField(sortField string) *AdvertiserGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -8931,6 +9621,10 @@ func (c *AdvertiserGroupsListCall) SortField(sortField string) *AdvertiserGroups
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AdvertiserGroupsListCall) SortOrder(sortOrder string) *AdvertiserGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -9510,6 +10204,10 @@ func (c *AdvertisersListCall) SearchString(searchString string) *AdvertisersList
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AdvertisersListCall) SortField(sortField string) *AdvertisersListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -9517,6 +10215,10 @@ func (c *AdvertisersListCall) SortField(sortField string) *AdvertisersListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AdvertisersListCall) SortOrder(sortOrder string) *AdvertisersListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -9524,6 +10226,10 @@ func (c *AdvertisersListCall) SortOrder(sortOrder string) *AdvertisersListCall {
 
 // Status sets the optional parameter "status": Select only advertisers
 // with the specified status.
+//
+// Possible values:
+//   "APPROVED"
+//   "ON_HOLD"
 func (c *AdvertisersListCall) Status(status string) *AdvertisersListCall {
 	c.opt_["status"] = status
 	return c
@@ -10126,6 +10832,10 @@ func (c *CampaignCreativeAssociationsListCall) PageToken(pageToken string) *Camp
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CampaignCreativeAssociationsListCall) SortOrder(sortOrder string) *CampaignCreativeAssociationsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -10528,6 +11238,10 @@ func (c *CampaignsListCall) SearchString(searchString string) *CampaignsListCall
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CampaignsListCall) SortField(sortField string) *CampaignsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -10535,6 +11249,10 @@ func (c *CampaignsListCall) SortField(sortField string) *CampaignsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CampaignsListCall) SortOrder(sortOrder string) *CampaignsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -11033,6 +11751,24 @@ func (r *ChangeLogsService) List(profileId int64) *ChangeLogsListCall {
 
 // Action sets the optional parameter "action": Select only change logs
 // with the specified action.
+//
+// Possible values:
+//   "ACTION_ADD"
+//   "ACTION_ASSIGN"
+//   "ACTION_ASSOCIATE"
+//   "ACTION_CREATE"
+//   "ACTION_DELETE"
+//   "ACTION_DISABLE"
+//   "ACTION_EMAIL_TAGS"
+//   "ACTION_ENABLE"
+//   "ACTION_LINK"
+//   "ACTION_MARK_AS_DEFAULT"
+//   "ACTION_PUSH"
+//   "ACTION_REMOVE"
+//   "ACTION_SEND"
+//   "ACTION_UNASSIGN"
+//   "ACTION_UNLINK"
+//   "ACTION_UPDATE"
 func (c *ChangeLogsListCall) Action(action string) *ChangeLogsListCall {
 	c.opt_["action"] = action
 	return c
@@ -11087,6 +11823,44 @@ func (c *ChangeLogsListCall) ObjectIds(objectIds int64) *ChangeLogsListCall {
 
 // ObjectType sets the optional parameter "objectType": Select only
 // change logs with the specified object type.
+//
+// Possible values:
+//   "OBJECT_ACCOUNT"
+//   "OBJECT_ACCOUNT_BILLING_FEATURE"
+//   "OBJECT_AD"
+//   "OBJECT_ADVERTISER"
+//   "OBJECT_ADVERTISER_GROUP"
+//   "OBJECT_BILLING_ACCOUNT_GROUP"
+//   "OBJECT_BILLING_FEATURE"
+//   "OBJECT_BILLING_MINIMUM_FEE"
+//   "OBJECT_BILLING_PROFILE"
+//   "OBJECT_CAMPAIGN"
+//   "OBJECT_CONTENT_CATEGORY"
+//   "OBJECT_CREATIVE"
+//   "OBJECT_CREATIVE_ASSET"
+//   "OBJECT_CREATIVE_BUNDLE"
+//   "OBJECT_CREATIVE_FIELD"
+//   "OBJECT_CREATIVE_GROUP"
+//   "OBJECT_DFA_SITE"
+//   "OBJECT_EVENT_TAG"
+//   "OBJECT_FLOODLIGHT_ACTIVITY_GROUP"
+//   "OBJECT_FLOODLIGHT_ACTVITY"
+//   "OBJECT_FLOODLIGHT_CONFIGURATION"
+//   "OBJECT_INSTREAM_CREATIVE"
+//   "OBJECT_LANDING_PAGE"
+//   "OBJECT_MEDIA_ORDER"
+//   "OBJECT_PLACEMENT"
+//   "OBJECT_PLACEMENT_STRATEGY"
+//   "OBJECT_PROVIDED_LIST_CLIENT"
+//   "OBJECT_RATE_CARD"
+//   "OBJECT_REMARKETING_LIST"
+//   "OBJECT_RICHMEDIA_CREATIVE"
+//   "OBJECT_SD_SITE"
+//   "OBJECT_SIZE"
+//   "OBJECT_SUBACCOUNT"
+//   "OBJECT_USER_PROFILE"
+//   "OBJECT_USER_PROFILE_FILTER"
+//   "OBJECT_USER_ROLE"
 func (c *ChangeLogsListCall) ObjectType(objectType string) *ChangeLogsListCall {
 	c.opt_["objectType"] = objectType
 	return c
@@ -11992,6 +12766,10 @@ func (c *ContentCategoriesListCall) SearchString(searchString string) *ContentCa
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *ContentCategoriesListCall) SortField(sortField string) *ContentCategoriesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -11999,6 +12777,10 @@ func (c *ContentCategoriesListCall) SortField(sortField string) *ContentCategori
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *ContentCategoriesListCall) SortOrder(sortOrder string) *ContentCategoriesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -13016,6 +13798,10 @@ func (c *CreativeFieldValuesListCall) SearchString(searchString string) *Creativ
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "VALUE"
 func (c *CreativeFieldValuesListCall) SortField(sortField string) *CreativeFieldValuesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -13023,6 +13809,10 @@ func (c *CreativeFieldValuesListCall) SortField(sortField string) *CreativeField
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativeFieldValuesListCall) SortOrder(sortOrder string) *CreativeFieldValuesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -13692,6 +14482,10 @@ func (c *CreativeFieldsListCall) SearchString(searchString string) *CreativeFiel
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CreativeFieldsListCall) SortField(sortField string) *CreativeFieldsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -13699,6 +14493,10 @@ func (c *CreativeFieldsListCall) SortField(sortField string) *CreativeFieldsList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativeFieldsListCall) SortOrder(sortOrder string) *CreativeFieldsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -14273,6 +15071,10 @@ func (c *CreativeGroupsListCall) SearchString(searchString string) *CreativeGrou
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CreativeGroupsListCall) SortField(sortField string) *CreativeGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -14280,6 +15082,10 @@ func (c *CreativeGroupsListCall) SortField(sortField string) *CreativeGroupsList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativeGroupsListCall) SortOrder(sortOrder string) *CreativeGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -14905,6 +15711,10 @@ func (c *CreativesListCall) SizeIds(sizeIds int64) *CreativesListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CreativesListCall) SortField(sortField string) *CreativesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -14912,6 +15722,10 @@ func (c *CreativesListCall) SortField(sortField string) *CreativesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativesListCall) SortOrder(sortOrder string) *CreativesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -14926,6 +15740,31 @@ func (c *CreativesListCall) StudioCreativeId(studioCreativeId int64) *CreativesL
 
 // Types sets the optional parameter "types": Select only creatives with
 // these creative types.
+//
+// Possible values:
+//   "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO"
+//   "CUSTOM_INPAGE"
+//   "CUSTOM_INTERSTITIAL"
+//   "ENHANCED_BANNER"
+//   "ENHANCED_IMAGE"
+//   "FLASH_INPAGE"
+//   "HTML5_BANNER"
+//   "IMAGE"
+//   "INSTREAM_VIDEO"
+//   "INTERNAL_REDIRECT"
+//   "INTERSTITIAL_INTERNAL_REDIRECT"
+//   "REDIRECT"
+//   "RICH_MEDIA_EXPANDING"
+//   "RICH_MEDIA_IM_EXPAND"
+//   "RICH_MEDIA_INPAGE"
+//   "RICH_MEDIA_INPAGE_FLOATING"
+//   "RICH_MEDIA_INTERSTITIAL_FLOAT"
+//   "RICH_MEDIA_MOBILE_IN_APP"
+//   "RICH_MEDIA_MULTI_FLOATING"
+//   "RICH_MEDIA_PEEL_DOWN"
+//   "TRACKING_TEXT"
+//   "VPAID_LINEAR"
+//   "VPAID_NON_LINEAR"
 func (c *CreativesListCall) Types(types string) *CreativesListCall {
 	c.opt_["types"] = types
 	return c
@@ -15661,6 +16500,10 @@ func (c *DirectorySiteContactsListCall) SearchString(searchString string) *Direc
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *DirectorySiteContactsListCall) SortField(sortField string) *DirectorySiteContactsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -15668,6 +16511,10 @@ func (c *DirectorySiteContactsListCall) SortField(sortField string) *DirectorySi
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *DirectorySiteContactsListCall) SortOrder(sortOrder string) *DirectorySiteContactsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -16042,10 +16889,10 @@ func (c *DirectorySitesListCall) CountryId(countryId int64) *DirectorySitesListC
 	return c
 }
 
-// Dfp_network_code sets the optional parameter "dfp_network_code":
-// Select only directory sites with this DFP network code.
-func (c *DirectorySitesListCall) Dfp_network_code(dfp_network_code string) *DirectorySitesListCall {
-	c.opt_["dfp_network_code"] = dfp_network_code
+// DfpNetworkCode sets the optional parameter "dfp_network_code": Select
+// only directory sites with this DFP network code.
+func (c *DirectorySitesListCall) DfpNetworkCode(dfpNetworkCode string) *DirectorySitesListCall {
+	c.opt_["dfp_network_code"] = dfpNetworkCode
 	return c
 }
 
@@ -16093,6 +16940,10 @@ func (c *DirectorySitesListCall) SearchString(searchString string) *DirectorySit
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *DirectorySitesListCall) SortField(sortField string) *DirectorySitesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -16100,6 +16951,10 @@ func (c *DirectorySitesListCall) SortField(sortField string) *DirectorySitesList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *DirectorySitesListCall) SortOrder(sortOrder string) *DirectorySitesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -16612,6 +17467,11 @@ func (c *EventTagsListCall) Enabled(enabled bool) *EventTagsListCall {
 // can be used to specify whether to use a third-party pixel, a
 // third-party JavaScript URL, or a third-party click-through URL for
 // either impression or click tracking.
+//
+// Possible values:
+//   "CLICK_THROUGH_EVENT_TAG"
+//   "IMPRESSION_IMAGE_EVENT_TAG"
+//   "IMPRESSION_JAVASCRIPT_EVENT_TAG"
 func (c *EventTagsListCall) EventTagTypes(eventTagTypes string) *EventTagsListCall {
 	c.opt_["eventTagTypes"] = eventTagTypes
 	return c
@@ -16639,6 +17499,10 @@ func (c *EventTagsListCall) SearchString(searchString string) *EventTagsListCall
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *EventTagsListCall) SortField(sortField string) *EventTagsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -16646,6 +17510,10 @@ func (c *EventTagsListCall) SortField(sortField string) *EventTagsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *EventTagsListCall) SortOrder(sortOrder string) *EventTagsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -17133,6 +18001,11 @@ func (c *FilesListCall) PageToken(pageToken string) *FilesListCall {
 
 // Scope sets the optional parameter "scope": The scope that defines
 // which results are returned, default is 'MINE'.
+//
+// Possible values:
+//   "ALL" - All files in account.
+//   "MINE" (default) - My files.
+//   "SHARED_WITH_ME" - Files shared with me.
 func (c *FilesListCall) Scope(scope string) *FilesListCall {
 	c.opt_["scope"] = scope
 	return c
@@ -17140,6 +18013,10 @@ func (c *FilesListCall) Scope(scope string) *FilesListCall {
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by file ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastmodifiedAt' field.
 func (c *FilesListCall) SortField(sortField string) *FilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -17147,6 +18024,10 @@ func (c *FilesListCall) SortField(sortField string) *FilesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *FilesListCall) SortOrder(sortOrder string) *FilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -17688,6 +18569,10 @@ func (c *FloodlightActivitiesListCall) FloodlightActivityGroupTagString(floodlig
 // FloodlightActivityGroupType sets the optional parameter
 // "floodlightActivityGroupType": Select only floodlight activities with
 // the specified floodlight activity group type.
+//
+// Possible values:
+//   "COUNTER"
+//   "SALE"
 func (c *FloodlightActivitiesListCall) FloodlightActivityGroupType(floodlightActivityGroupType string) *FloodlightActivitiesListCall {
 	c.opt_["floodlightActivityGroupType"] = floodlightActivityGroupType
 	return c
@@ -17740,6 +18625,10 @@ func (c *FloodlightActivitiesListCall) SearchString(searchString string) *Floodl
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *FloodlightActivitiesListCall) SortField(sortField string) *FloodlightActivitiesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -17747,6 +18636,10 @@ func (c *FloodlightActivitiesListCall) SortField(sortField string) *FloodlightAc
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *FloodlightActivitiesListCall) SortOrder(sortOrder string) *FloodlightActivitiesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -18474,6 +19367,10 @@ func (c *FloodlightActivityGroupsListCall) SearchString(searchString string) *Fl
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *FloodlightActivityGroupsListCall) SortField(sortField string) *FloodlightActivityGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -18481,6 +19378,10 @@ func (c *FloodlightActivityGroupsListCall) SortField(sortField string) *Floodlig
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *FloodlightActivityGroupsListCall) SortOrder(sortOrder string) *FloodlightActivityGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -18488,6 +19389,10 @@ func (c *FloodlightActivityGroupsListCall) SortOrder(sortOrder string) *Floodlig
 
 // Type sets the optional parameter "type": Select only floodlight
 // activity groups with the specified floodlight activity group type.
+//
+// Possible values:
+//   "COUNTER"
+//   "SALE"
 func (c *FloodlightActivityGroupsListCall) Type(type_ string) *FloodlightActivityGroupsListCall {
 	c.opt_["type"] = type_
 	return c
@@ -19376,6 +20281,10 @@ func (c *InventoryItemsListCall) SiteId(siteId int64) *InventoryItemsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *InventoryItemsListCall) SortField(sortField string) *InventoryItemsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -19383,6 +20292,10 @@ func (c *InventoryItemsListCall) SortField(sortField string) *InventoryItemsList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *InventoryItemsListCall) SortOrder(sortOrder string) *InventoryItemsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -20880,6 +21793,10 @@ func (c *OrderDocumentsListCall) SiteId(siteId int64) *OrderDocumentsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *OrderDocumentsListCall) SortField(sortField string) *OrderDocumentsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -20887,6 +21804,10 @@ func (c *OrderDocumentsListCall) SortField(sortField string) *OrderDocumentsList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *OrderDocumentsListCall) SortOrder(sortOrder string) *OrderDocumentsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -21216,6 +22137,10 @@ func (c *OrdersListCall) SiteId(siteId int64) *OrdersListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *OrdersListCall) SortField(sortField string) *OrdersListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -21223,6 +22148,10 @@ func (c *OrdersListCall) SortField(sortField string) *OrdersListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *OrdersListCall) SortOrder(sortOrder string) *OrdersListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -21633,6 +22562,10 @@ func (c *PlacementGroupsListCall) PageToken(pageToken string) *PlacementGroupsLi
 // not only acts as a single pricing point but also assumes that all the
 // tags in it will be served at the same time. A roadblock requires one
 // of its assigned placements to be marked as primary for reporting.
+//
+// Possible values:
+//   "PLACEMENT_PACKAGE"
+//   "PLACEMENT_ROADBLOCK"
 func (c *PlacementGroupsListCall) PlacementGroupType(placementGroupType string) *PlacementGroupsListCall {
 	c.opt_["placementGroupType"] = placementGroupType
 	return c
@@ -21648,6 +22581,13 @@ func (c *PlacementGroupsListCall) PlacementStrategyIds(placementStrategyIds int6
 
 // PricingTypes sets the optional parameter "pricingTypes": Select only
 // placement groups with these pricing types.
+//
+// Possible values:
+//   "PRICING_TYPE_CPA"
+//   "PRICING_TYPE_CPC"
+//   "PRICING_TYPE_CPM"
+//   "PRICING_TYPE_FLAT_RATE_CLICKS"
+//   "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
 func (c *PlacementGroupsListCall) PricingTypes(pricingTypes string) *PlacementGroupsListCall {
 	c.opt_["pricingTypes"] = pricingTypes
 	return c
@@ -21676,6 +22616,10 @@ func (c *PlacementGroupsListCall) SiteIds(siteIds int64) *PlacementGroupsListCal
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *PlacementGroupsListCall) SortField(sortField string) *PlacementGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -21683,6 +22627,10 @@ func (c *PlacementGroupsListCall) SortField(sortField string) *PlacementGroupsLi
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *PlacementGroupsListCall) SortOrder(sortOrder string) *PlacementGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -22421,6 +23369,10 @@ func (c *PlacementStrategiesListCall) SearchString(searchString string) *Placeme
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *PlacementStrategiesListCall) SortField(sortField string) *PlacementStrategiesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -22428,6 +23380,10 @@ func (c *PlacementStrategiesListCall) SortField(sortField string) *PlacementStra
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *PlacementStrategiesListCall) SortOrder(sortOrder string) *PlacementStrategiesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -22781,6 +23737,21 @@ func (c *PlacementsGeneratetagsCall) PlacementIds(placementIds int64) *Placement
 
 // TagFormats sets the optional parameter "tagFormats": Tag formats to
 // generate for these placements.
+//
+// Possible values:
+//   "PLACEMENT_TAG_CLICK_COMMANDS"
+//   "PLACEMENT_TAG_IFRAME_ILAYER"
+//   "PLACEMENT_TAG_IFRAME_JAVASCRIPT"
+//   "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH"
+//   "PLACEMENT_TAG_INTERNAL_REDIRECT"
+//   "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT"
+//   "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT"
+//   "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT"
+//   "PLACEMENT_TAG_JAVASCRIPT"
+//   "PLACEMENT_TAG_STANDARD"
+//   "PLACEMENT_TAG_TRACKING"
+//   "PLACEMENT_TAG_TRACKING_IFRAME"
+//   "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
 func (c *PlacementsGeneratetagsCall) TagFormats(tagFormats string) *PlacementsGeneratetagsCall {
 	c.opt_["tagFormats"] = tagFormats
 	return c
@@ -23126,6 +24097,13 @@ func (c *PlacementsListCall) CampaignIds(campaignIds int64) *PlacementsListCall 
 // APP_INTERSTITIAL are for rendering in mobile apps.IN_STREAM_VIDEO
 // refers to rendering in in-stream video ads developed with the VAST
 // standard.
+//
+// Possible values:
+//   "APP"
+//   "APP_INTERSTITIAL"
+//   "IN_STREAM_VIDEO"
+//   "WEB"
+//   "WEB_INTERSTITIAL"
 func (c *PlacementsListCall) Compatibilities(compatibilities string) *PlacementsListCall {
 	c.opt_["compatibilities"] = compatibilities
 	return c
@@ -23177,6 +24155,10 @@ func (c *PlacementsListCall) PageToken(pageToken string) *PlacementsListCall {
 
 // PaymentSource sets the optional parameter "paymentSource": Select
 // only placements with this payment source.
+//
+// Possible values:
+//   "PLACEMENT_AGENCY_PAID"
+//   "PLACEMENT_PUBLISHER_PAID"
 func (c *PlacementsListCall) PaymentSource(paymentSource string) *PlacementsListCall {
 	c.opt_["paymentSource"] = paymentSource
 	return c
@@ -23192,6 +24174,13 @@ func (c *PlacementsListCall) PlacementStrategyIds(placementStrategyIds int64) *P
 
 // PricingTypes sets the optional parameter "pricingTypes": Select only
 // placements with these pricing types.
+//
+// Possible values:
+//   "PRICING_TYPE_CPA"
+//   "PRICING_TYPE_CPC"
+//   "PRICING_TYPE_CPM"
+//   "PRICING_TYPE_FLAT_RATE_CLICKS"
+//   "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
 func (c *PlacementsListCall) PricingTypes(pricingTypes string) *PlacementsListCall {
 	c.opt_["pricingTypes"] = pricingTypes
 	return c
@@ -23226,6 +24215,10 @@ func (c *PlacementsListCall) SizeIds(sizeIds int64) *PlacementsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *PlacementsListCall) SortField(sortField string) *PlacementsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -23233,6 +24226,10 @@ func (c *PlacementsListCall) SortField(sortField string) *PlacementsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *PlacementsListCall) SortOrder(sortOrder string) *PlacementsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -24180,6 +25177,10 @@ func (c *ProjectsListCall) SearchString(searchString string) *ProjectsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *ProjectsListCall) SortField(sortField string) *ProjectsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -24187,6 +25188,10 @@ func (c *ProjectsListCall) SortField(sortField string) *ProjectsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *ProjectsListCall) SortOrder(sortOrder string) *ProjectsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -24921,6 +25926,10 @@ func (c *RemarketingListsListCall) PageToken(pageToken string) *RemarketingLists
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *RemarketingListsListCall) SortField(sortField string) *RemarketingListsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -24928,6 +25937,10 @@ func (c *RemarketingListsListCall) SortField(sortField string) *RemarketingLists
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *RemarketingListsListCall) SortOrder(sortOrder string) *RemarketingListsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -25554,6 +26567,10 @@ func (c *ReportsListCall) PageToken(pageToken string) *ReportsListCall {
 
 // Scope sets the optional parameter "scope": The scope that defines
 // which results are returned, default is 'MINE'.
+//
+// Possible values:
+//   "ALL" - All reports in account.
+//   "MINE" (default) - My reports.
 func (c *ReportsListCall) Scope(scope string) *ReportsListCall {
 	c.opt_["scope"] = scope
 	return c
@@ -25561,6 +26578,11 @@ func (c *ReportsListCall) Scope(scope string) *ReportsListCall {
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by report ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastModifiedTime' field.
+//   "NAME" - Sort by name of reports.
 func (c *ReportsListCall) SortField(sortField string) *ReportsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -25568,6 +26590,10 @@ func (c *ReportsListCall) SortField(sortField string) *ReportsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *ReportsListCall) SortOrder(sortOrder string) *ReportsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -26231,6 +27257,10 @@ func (c *ReportsFilesListCall) PageToken(pageToken string) *ReportsFilesListCall
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by file ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastmodifiedAt' field.
 func (c *ReportsFilesListCall) SortField(sortField string) *ReportsFilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -26238,6 +27268,10 @@ func (c *ReportsFilesListCall) SortField(sortField string) *ReportsFilesListCall
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *ReportsFilesListCall) SortOrder(sortOrder string) *ReportsFilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -26645,6 +27679,10 @@ func (c *SitesListCall) SearchString(searchString string) *SitesListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *SitesListCall) SortField(sortField string) *SitesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -26652,6 +27690,10 @@ func (c *SitesListCall) SortField(sortField string) *SitesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *SitesListCall) SortOrder(sortOrder string) *SitesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -27609,6 +28651,10 @@ func (c *SubaccountsListCall) SearchString(searchString string) *SubaccountsList
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *SubaccountsListCall) SortField(sortField string) *SubaccountsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -27616,6 +28662,10 @@ func (c *SubaccountsListCall) SortField(sortField string) *SubaccountsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *SubaccountsListCall) SortOrder(sortOrder string) *SubaccountsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -28080,6 +29130,10 @@ func (c *TargetableRemarketingListsListCall) PageToken(pageToken string) *Target
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *TargetableRemarketingListsListCall) SortField(sortField string) *TargetableRemarketingListsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -28087,6 +29141,10 @@ func (c *TargetableRemarketingListsListCall) SortField(sortField string) *Target
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *TargetableRemarketingListsListCall) SortOrder(sortOrder string) *TargetableRemarketingListsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -29031,6 +30089,10 @@ func (c *UserRolesListCall) SearchString(searchString string) *UserRolesListCall
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *UserRolesListCall) SortField(sortField string) *UserRolesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -29038,6 +30100,10 @@ func (c *UserRolesListCall) SortField(sortField string) *UserRolesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *UserRolesListCall) SortOrder(sortOrder string) *UserRolesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c

@@ -47,13 +47,13 @@ const (
 	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
 
 	// Manage your data and permissions in Google Cloud Storage
-	DevstorageFull_controlScope = "https://www.googleapis.com/auth/devstorage.full_control"
+	DevstorageFullControlScope = "https://www.googleapis.com/auth/devstorage.full_control"
 
 	// View your data in Google Cloud Storage
-	DevstorageRead_onlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
+	DevstorageReadOnlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
 
 	// Manage your data in Google Cloud Storage
-	DevstorageRead_writeScope = "https://www.googleapis.com/auth/devstorage.read_write"
+	DevstorageReadWriteScope = "https://www.googleapis.com/auth/devstorage.read_write"
 )
 
 func New(client *http.Client) (*Service, error) {
@@ -493,7 +493,7 @@ type Object struct {
 	ContentType string `json:"contentType,omitempty"`
 
 	// Crc32c: CRC32c checksum, as described in RFC 4960, Appendix B;
-	// encoded using base64.
+	// encoded using base64 in big-endian byte order.
 	Crc32c string `json:"crc32c,omitempty"`
 
 	// Etag: HTTP 1.1 Entity tag for the object.
@@ -653,17 +653,30 @@ type Objects struct {
 }
 
 type RewriteResponse struct {
+	// Done: true if the copy is finished; otherwise, false if the copy is
+	// in progress. This property is always present in the response.
 	Done bool `json:"done,omitempty"`
 
 	// Kind: The kind of item this is.
 	Kind string `json:"kind,omitempty"`
 
+	// ObjectSize: The total size of the object being copied in bytes. This
+	// property is always present in the response.
 	ObjectSize uint64 `json:"objectSize,omitempty,string"`
 
+	// Resource: A resource containing the metadata for the copied-to
+	// object. This property is present in the response only when copying
+	// completes.
 	Resource *Object `json:"resource,omitempty"`
 
+	// RewriteToken: A token to use in subsequent requests to continue
+	// copying data. This token is present in the response only when there
+	// is more data to copy.
 	RewriteToken string `json:"rewriteToken,omitempty"`
 
+	// TotalBytesRewritten: The total bytes written so far, which can be
+	// used to provide a waiting user with a progress indicator. This
+	// property is always present in the response.
 	TotalBytesRewritten uint64 `json:"totalBytesRewritten,omitempty,string"`
 }
 
@@ -1332,6 +1345,10 @@ func (c *BucketsGetCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch int64
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsGetCall) Projection(projection string) *BucketsGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1454,6 +1471,17 @@ func (r *BucketsService) Insert(projectid string, bucket *Bucket) *BucketsInsert
 
 // PredefinedAcl sets the optional parameter "predefinedAcl": Apply a
 // predefined set of access controls to this bucket.
+//
+// Possible values:
+//   "authenticatedRead" - Project team owners get OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "private" - Project team owners get OWNER access.
+//   "projectPrivate" - Project team members get access according to
+// their roles.
+//   "publicRead" - Project team owners get OWNER access, and allUsers
+// get READER access.
+//   "publicReadWrite" - Project team owners get OWNER access, and
+// allUsers get WRITER access.
 func (c *BucketsInsertCall) PredefinedAcl(predefinedAcl string) *BucketsInsertCall {
 	c.opt_["predefinedAcl"] = predefinedAcl
 	return c
@@ -1462,6 +1490,19 @@ func (c *BucketsInsertCall) PredefinedAcl(predefinedAcl string) *BucketsInsertCa
 // PredefinedDefaultObjectAcl sets the optional parameter
 // "predefinedDefaultObjectAcl": Apply a predefined set of default
 // object access controls to this bucket.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *BucketsInsertCall) PredefinedDefaultObjectAcl(predefinedDefaultObjectAcl string) *BucketsInsertCall {
 	c.opt_["predefinedDefaultObjectAcl"] = predefinedDefaultObjectAcl
 	return c
@@ -1471,6 +1512,10 @@ func (c *BucketsInsertCall) PredefinedDefaultObjectAcl(predefinedDefaultObjectAc
 // properties to return. Defaults to noAcl, unless the bucket resource
 // specifies acl or defaultObjectAcl properties, when it defaults to
 // full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsInsertCall) Projection(projection string) *BucketsInsertCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1648,6 +1693,10 @@ func (c *BucketsListCall) Prefix(prefix string) *BucketsListCall {
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsListCall) Projection(projection string) *BucketsListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1795,6 +1844,17 @@ func (c *BucketsPatchCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch int
 
 // PredefinedAcl sets the optional parameter "predefinedAcl": Apply a
 // predefined set of access controls to this bucket.
+//
+// Possible values:
+//   "authenticatedRead" - Project team owners get OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "private" - Project team owners get OWNER access.
+//   "projectPrivate" - Project team members get access according to
+// their roles.
+//   "publicRead" - Project team owners get OWNER access, and allUsers
+// get READER access.
+//   "publicReadWrite" - Project team owners get OWNER access, and
+// allUsers get WRITER access.
 func (c *BucketsPatchCall) PredefinedAcl(predefinedAcl string) *BucketsPatchCall {
 	c.opt_["predefinedAcl"] = predefinedAcl
 	return c
@@ -1803,6 +1863,19 @@ func (c *BucketsPatchCall) PredefinedAcl(predefinedAcl string) *BucketsPatchCall
 // PredefinedDefaultObjectAcl sets the optional parameter
 // "predefinedDefaultObjectAcl": Apply a predefined set of default
 // object access controls to this bucket.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *BucketsPatchCall) PredefinedDefaultObjectAcl(predefinedDefaultObjectAcl string) *BucketsPatchCall {
 	c.opt_["predefinedDefaultObjectAcl"] = predefinedDefaultObjectAcl
 	return c
@@ -1810,6 +1883,10 @@ func (c *BucketsPatchCall) PredefinedDefaultObjectAcl(predefinedDefaultObjectAcl
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsPatchCall) Projection(projection string) *BucketsPatchCall {
 	c.opt_["projection"] = projection
 	return c
@@ -2004,6 +2081,17 @@ func (c *BucketsUpdateCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch in
 
 // PredefinedAcl sets the optional parameter "predefinedAcl": Apply a
 // predefined set of access controls to this bucket.
+//
+// Possible values:
+//   "authenticatedRead" - Project team owners get OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "private" - Project team owners get OWNER access.
+//   "projectPrivate" - Project team members get access according to
+// their roles.
+//   "publicRead" - Project team owners get OWNER access, and allUsers
+// get READER access.
+//   "publicReadWrite" - Project team owners get OWNER access, and
+// allUsers get WRITER access.
 func (c *BucketsUpdateCall) PredefinedAcl(predefinedAcl string) *BucketsUpdateCall {
 	c.opt_["predefinedAcl"] = predefinedAcl
 	return c
@@ -2012,6 +2100,19 @@ func (c *BucketsUpdateCall) PredefinedAcl(predefinedAcl string) *BucketsUpdateCa
 // PredefinedDefaultObjectAcl sets the optional parameter
 // "predefinedDefaultObjectAcl": Apply a predefined set of default
 // object access controls to this bucket.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *BucketsUpdateCall) PredefinedDefaultObjectAcl(predefinedDefaultObjectAcl string) *BucketsUpdateCall {
 	c.opt_["predefinedDefaultObjectAcl"] = predefinedDefaultObjectAcl
 	return c
@@ -2019,6 +2120,10 @@ func (c *BucketsUpdateCall) PredefinedDefaultObjectAcl(predefinedDefaultObjectAc
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsUpdateCall) Projection(projection string) *BucketsUpdateCall {
 	c.opt_["projection"] = projection
 	return c
@@ -3516,6 +3621,19 @@ func (r *ObjectsService) Compose(destinationBucket string, destinationObject str
 // DestinationPredefinedAcl sets the optional parameter
 // "destinationPredefinedAcl": Apply a predefined set of access controls
 // to the destination object.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *ObjectsComposeCall) DestinationPredefinedAcl(destinationPredefinedAcl string) *ObjectsComposeCall {
 	c.opt_["destinationPredefinedAcl"] = destinationPredefinedAcl
 	return c
@@ -3672,8 +3790,8 @@ type ObjectsCopyCall struct {
 	opt_              map[string]interface{}
 }
 
-// Copy: Copies an object to a specified location. Optionally overrides
-// metadata.
+// Copy: Copies a source object to a destination object. Optionally
+// overrides metadata.
 func (r *ObjectsService) Copy(sourceBucket string, sourceObject string, destinationBucket string, destinationObject string, object *Object) *ObjectsCopyCall {
 	c := &ObjectsCopyCall{s: r.s, opt_: make(map[string]interface{})}
 	c.sourceBucket = sourceBucket
@@ -3687,6 +3805,19 @@ func (r *ObjectsService) Copy(sourceBucket string, sourceObject string, destinat
 // DestinationPredefinedAcl sets the optional parameter
 // "destinationPredefinedAcl": Apply a predefined set of access controls
 // to the destination object.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *ObjectsCopyCall) DestinationPredefinedAcl(destinationPredefinedAcl string) *ObjectsCopyCall {
 	c.opt_["destinationPredefinedAcl"] = destinationPredefinedAcl
 	return c
@@ -3765,6 +3896,10 @@ func (c *ObjectsCopyCall) IfSourceMetagenerationNotMatch(ifSourceMetagenerationN
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl, unless the object resource
 // specifies the acl property, when it defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsCopyCall) Projection(projection string) *ObjectsCopyCall {
 	c.opt_["projection"] = projection
 	return c
@@ -3856,7 +3991,7 @@ func (c *ObjectsCopyCall) Do() (*Object, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Copies an object to a specified location. Optionally overrides metadata.",
+	//   "description": "Copies a source object to a destination object. Optionally overrides metadata.",
 	//   "httpMethod": "POST",
 	//   "id": "storage.objects.copy",
 	//   "parameterOrder": [
@@ -4225,6 +4360,10 @@ func (c *ObjectsGetCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch int64
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsGetCall) Projection(projection string) *ObjectsGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4440,6 +4579,19 @@ func (c *ObjectsInsertCall) Name(name string) *ObjectsInsertCall {
 
 // PredefinedAcl sets the optional parameter "predefinedAcl": Apply a
 // predefined set of access controls to this object.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *ObjectsInsertCall) PredefinedAcl(predefinedAcl string) *ObjectsInsertCall {
 	c.opt_["predefinedAcl"] = predefinedAcl
 	return c
@@ -4448,6 +4600,10 @@ func (c *ObjectsInsertCall) PredefinedAcl(predefinedAcl string) *ObjectsInsertCa
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl, unless the object resource
 // specifies the acl property, when it defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsInsertCall) Projection(projection string) *ObjectsInsertCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4757,6 +4913,10 @@ func (c *ObjectsListCall) Prefix(prefix string) *ObjectsListCall {
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsListCall) Projection(projection string) *ObjectsListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4956,6 +5116,19 @@ func (c *ObjectsPatchCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch int
 
 // PredefinedAcl sets the optional parameter "predefinedAcl": Apply a
 // predefined set of access controls to this object.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *ObjectsPatchCall) PredefinedAcl(predefinedAcl string) *ObjectsPatchCall {
 	c.opt_["predefinedAcl"] = predefinedAcl
 	return c
@@ -4963,6 +5136,10 @@ func (c *ObjectsPatchCall) PredefinedAcl(predefinedAcl string) *ObjectsPatchCall
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsPatchCall) Projection(projection string) *ObjectsPatchCall {
 	c.opt_["projection"] = projection
 	return c
@@ -5160,6 +5337,19 @@ func (r *ObjectsService) Rewrite(sourceBucket string, sourceObject string, desti
 // DestinationPredefinedAcl sets the optional parameter
 // "destinationPredefinedAcl": Apply a predefined set of access controls
 // to the destination object.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *ObjectsRewriteCall) DestinationPredefinedAcl(destinationPredefinedAcl string) *ObjectsRewriteCall {
 	c.opt_["destinationPredefinedAcl"] = destinationPredefinedAcl
 	return c
@@ -5237,13 +5427,13 @@ func (c *ObjectsRewriteCall) IfSourceMetagenerationNotMatch(ifSourceMetagenerati
 
 // MaxBytesRewrittenPerCall sets the optional parameter
 // "maxBytesRewrittenPerCall": The maximum number of bytes that will be
-// rewritten per Rewrite request. Most callers shouldn't need to specify
+// rewritten per rewrite request. Most callers shouldn't need to specify
 // this parameter - it is primarily in place to support testing. If
 // specified the value must be an integral multiple of 1 MiB (1048576).
 // Also, this only applies to requests where the source and destination
 // span locations and/or storage classes. Finally, this value must not
-// change across Rewrite calls else you'll get an error that the rewrite
-// token is invalid.
+// change across rewrite calls else you'll get an error that the
+// rewriteToken is invalid.
 func (c *ObjectsRewriteCall) MaxBytesRewrittenPerCall(maxBytesRewrittenPerCall int64) *ObjectsRewriteCall {
 	c.opt_["maxBytesRewrittenPerCall"] = maxBytesRewrittenPerCall
 	return c
@@ -5252,14 +5442,18 @@ func (c *ObjectsRewriteCall) MaxBytesRewrittenPerCall(maxBytesRewrittenPerCall i
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl, unless the object resource
 // specifies the acl property, when it defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsRewriteCall) Projection(projection string) *ObjectsRewriteCall {
 	c.opt_["projection"] = projection
 	return c
 }
 
 // RewriteToken sets the optional parameter "rewriteToken": Include this
-// field (from the previous Rewrite response) on each Rewrite request
-// after the first one, until the Rewrite response 'done' flag is true.
+// field (from the previous rewrite response) on each rewrite request
+// after the first one, until the rewrite response 'done' flag is true.
 // Calls that provide a rewriteToken can omit all other request fields,
 // but if included those fields must match the values provided in the
 // first rewrite request.
@@ -5452,7 +5646,7 @@ func (c *ObjectsRewriteCall) Do() (*RewriteResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "maxBytesRewrittenPerCall": {
-	//       "description": "The maximum number of bytes that will be rewritten per Rewrite request. Most callers shouldn't need to specify this parameter - it is primarily in place to support testing. If specified the value must be an integral multiple of 1 MiB (1048576). Also, this only applies to requests where the source and destination span locations and/or storage classes. Finally, this value must not change across Rewrite calls else you'll get an error that the rewrite token is invalid.",
+	//       "description": "The maximum number of bytes that will be rewritten per rewrite request. Most callers shouldn't need to specify this parameter - it is primarily in place to support testing. If specified the value must be an integral multiple of 1 MiB (1048576). Also, this only applies to requests where the source and destination span locations and/or storage classes. Finally, this value must not change across rewrite calls else you'll get an error that the rewriteToken is invalid.",
 	//       "format": "int64",
 	//       "location": "query",
 	//       "type": "string"
@@ -5471,7 +5665,7 @@ func (c *ObjectsRewriteCall) Do() (*RewriteResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "rewriteToken": {
-	//       "description": "Include this field (from the previous Rewrite response) on each Rewrite request after the first one, until the Rewrite response 'done' flag is true. Calls that provide a rewriteToken can omit all other request fields, but if included those fields must match the values provided in the first rewrite request.",
+	//       "description": "Include this field (from the previous rewrite response) on each rewrite request after the first one, until the rewrite response 'done' flag is true. Calls that provide a rewriteToken can omit all other request fields, but if included those fields must match the values provided in the first rewrite request.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -5572,6 +5766,19 @@ func (c *ObjectsUpdateCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch in
 
 // PredefinedAcl sets the optional parameter "predefinedAcl": Apply a
 // predefined set of access controls to this object.
+//
+// Possible values:
+//   "authenticatedRead" - Object owner gets OWNER access, and
+// allAuthenticatedUsers get READER access.
+//   "bucketOwnerFullControl" - Object owner gets OWNER access, and
+// project team owners get OWNER access.
+//   "bucketOwnerRead" - Object owner gets OWNER access, and project
+// team owners get READER access.
+//   "private" - Object owner gets OWNER access.
+//   "projectPrivate" - Object owner gets OWNER access, and project team
+// members get access according to their roles.
+//   "publicRead" - Object owner gets OWNER access, and allUsers get
+// READER access.
 func (c *ObjectsUpdateCall) PredefinedAcl(predefinedAcl string) *ObjectsUpdateCall {
 	c.opt_["predefinedAcl"] = predefinedAcl
 	return c
@@ -5579,6 +5786,10 @@ func (c *ObjectsUpdateCall) PredefinedAcl(predefinedAcl string) *ObjectsUpdateCa
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsUpdateCall) Projection(projection string) *ObjectsUpdateCall {
 	c.opt_["projection"] = projection
 	return c
@@ -5804,6 +6015,10 @@ func (c *ObjectsWatchAllCall) Prefix(prefix string) *ObjectsWatchAllCall {
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsWatchAllCall) Projection(projection string) *ObjectsWatchAllCall {
 	c.opt_["projection"] = projection
 	return c

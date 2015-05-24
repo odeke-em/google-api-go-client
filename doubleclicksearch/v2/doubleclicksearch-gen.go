@@ -183,6 +183,11 @@ type Conversion struct {
 	// CustomMetric: Custom metrics for the conversion.
 	CustomMetric []*CustomMetric `json:"customMetric,omitempty"`
 
+	// DeviceType: The type of device on which the conversion occurred.
+	// Valid values are "DESKTOP", "TABLET", "HIGH_END_MOBILE",
+	// "OTHER_DEVICE".
+	DeviceType string `json:"deviceType,omitempty"`
+
 	// DsConversionId: DS conversion ID.
 	DsConversionId int64 `json:"dsConversionId,omitempty,string"`
 
@@ -295,7 +300,7 @@ type Report struct {
 	RowCount int64 `json:"rowCount,omitempty"`
 
 	// Rows: Synchronous report only. Generated report rows.
-	Rows []*ReportRow `json:"rows,omitempty"`
+	Rows []ReportRow `json:"rows,omitempty"`
 
 	// StatisticsCurrencyCode: The currency code of all monetary values
 	// produced in the report, including values that are set by users (e.g.,
@@ -416,7 +421,9 @@ type ReportRequest struct {
 	// RowCount: Synchronous report only. The maxinum number of rows to
 	// return; additional rows are dropped. Acceptable values are 0 to
 	// 10000, inclusive. Defaults to 10000.
-	RowCount int64 `json:"rowCount,omitempty"`
+	//
+	// Default: 10000
+	RowCount *int64 `json:"rowCount,omitempty"`
 
 	// StartRow: Synchronous report only. Zero-based index of the first row
 	// to return. Acceptable values are 0 to 50000, inclusive. Defaults to
@@ -504,8 +511,7 @@ type ReportRequestTimeRange struct {
 	StartDate string `json:"startDate,omitempty"`
 }
 
-type ReportRow struct {
-}
+type ReportRow interface{}
 
 type SavedColumn struct {
 	// Kind: Identifies this as a SavedColumn resource. Value: the fixed

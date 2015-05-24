@@ -353,6 +353,14 @@ type AcquisitionTime struct {
 	End string `json:"end,omitempty"`
 
 	// Precision: The precision of acquisition time.
+	//
+	// Possible values:
+	//   "day"
+	//   "hour"
+	//   "minute"
+	//   "month"
+	//   "second"
+	//   "year"
 	Precision string `json:"precision,omitempty"`
 
 	// Start: The acquisition time, or start time if acquisition time is a
@@ -411,6 +419,13 @@ type Asset struct {
 
 	// Type: The type of asset. One of raster, rasterCollection, table, map,
 	// or layer.
+	//
+	// Possible values:
+	//   "layer"
+	//   "map"
+	//   "raster"
+	//   "rasterCollection"
+	//   "table"
 	Type string `json:"type,omitempty"`
 
 	// WritersCanEditPermissions: If true, WRITERs of the asset are able to
@@ -481,7 +496,7 @@ type Feature struct {
 	Geometry GeoJsonGeometry `json:"geometry,omitempty"`
 
 	// Properties: Key/value pairs of this Feature.
-	Properties *GeoJsonProperties `json:"properties,omitempty"`
+	Properties GeoJsonProperties `json:"properties,omitempty"`
 
 	// Type: Identifies this object as a feature.
 	Type string `json:"type,omitempty"`
@@ -494,7 +509,7 @@ type FeatureInfo struct {
 }
 
 type FeaturesBatchDeleteRequest struct {
-	Gx_ids []string `json:"gx_ids,omitempty"`
+	GxIds []string `json:"gx_ids,omitempty"`
 
 	PrimaryKeys []string `json:"primaryKeys,omitempty"`
 }
@@ -508,7 +523,9 @@ type FeaturesBatchInsertRequest struct {
 	// feature geometries must be given already normalized. The points in
 	// all LinearRings must be listed in counter-clockwise order, and
 	// LinearRings may not intersect.
-	NormalizeGeometries bool `json:"normalizeGeometries,omitempty"`
+	//
+	// Default: true
+	NormalizeGeometries *bool `json:"normalizeGeometries,omitempty"`
 }
 
 type FeaturesBatchPatchRequest struct {
@@ -520,7 +537,9 @@ type FeaturesBatchPatchRequest struct {
 	// feature geometries must be given already normalized. The points in
 	// all LinearRings must be listed in counter-clockwise order, and
 	// LinearRings may not intersect.
-	NormalizeGeometries bool `json:"normalizeGeometries,omitempty"`
+	//
+	// Default: true
+	NormalizeGeometries *bool `json:"normalizeGeometries,omitempty"`
 }
 
 type FeaturesListResponse struct {
@@ -548,6 +567,12 @@ type File struct {
 	Size int64 `json:"size,omitempty,string"`
 
 	// UploadStatus: The upload status of the file.
+	//
+	// Possible values:
+	//   "canceled"
+	//   "complete"
+	//   "failed"
+	//   "inProgress"
 	UploadStatus string `json:"uploadStatus,omitempty"`
 }
 
@@ -556,6 +581,17 @@ type Filter struct {
 	Column string `json:"column,omitempty"`
 
 	// Operator: Operation used to evaluate the filter.
+	//
+	// Possible values:
+	//   "!="
+	//   "<"
+	//   "<="
+	//   "=="
+	//   ">"
+	//   ">="
+	//   "contains"
+	//   "endsWith"
+	//   "startsWith"
 	Operator string `json:"operator,omitempty"`
 
 	// Value: Value to be evaluated against attribute.
@@ -630,6 +666,9 @@ type GeoJsonGeometryCollection struct {
 	Geometries []GeoJsonGeometry `json:"geometries,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonGeometryCollection.
+	//
+	// Possible values:
+	//   "GeometryCollection"
 	Type string `json:"type,omitempty"`
 }
 
@@ -638,6 +677,9 @@ type GeoJsonLineString struct {
 	Coordinates [][]float64 `json:"coordinates,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonLineString.
+	//
+	// Possible values:
+	//   "LineString"
 	Type string `json:"type,omitempty"`
 }
 
@@ -647,6 +689,9 @@ type GeoJsonMultiLineString struct {
 	Coordinates [][][]float64 `json:"coordinates,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonMultiLineString.
+	//
+	// Possible values:
+	//   "MultiLineString"
 	Type string `json:"type,omitempty"`
 }
 
@@ -655,6 +700,9 @@ type GeoJsonMultiPoint struct {
 	Coordinates [][]float64 `json:"coordinates,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonMultiPoint.
+	//
+	// Possible values:
+	//   "MultiPoint"
 	Type string `json:"type,omitempty"`
 }
 
@@ -664,6 +712,9 @@ type GeoJsonMultiPolygon struct {
 	Coordinates [][][][]float64 `json:"coordinates,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonMultiPolygon.
+	//
+	// Possible values:
+	//   "MultiPolygon"
 	Type string `json:"type,omitempty"`
 }
 
@@ -673,6 +724,9 @@ type GeoJsonPoint struct {
 	Coordinates []float64 `json:"coordinates,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonPoint.
+	//
+	// Possible values:
+	//   "Point"
 	Type string `json:"type,omitempty"`
 }
 
@@ -686,11 +740,13 @@ type GeoJsonPolygon struct {
 	Coordinates [][][]float64 `json:"coordinates,omitempty"`
 
 	// Type: Identifies this object as a GeoJsonPolygon.
+	//
+	// Possible values:
+	//   "Polygon"
 	Type string `json:"type,omitempty"`
 }
 
-type GeoJsonProperties struct {
-}
+type GeoJsonProperties interface{}
 
 type Icon struct {
 	// Description: The description of this Icon, supplied by the author.
@@ -736,9 +792,17 @@ type LabelStyle struct {
 	Column string `json:"column,omitempty"`
 
 	// FontStyle: Font style of the label, defaults to 'normal'.
+	//
+	// Possible values:
+	//   "italic"
+	//   "normal"
 	FontStyle string `json:"fontStyle,omitempty"`
 
 	// FontWeight: Font weight of the label, defaults to 'normal'.
+	//
+	// Possible values:
+	//   "bold"
+	//   "normal"
 	FontWeight string `json:"fontWeight,omitempty"`
 
 	// Opacity: Opacity of the text.
@@ -769,6 +833,10 @@ type Layer struct {
 	// DatasourceType: Deprecated: The type of the datasources used to build
 	// this Layer. Note: This has been replaced by layerType, but is still
 	// available for now to maintain backward compatibility.
+	//
+	// Possible values:
+	//   "image"
+	//   "table"
 	DatasourceType string `json:"datasourceType,omitempty"`
 
 	// Datasources: An array of datasources used to build this layer. If
@@ -815,12 +883,23 @@ type Layer struct {
 	// should be used instead of datasourceType. At least one of layerType
 	// and datasourceType and must be specified, but layerType takes
 	// precedence.
+	//
+	// Possible values:
+	//   "image"
+	//   "vector"
 	LayerType string `json:"layerType,omitempty"`
 
 	// Name: The name of this Layer, supplied by the author.
 	Name string `json:"name,omitempty"`
 
 	// ProcessingStatus: The processing status of this layer.
+	//
+	// Possible values:
+	//   "complete"
+	//   "failed"
+	//   "notReady"
+	//   "processing"
+	//   "ready"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// ProjectId: The ID of the project that this Layer is in.
@@ -839,6 +918,10 @@ type Layer struct {
 	PublishedAccessList string `json:"publishedAccessList,omitempty"`
 
 	// PublishingStatus: The publishing status of this layer.
+	//
+	// Possible values:
+	//   "notPublished"
+	//   "published"
 	PublishingStatus string `json:"publishingStatus,omitempty"`
 
 	// Style: The styling information for a vector layer. Note: Style
@@ -948,6 +1031,13 @@ type Map struct {
 
 	// ProcessingStatus: The processing status of this map. Map processing
 	// is automatically started once a map becomes ready for processing.
+	//
+	// Possible values:
+	//   "complete"
+	//   "failed"
+	//   "notReady"
+	//   "processing"
+	//   "ready"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// ProjectId: The ID of the project that this Map is in.
@@ -966,6 +1056,10 @@ type Map struct {
 	PublishedAccessList string `json:"publishedAccessList,omitempty"`
 
 	// PublishingStatus: The publishing status of this map.
+	//
+	// Possible values:
+	//   "notPublished"
+	//   "published"
 	PublishingStatus string `json:"publishingStatus,omitempty"`
 
 	// Tags: Tags of this Map.
@@ -1000,6 +1094,9 @@ type MapFolder struct {
 	Name string `json:"name,omitempty"`
 
 	// Type: Identifies this object as a MapFolder.
+	//
+	// Possible values:
+	//   "folder"
 	Type string `json:"type,omitempty"`
 
 	// Visibility: The visibility setting of this MapFolder. One of
@@ -1050,6 +1147,9 @@ type MapKmlLink struct {
 	Name string `json:"name,omitempty"`
 
 	// Type: Identifies this object as a MapKmlLink.
+	//
+	// Possible values:
+	//   "kmlLink"
 	Type string `json:"type,omitempty"`
 
 	// Visibility: The visibility setting of this MapKmlLink. One of
@@ -1074,6 +1174,9 @@ type MapLayer struct {
 	Name string `json:"name,omitempty"`
 
 	// Type: Identifies this object as a MapLayer.
+	//
+	// Possible values:
+	//   "layer"
 	Type string `json:"type,omitempty"`
 
 	// Visibility: The visibility setting of this MapLayer. One of
@@ -1114,9 +1217,20 @@ type Permission struct {
 	Id string `json:"id,omitempty"`
 
 	// Role: The type of access granted to this user or group.
+	//
+	// Possible values:
+	//   "owner"
+	//   "reader"
+	//   "viewer"
+	//   "writer"
 	Role string `json:"role,omitempty"`
 
 	// Type: The account type.
+	//
+	// Possible values:
+	//   "anyone"
+	//   "group"
+	//   "user"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1194,6 +1308,10 @@ type PublishedLayer struct {
 	// should be used instead of datasourceType. At least one of layerType
 	// and datasourceType and must be specified, but layerType takes
 	// precedence.
+	//
+	// Possible values:
+	//   "image"
+	//   "vector"
 	LayerType string `json:"layerType,omitempty"`
 
 	// Name: The name of this Layer, supplied by the author.
@@ -1300,12 +1418,22 @@ type Raster struct {
 	Name string `json:"name,omitempty"`
 
 	// ProcessingStatus: The processing status of this Raster.
+	//
+	// Possible values:
+	//   "complete"
+	//   "failed"
+	//   "notReady"
+	//   "processing"
+	//   "ready"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// ProjectId: The ID of the project that this Raster is in.
 	ProjectId string `json:"projectId,omitempty"`
 
 	// RasterType: The type of this Raster. Always "image" today.
+	//
+	// Possible values:
+	//   "image"
 	RasterType string `json:"rasterType,omitempty"`
 
 	// Tags: Tags of this Raster.
@@ -1378,6 +1506,13 @@ type RasterCollection struct {
 	Name string `json:"name,omitempty"`
 
 	// ProcessingStatus: The processing status of this RasterCollection.
+	//
+	// Possible values:
+	//   "complete"
+	//   "failed"
+	//   "notReady"
+	//   "processing"
+	//   "ready"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// ProjectId: The ID of the project that this RasterCollection is in.
@@ -1385,6 +1520,9 @@ type RasterCollection struct {
 
 	// RasterType: The type of rasters contained within this
 	// RasterCollection.
+	//
+	// Possible values:
+	//   "image"
 	RasterType string `json:"rasterType,omitempty"`
 
 	// Tags: Tags of this RasterCollection.
@@ -1480,6 +1618,9 @@ type ScaledShape struct {
 	Fill *Color `json:"fill,omitempty"`
 
 	// Shape: Name of the shape.
+	//
+	// Possible values:
+	//   "circle"
 	Shape string `json:"shape,omitempty"`
 }
 
@@ -1489,6 +1630,10 @@ type ScalingFunction struct {
 
 	// ScalingType: The type of scaling function to use. Defaults to SQRT.
 	// Currently only linear and square root scaling are supported.
+	//
+	// Possible values:
+	//   "linear"
+	//   "sqrt"
 	ScalingType string `json:"scalingType,omitempty"`
 
 	// SizeRange: The range of shape sizes, in pixels. For circles, the size
@@ -1574,6 +1719,13 @@ type Table struct {
 	Name string `json:"name,omitempty"`
 
 	// ProcessingStatus: The processing status of this table.
+	//
+	// Possible values:
+	//   "complete"
+	//   "failed"
+	//   "notReady"
+	//   "processing"
+	//   "ready"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// ProjectId: The ID of the project to which the table belongs.
@@ -1616,6 +1768,16 @@ type TableColumn struct {
 	Name string `json:"name,omitempty"`
 
 	// Type: The type of data stored in this column.
+	//
+	// Possible values:
+	//   "datetime"
+	//   "double"
+	//   "integer"
+	//   "lineStrings"
+	//   "mixedGeometry"
+	//   "points"
+	//   "polygons"
+	//   "string"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1645,6 +1807,9 @@ type VectorStyle struct {
 
 	// Type: The type of the vector style. Currently, only displayRule is
 	// supported.
+	//
+	// Possible values:
+	//   "displayRule"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1824,6 +1989,11 @@ func (c *AssetsListCall) ProjectId(projectId string) *AssetsListCall {
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *AssetsListCall) Role(role string) *AssetsListCall {
 	c.opt_["role"] = role
 	return c
@@ -2464,6 +2634,10 @@ func (r *LayersService) Get(id string) *LayersGetCall {
 // returned. When version is set to published, the published version of
 // the layer will be returned. Please use the layers.getPublished
 // endpoint instead.
+//
+// Possible values:
+//   "draft" - The draft version.
+//   "published" - The published version.
 func (c *LayersGetCall) Version(version string) *LayersGetCall {
 	c.opt_["version"] = version
 	return c
@@ -2703,6 +2877,13 @@ func (c *LayersListCall) PageToken(pageToken string) *LayersListCall {
 }
 
 // ProcessingStatus sets the optional parameter "processingStatus":
+//
+// Possible values:
+//   "complete" - The layer has completed processing.
+//   "failed" - The layer has failed processing.
+//   "notReady" - The layer is not ready for processing.
+//   "processing" - The layer is processing.
+//   "ready" - The layer is ready for processing.
 func (c *LayersListCall) ProcessingStatus(processingStatus string) *LayersListCall {
 	c.opt_["processingStatus"] = processingStatus
 	return c
@@ -2721,6 +2902,11 @@ func (c *LayersListCall) ProjectId(projectId string) *LayersListCall {
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *LayersListCall) Role(role string) *LayersListCall {
 	c.opt_["role"] = role
 	return c
@@ -3908,6 +4094,10 @@ func (r *MapsService) Get(id string) *MapsGetCall {
 // returned. When version is set to published, the published version of
 // the map will be returned. Please use the maps.getPublished endpoint
 // instead.
+//
+// Possible values:
+//   "draft" - The draft version.
+//   "published" - The published version.
 func (c *MapsGetCall) Version(version string) *MapsGetCall {
 	c.opt_["version"] = version
 	return c
@@ -4147,6 +4337,12 @@ func (c *MapsListCall) PageToken(pageToken string) *MapsListCall {
 }
 
 // ProcessingStatus sets the optional parameter "processingStatus":
+//
+// Possible values:
+//   "complete" - The map has completed processing.
+//   "failed" - The map has failed processing.
+//   "notReady" - The map is not ready for processing.
+//   "processing" - The map is processing.
 func (c *MapsListCall) ProcessingStatus(processingStatus string) *MapsListCall {
 	c.opt_["processingStatus"] = processingStatus
 	return c
@@ -4165,6 +4361,11 @@ func (c *MapsListCall) ProjectId(projectId string) *MapsListCall {
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *MapsListCall) Role(role string) *MapsListCall {
 	c.opt_["role"] = role
 	return c
@@ -4189,6 +4390,10 @@ func (c *MapsListCall) Tags(tags string) *MapsListCall {
 // returned. When version is set to published this parameter will filter
 // the result set to include only maps that are published. Please use
 // the maps.listPublished endpoint instead.
+//
+// Possible values:
+//   "draft" - The draft version.
+//   "published" - The published version.
 func (c *MapsListCall) Version(version string) *MapsListCall {
 	c.opt_["version"] = version
 	return c
@@ -5841,6 +6046,13 @@ func (c *RasterCollectionsListCall) PageToken(pageToken string) *RasterCollectio
 }
 
 // ProcessingStatus sets the optional parameter "processingStatus":
+//
+// Possible values:
+//   "complete" - The raster collection has completed processing.
+//   "failed" - The raster collection has failed processing.
+//   "notReady" - The raster collection is not ready for processing.
+//   "processing" - The raster collection is processing.
+//   "ready" - The raster collection is ready for processing.
 func (c *RasterCollectionsListCall) ProcessingStatus(processingStatus string) *RasterCollectionsListCall {
 	c.opt_["processingStatus"] = processingStatus
 	return c
@@ -5859,6 +6071,11 @@ func (c *RasterCollectionsListCall) ProjectId(projectId string) *RasterCollectio
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *RasterCollectionsListCall) Role(role string) *RasterCollectionsListCall {
 	c.opt_["role"] = role
 	return c
@@ -6849,6 +7066,11 @@ func (c *RasterCollectionsRastersListCall) PageToken(pageToken string) *RasterCo
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *RasterCollectionsRastersListCall) Role(role string) *RasterCollectionsRastersListCall {
 	c.opt_["role"] = role
 	return c
@@ -7260,6 +7482,13 @@ func (c *RastersListCall) PageToken(pageToken string) *RastersListCall {
 }
 
 // ProcessingStatus sets the optional parameter "processingStatus":
+//
+// Possible values:
+//   "complete" - The raster has completed processing.
+//   "failed" - The raster has failed processing.
+//   "notReady" - The raster is not ready for processing.
+//   "processing" - The raster is processing.
+//   "ready" - The raster is ready for processing.
 func (c *RastersListCall) ProcessingStatus(processingStatus string) *RastersListCall {
 	c.opt_["processingStatus"] = processingStatus
 	return c
@@ -7268,6 +7497,11 @@ func (c *RastersListCall) ProcessingStatus(processingStatus string) *RastersList
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *RastersListCall) Role(role string) *RastersListCall {
 	c.opt_["role"] = role
 	return c
@@ -8399,6 +8633,10 @@ func (r *TablesService) Get(id string) *TablesGetCall {
 }
 
 // Version sets the optional parameter "version":
+//
+// Possible values:
+//   "draft" - The draft version.
+//   "published" - The published version.
 func (c *TablesGetCall) Version(version string) *TablesGetCall {
 	c.opt_["version"] = version
 	return c
@@ -8560,6 +8798,13 @@ func (c *TablesListCall) PageToken(pageToken string) *TablesListCall {
 }
 
 // ProcessingStatus sets the optional parameter "processingStatus":
+//
+// Possible values:
+//   "complete" - The table has completed processing.
+//   "failed" - The table has failed processing.
+//   "notReady" - The table is not ready for processing.
+//   "processing" - The table is processing.
+//   "ready" - The table is ready for processing.
 func (c *TablesListCall) ProcessingStatus(processingStatus string) *TablesListCall {
 	c.opt_["processingStatus"] = processingStatus
 	return c
@@ -8578,6 +8823,11 @@ func (c *TablesListCall) ProjectId(projectId string) *TablesListCall {
 // Role sets the optional parameter "role": The role parameter indicates
 // that the response should only contain assets where the current user
 // has the specified level of access.
+//
+// Possible values:
+//   "owner" - The user can read, write and administer the asset.
+//   "reader" - The user can read the asset.
+//   "writer" - The user can read and write the asset.
 func (c *TablesListCall) Role(role string) *TablesListCall {
 	c.opt_["role"] = role
 	return c
@@ -9313,6 +9563,10 @@ func (c *TablesFeaturesGetCall) Select(select_ string) *TablesFeaturesGetCall {
 
 // Version sets the optional parameter "version": The table version to
 // access. See Accessing Public Data for information.
+//
+// Possible values:
+//   "draft" - The draft version.
+//   "published" - The published version.
 func (c *TablesFeaturesGetCall) Version(version string) *TablesFeaturesGetCall {
 	c.opt_["version"] = version
 	return c
@@ -9484,6 +9738,10 @@ func (c *TablesFeaturesListCall) Select(select_ string) *TablesFeaturesListCall 
 
 // Version sets the optional parameter "version": The table version to
 // access. See Accessing Public Data for information.
+//
+// Possible values:
+//   "draft" - The draft version.
+//   "published" - The published version.
 func (c *TablesFeaturesListCall) Version(version string) *TablesFeaturesListCall {
 	c.opt_["version"] = version
 	return c

@@ -126,6 +126,10 @@ type ApproximateProgress struct {
 }
 
 type AutoscalingSettings struct {
+	// Possible values:
+	//   "AUTOSCALING_ALGORITHM_BASIC"
+	//   "AUTOSCALING_ALGORITHM_NONE"
+	//   "AUTOSCALING_ALGORITHM_UNKNOWN"
 	Algorithm string `json:"algorithm,omitempty"`
 
 	MaxNumWorkers int64 `json:"maxNumWorkers,omitempty"`
@@ -148,6 +152,11 @@ type DataDiskAssignment struct {
 }
 
 type DerivedSource struct {
+	// Possible values:
+	//   "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_INDEPENDENT"
+	//   "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_UNKNOWN"
 	DerivationMode string `json:"derivationMode,omitempty"`
 
 	Source *Source `json:"source,omitempty"`
@@ -174,25 +183,22 @@ type Environment struct {
 
 	Experiments []string `json:"experiments,omitempty"`
 
-	SdkPipelineOptions *EnvironmentSdkPipelineOptions `json:"sdkPipelineOptions,omitempty"`
+	SdkPipelineOptions EnvironmentSdkPipelineOptions `json:"sdkPipelineOptions,omitempty"`
 
 	TempStoragePrefix string `json:"tempStoragePrefix,omitempty"`
 
-	UserAgent *EnvironmentUserAgent `json:"userAgent,omitempty"`
+	UserAgent EnvironmentUserAgent `json:"userAgent,omitempty"`
 
-	Version *EnvironmentVersion `json:"version,omitempty"`
+	Version EnvironmentVersion `json:"version,omitempty"`
 
 	WorkerPools []*WorkerPool `json:"workerPools,omitempty"`
 }
 
-type EnvironmentSdkPipelineOptions struct {
-}
+type EnvironmentSdkPipelineOptions interface{}
 
-type EnvironmentUserAgent struct {
-}
+type EnvironmentUserAgent interface{}
 
-type EnvironmentVersion struct {
-}
+type EnvironmentVersion interface{}
 
 type FlattenInstruction struct {
 	Inputs []*InstructionInput `json:"inputs,omitempty"`
@@ -207,17 +213,23 @@ type InstructionInput struct {
 }
 
 type InstructionOutput struct {
-	Codec *InstructionOutputCodec `json:"codec,omitempty"`
+	Codec InstructionOutputCodec `json:"codec,omitempty"`
 
 	Name string `json:"name,omitempty"`
 }
 
-type InstructionOutputCodec struct {
-}
+type InstructionOutputCodec interface{}
 
 type Job struct {
 	CreateTime string `json:"createTime,omitempty"`
 
+	// Possible values:
+	//   "JOB_STATE_CANCELLED"
+	//   "JOB_STATE_DONE"
+	//   "JOB_STATE_FAILED"
+	//   "JOB_STATE_RUNNING"
+	//   "JOB_STATE_STOPPED"
+	//   "JOB_STATE_UNKNOWN"
 	CurrentState string `json:"currentState,omitempty"`
 
 	CurrentStateTime string `json:"currentStateTime,omitempty"`
@@ -232,10 +244,21 @@ type Job struct {
 
 	ProjectId string `json:"projectId,omitempty"`
 
+	// Possible values:
+	//   "JOB_STATE_CANCELLED"
+	//   "JOB_STATE_DONE"
+	//   "JOB_STATE_FAILED"
+	//   "JOB_STATE_RUNNING"
+	//   "JOB_STATE_STOPPED"
+	//   "JOB_STATE_UNKNOWN"
 	RequestedState string `json:"requestedState,omitempty"`
 
 	Steps []*Step `json:"steps,omitempty"`
 
+	// Possible values:
+	//   "JOB_TYPE_BATCH"
+	//   "JOB_TYPE_STREAMING"
+	//   "JOB_TYPE_UNKNOWN"
 	Type string `json:"type,omitempty"`
 }
 
@@ -250,6 +273,12 @@ type JobExecutionStageInfo struct {
 type JobMessage struct {
 	Id string `json:"id,omitempty"`
 
+	// Possible values:
+	//   "JOB_MESSAGE_DEBUG"
+	//   "JOB_MESSAGE_DETAILED"
+	//   "JOB_MESSAGE_ERROR"
+	//   "JOB_MESSAGE_IMPORTANCE_UNKNOWN"
+	//   "JOB_MESSAGE_WARNING"
 	MessageImportance string `json:"messageImportance,omitempty"`
 
 	MessageText string `json:"messageText,omitempty"`
@@ -370,11 +399,10 @@ type ParDoInstruction struct {
 
 	SideInputs []*SideInputInfo `json:"sideInputs,omitempty"`
 
-	UserFn *ParDoInstructionUserFn `json:"userFn,omitempty"`
+	UserFn ParDoInstructionUserFn `json:"userFn,omitempty"`
 }
 
-type ParDoInstructionUserFn struct {
-}
+type ParDoInstructionUserFn interface{}
 
 type ParallelInstruction struct {
 	Flatten *FlattenInstruction `json:"flatten,omitempty"`
@@ -397,16 +425,14 @@ type ParallelInstruction struct {
 type PartialGroupByKeyInstruction struct {
 	Input *InstructionInput `json:"input,omitempty"`
 
-	InputElementCodec *PartialGroupByKeyInstructionInputElementCodec `json:"inputElementCodec,omitempty"`
+	InputElementCodec PartialGroupByKeyInstructionInputElementCodec `json:"inputElementCodec,omitempty"`
 
-	ValueCombiningFn *PartialGroupByKeyInstructionValueCombiningFn `json:"valueCombiningFn,omitempty"`
+	ValueCombiningFn PartialGroupByKeyInstructionValueCombiningFn `json:"valueCombiningFn,omitempty"`
 }
 
-type PartialGroupByKeyInstructionInputElementCodec struct {
-}
+type PartialGroupByKeyInstructionInputElementCodec interface{}
 
-type PartialGroupByKeyInstructionValueCombiningFn struct {
-}
+type PartialGroupByKeyInstructionValueCombiningFn interface{}
 
 type Position struct {
 	ByteOffset int64 `json:"byteOffset,omitempty,string"`
@@ -461,11 +487,10 @@ type SeqMapTask struct {
 
 	SystemName string `json:"systemName,omitempty"`
 
-	UserFn *SeqMapTaskUserFn `json:"userFn,omitempty"`
+	UserFn SeqMapTaskUserFn `json:"userFn,omitempty"`
 }
 
-type SeqMapTaskUserFn struct {
-}
+type SeqMapTaskUserFn interface{}
 
 type SeqMapTaskOutputInfo struct {
 	Sink *Sink `json:"sink,omitempty"`
@@ -480,48 +505,42 @@ type ShellTask struct {
 }
 
 type SideInputInfo struct {
-	Kind *SideInputInfoKind `json:"kind,omitempty"`
+	Kind SideInputInfoKind `json:"kind,omitempty"`
 
 	Sources []*Source `json:"sources,omitempty"`
 
 	Tag string `json:"tag,omitempty"`
 }
 
-type SideInputInfoKind struct {
-}
+type SideInputInfoKind interface{}
 
 type Sink struct {
-	Codec *SinkCodec `json:"codec,omitempty"`
+	Codec SinkCodec `json:"codec,omitempty"`
 
-	Spec *SinkSpec `json:"spec,omitempty"`
+	Spec SinkSpec `json:"spec,omitempty"`
 }
 
-type SinkCodec struct {
-}
+type SinkCodec interface{}
 
-type SinkSpec struct {
-}
+type SinkSpec interface{}
 
 type Source struct {
-	BaseSpecs []*SourceBaseSpecs `json:"baseSpecs,omitempty"`
+	BaseSpecs []SourceBaseSpecs `json:"baseSpecs,omitempty"`
 
-	Codec *SourceCodec `json:"codec,omitempty"`
+	Codec SourceCodec `json:"codec,omitempty"`
 
 	DoesNotNeedSplitting bool `json:"doesNotNeedSplitting,omitempty"`
 
 	Metadata *SourceMetadata `json:"metadata,omitempty"`
 
-	Spec *SourceSpec `json:"spec,omitempty"`
+	Spec SourceSpec `json:"spec,omitempty"`
 }
 
-type SourceBaseSpecs struct {
-}
+type SourceBaseSpecs interface{}
 
-type SourceCodec struct {
-}
+type SourceCodec interface{}
 
-type SourceSpec struct {
-}
+type SourceSpec interface{}
 
 type SourceFork struct {
 	Primary *SourceSplitShard `json:"primary,omitempty"`
@@ -576,12 +595,21 @@ type SourceSplitRequest struct {
 type SourceSplitResponse struct {
 	Bundles []*DerivedSource `json:"bundles,omitempty"`
 
+	// Possible values:
+	//   "SOURCE_SPLIT_OUTCOME_SPLITTING_HAPPENED"
+	//   "SOURCE_SPLIT_OUTCOME_UNKNOWN"
+	//   "SOURCE_SPLIT_OUTCOME_USE_CURRENT"
 	Outcome string `json:"outcome,omitempty"`
 
 	Shards []*SourceSplitShard `json:"shards,omitempty"`
 }
 
 type SourceSplitShard struct {
+	// Possible values:
+	//   "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_INDEPENDENT"
+	//   "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_UNKNOWN"
 	DerivationMode string `json:"derivationMode,omitempty"`
 
 	Source *Source `json:"source,omitempty"`
@@ -590,24 +618,22 @@ type SourceSplitShard struct {
 type Status struct {
 	Code int64 `json:"code,omitempty"`
 
-	Details []*StatusDetails `json:"details,omitempty"`
+	Details []StatusDetails `json:"details,omitempty"`
 
 	Message string `json:"message,omitempty"`
 }
 
-type StatusDetails struct {
-}
+type StatusDetails interface{}
 
 type Step struct {
 	Kind string `json:"kind,omitempty"`
 
 	Name string `json:"name,omitempty"`
 
-	Properties *StepProperties `json:"properties,omitempty"`
+	Properties StepProperties `json:"properties,omitempty"`
 }
 
-type StepProperties struct {
-}
+type StepProperties interface{}
 
 type StreamLocation struct {
 	PubsubLocation *PubsubLocation `json:"pubsubLocation,omitempty"`
@@ -628,6 +654,10 @@ type StreamingComputationTask struct {
 
 	DataDisks []*MountedDataDisk `json:"dataDisks,omitempty"`
 
+	// Possible values:
+	//   "STREAMING_COMPUTATION_TASK_START"
+	//   "STREAMING_COMPUTATION_TASK_STOP"
+	//   "STREAMING_COMPUTATION_TASK_UNKNOWN"
 	TaskType string `json:"taskType,omitempty"`
 }
 
@@ -724,7 +754,7 @@ type WorkItem struct {
 }
 
 type WorkItemServiceState struct {
-	HarnessData *WorkItemServiceStateHarnessData `json:"harnessData,omitempty"`
+	HarnessData WorkItemServiceStateHarnessData `json:"harnessData,omitempty"`
 
 	LeaseExpireTime string `json:"leaseExpireTime,omitempty"`
 
@@ -737,8 +767,7 @@ type WorkItemServiceState struct {
 	SuggestedStopPosition *Position `json:"suggestedStopPosition,omitempty"`
 }
 
-type WorkItemServiceStateHarnessData struct {
-}
+type WorkItemServiceStateHarnessData interface{}
 
 type WorkItemStatus struct {
 	Completed bool `json:"completed,omitempty"`
@@ -769,6 +798,11 @@ type WorkerPool struct {
 
 	DataDisks []*Disk `json:"dataDisks,omitempty"`
 
+	// Possible values:
+	//   "DEFAULT_PACKAGE_SET_JAVA"
+	//   "DEFAULT_PACKAGE_SET_NONE"
+	//   "DEFAULT_PACKAGE_SET_PYTHON"
+	//   "DEFAULT_PACKAGE_SET_UNKNOWN"
 	DefaultPackageSet string `json:"defaultPackageSet,omitempty"`
 
 	DiskSizeGb int64 `json:"diskSizeGb,omitempty"`
@@ -789,17 +823,21 @@ type WorkerPool struct {
 
 	Packages []*Package `json:"packages,omitempty"`
 
-	PoolArgs *WorkerPoolPoolArgs `json:"poolArgs,omitempty"`
+	PoolArgs WorkerPoolPoolArgs `json:"poolArgs,omitempty"`
 
 	TaskrunnerSettings *TaskRunnerSettings `json:"taskrunnerSettings,omitempty"`
 
+	// Possible values:
+	//   "TEARDOWN_ALWAYS"
+	//   "TEARDOWN_NEVER"
+	//   "TEARDOWN_ON_SUCCESS"
+	//   "TEARDOWN_POLICY_UNKNOWN"
 	TeardownPolicy string `json:"teardownPolicy,omitempty"`
 
 	Zone string `json:"zone,omitempty"`
 }
 
-type WorkerPoolPoolArgs struct {
-}
+type WorkerPoolPoolArgs interface{}
 
 type WorkerSettings struct {
 	BaseUrl string `json:"baseUrl,omitempty"`
@@ -845,6 +883,11 @@ func (c *ProjectsJobsCreateCall) ReplaceJobId(replaceJobId string) *ProjectsJobs
 }
 
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "JOB_VIEW_ALL"
+//   "JOB_VIEW_SUMMARY"
+//   "JOB_VIEW_UNKNOWN"
 func (c *ProjectsJobsCreateCall) View(view string) *ProjectsJobsCreateCall {
 	c.opt_["view"] = view
 	return c
@@ -962,6 +1005,11 @@ func (r *ProjectsJobsService) Get(projectId string, jobId string) *ProjectsJobsG
 }
 
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "JOB_VIEW_ALL"
+//   "JOB_VIEW_SUMMARY"
+//   "JOB_VIEW_UNKNOWN"
 func (c *ProjectsJobsGetCall) View(view string) *ProjectsJobsGetCall {
 	c.opt_["view"] = view
 	return c
@@ -1178,6 +1226,11 @@ func (c *ProjectsJobsListCall) PageToken(pageToken string) *ProjectsJobsListCall
 }
 
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "JOB_VIEW_ALL"
+//   "JOB_VIEW_SUMMARY"
+//   "JOB_VIEW_UNKNOWN"
 func (c *ProjectsJobsListCall) View(view string) *ProjectsJobsListCall {
 	c.opt_["view"] = view
 	return c
@@ -1493,6 +1546,13 @@ func (c *ProjectsJobsMessagesListCall) EndTime(endTime string) *ProjectsJobsMess
 }
 
 // MinimumImportance sets the optional parameter "minimumImportance":
+//
+// Possible values:
+//   "JOB_MESSAGE_DEBUG"
+//   "JOB_MESSAGE_DETAILED"
+//   "JOB_MESSAGE_ERROR"
+//   "JOB_MESSAGE_IMPORTANCE_UNKNOWN"
+//   "JOB_MESSAGE_WARNING"
 func (c *ProjectsJobsMessagesListCall) MinimumImportance(minimumImportance string) *ProjectsJobsMessagesListCall {
 	c.opt_["minimumImportance"] = minimumImportance
 	return c

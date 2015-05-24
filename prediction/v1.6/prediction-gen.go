@@ -44,13 +44,13 @@ const basePath = "https://www.googleapis.com/prediction/v1.6/projects/"
 // OAuth2 scopes used by this API.
 const (
 	// Manage your data and permissions in Google Cloud Storage
-	DevstorageFull_controlScope = "https://www.googleapis.com/auth/devstorage.full_control"
+	DevstorageFullControlScope = "https://www.googleapis.com/auth/devstorage.full_control"
 
 	// View your data in Google Cloud Storage
-	DevstorageRead_onlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
+	DevstorageReadOnlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
 
 	// Manage your data in Google Cloud Storage
-	DevstorageRead_writeScope = "https://www.googleapis.com/auth/devstorage.read_write"
+	DevstorageReadWriteScope = "https://www.googleapis.com/auth/devstorage.read_write"
 
 	// Manage your data in the Google Prediction API
 	PredictionScope = "https://www.googleapis.com/auth/prediction"
@@ -375,7 +375,7 @@ type Output struct {
 	OutputMulti []*OutputOutputMulti `json:"outputMulti,omitempty"`
 
 	// OutputValue: The estimated regression value (Regression models only).
-	OutputValue string `json:"outputValue,omitempty"`
+	OutputValue float64 `json:"outputValue,omitempty"`
 
 	// SelfLink: A URL to re-request this resource.
 	SelfLink string `json:"selfLink,omitempty"`
