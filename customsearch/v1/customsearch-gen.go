@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Cse *CseService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewCseService(s *Service) *CseService {
@@ -77,7 +85,7 @@ type ContextFacetsItem struct {
 
 	Label string `json:"label,omitempty"`
 
-	Label_with_op string `json:"label_with_op,omitempty"`
+	LabelWithOp string `json:"label_with_op,omitempty"`
 }
 
 type Promotion struct {
@@ -239,7 +247,7 @@ type ResultImage struct {
 type ResultLabels struct {
 	DisplayName string `json:"displayName,omitempty"`
 
-	Label_with_op string `json:"label_with_op,omitempty"`
+	LabelWithOp string `json:"label_with_op,omitempty"`
 
 	Name string `json:"name,omitempty"`
 }
@@ -362,6 +370,10 @@ func (c *CseListCall) FileType(fileType string) *CseListCall {
 
 // Filter sets the optional parameter "filter": Controls turning on or
 // off the duplicate content filter.
+//
+// Possible values:
+//   "0" - Turns off duplicate content filter.
+//   "1" - Turns on duplicate content filter.
 func (c *CseListCall) Filter(filter string) *CseListCall {
 	c.opt_["filter"] = filter
 	return c
@@ -403,6 +415,11 @@ func (c *CseListCall) Hq(hq string) *CseListCall {
 
 // ImgColorType sets the optional parameter "imgColorType": Returns
 // black and white, grayscale, or color images: mono, gray, and color.
+//
+// Possible values:
+//   "color" - color
+//   "gray" - gray
+//   "mono" - mono
 func (c *CseListCall) ImgColorType(imgColorType string) *CseListCall {
 	c.opt_["imgColorType"] = imgColorType
 	return c
@@ -411,6 +428,18 @@ func (c *CseListCall) ImgColorType(imgColorType string) *CseListCall {
 // ImgDominantColor sets the optional parameter "imgDominantColor":
 // Returns images of a specific dominant color: yellow, green, teal,
 // blue, purple, pink, white, gray, black and brown.
+//
+// Possible values:
+//   "black" - black
+//   "blue" - blue
+//   "brown" - brown
+//   "gray" - gray
+//   "green" - green
+//   "pink" - pink
+//   "purple" - purple
+//   "teal" - teal
+//   "white" - white
+//   "yellow" - yellow
 func (c *CseListCall) ImgDominantColor(imgDominantColor string) *CseListCall {
 	c.opt_["imgDominantColor"] = imgDominantColor
 	return c
@@ -419,6 +448,15 @@ func (c *CseListCall) ImgDominantColor(imgDominantColor string) *CseListCall {
 // ImgSize sets the optional parameter "imgSize": Returns images of a
 // specified size, where size can be one of: icon, small, medium, large,
 // xlarge, xxlarge, and huge.
+//
+// Possible values:
+//   "huge" - huge
+//   "icon" - icon
+//   "large" - large
+//   "medium" - medium
+//   "small" - small
+//   "xlarge" - xlarge
+//   "xxlarge" - xxlarge
 func (c *CseListCall) ImgSize(imgSize string) *CseListCall {
 	c.opt_["imgSize"] = imgSize
 	return c
@@ -426,6 +464,13 @@ func (c *CseListCall) ImgSize(imgSize string) *CseListCall {
 
 // ImgType sets the optional parameter "imgType": Returns images of a
 // type, which can be one of: clipart, face, lineart, news, and photo.
+//
+// Possible values:
+//   "clipart" - clipart
+//   "face" - face
+//   "lineart" - lineart
+//   "news" - news
+//   "photo" - photo
 func (c *CseListCall) ImgType(imgType string) *CseListCall {
 	c.opt_["imgType"] = imgType
 	return c
@@ -447,6 +492,43 @@ func (c *CseListCall) LowRange(lowRange string) *CseListCall {
 
 // Lr sets the optional parameter "lr": The language restriction for the
 // search results
+//
+// Possible values:
+//   "lang_ar" - Arabic
+//   "lang_bg" - Bulgarian
+//   "lang_ca" - Catalan
+//   "lang_cs" - Czech
+//   "lang_da" - Danish
+//   "lang_de" - German
+//   "lang_el" - Greek
+//   "lang_en" - English
+//   "lang_es" - Spanish
+//   "lang_et" - Estonian
+//   "lang_fi" - Finnish
+//   "lang_fr" - French
+//   "lang_hr" - Croatian
+//   "lang_hu" - Hungarian
+//   "lang_id" - Indonesian
+//   "lang_is" - Icelandic
+//   "lang_it" - Italian
+//   "lang_iw" - Hebrew
+//   "lang_ja" - Japanese
+//   "lang_ko" - Korean
+//   "lang_lt" - Lithuanian
+//   "lang_lv" - Latvian
+//   "lang_nl" - Dutch
+//   "lang_no" - Norwegian
+//   "lang_pl" - Polish
+//   "lang_pt" - Portuguese
+//   "lang_ro" - Romanian
+//   "lang_ru" - Russian
+//   "lang_sk" - Slovak
+//   "lang_sl" - Slovenian
+//   "lang_sr" - Serbian
+//   "lang_sv" - Swedish
+//   "lang_tr" - Turkish
+//   "lang_zh-CN" - Chinese (Simplified)
+//   "lang_zh-TW" - Chinese (Traditional)
 func (c *CseListCall) Lr(lr string) *CseListCall {
 	c.opt_["lr"] = lr
 	return c
@@ -486,6 +568,11 @@ func (c *CseListCall) Rights(rights string) *CseListCall {
 }
 
 // Safe sets the optional parameter "safe": Search safety level
+//
+// Possible values:
+//   "high" - Enables highest level of safe search filtering.
+//   "medium" - Enables moderate safe search filtering.
+//   "off" (default) - Disables safe search filtering.
 func (c *CseListCall) Safe(safe string) *CseListCall {
 	c.opt_["safe"] = safe
 	return c
@@ -493,6 +580,9 @@ func (c *CseListCall) Safe(safe string) *CseListCall {
 
 // SearchType sets the optional parameter "searchType": Specifies the
 // search type: image.
+//
+// Possible values:
+//   "image" - custom image search
 func (c *CseListCall) SearchType(searchType string) *CseListCall {
 	c.opt_["searchType"] = searchType
 	return c
@@ -508,6 +598,10 @@ func (c *CseListCall) SiteSearch(siteSearch string) *CseListCall {
 // SiteSearchFilter sets the optional parameter "siteSearchFilter":
 // Controls whether to include or exclude results from the site named in
 // the as_sitesearch parameter
+//
+// Possible values:
+//   "e" - exclude
+//   "i" - include
 func (c *CseListCall) SiteSearchFilter(siteSearchFilter string) *CseListCall {
 	c.opt_["siteSearchFilter"] = siteSearchFilter
 	return c
@@ -640,7 +734,7 @@ func (c *CseListCall) Do() (*Search, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

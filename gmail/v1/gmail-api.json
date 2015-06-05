@@ -1,11 +1,11 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/DyNuAmsf-lESr55z5J-qhJPo0bA\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/hFGSutIVQj0PQfQgMG3Y44JNJU0\"",
  "discoveryVersion": "v1",
  "id": "gmail:v1",
  "name": "gmail",
  "version": "v1",
- "revision": "20150122",
+ "revision": "20150303",
  "title": "Gmail API",
  "description": "The Gmail REST API.",
  "ownerDomain": "google.com",
@@ -75,6 +75,12 @@
     "https://www.googleapis.com/auth/gmail.compose": {
      "description": "Manage drafts and send emails"
     },
+    "https://www.googleapis.com/auth/gmail.insert": {
+     "description": "Insert mail into your mailbox"
+    },
+    "https://www.googleapis.com/auth/gmail.labels": {
+     "description": "Manage mailbox labels"
+    },
     "https://www.googleapis.com/auth/gmail.modify": {
      "description": "View and modify but not delete your email"
     },
@@ -108,19 +114,97 @@
   "History": {
    "id": "History",
    "type": "object",
-   "description": "A record of a change to the user's mailbox. Each history contains a list of the messages that were affected by this change.",
+   "description": "A record of a change to the user's mailbox. Each history change may affect multiple messages in multiple ways.",
    "properties": {
     "id": {
      "type": "string",
      "description": "The mailbox sequence ID.",
      "format": "uint64"
     },
+    "labelsAdded": {
+     "type": "array",
+     "description": "Labels added to messages in this history record.",
+     "items": {
+      "$ref": "HistoryLabelAdded"
+     }
+    },
+    "labelsRemoved": {
+     "type": "array",
+     "description": "Labels removed from messages in this history record.",
+     "items": {
+      "$ref": "HistoryLabelRemoved"
+     }
+    },
     "messages": {
      "type": "array",
-     "description": "The messages that changed in this history record.",
+     "description": "List of messages changed in this history record. The fields for specific change types, such as messagesAdded may duplicate messages in this field. We recommend using the specific change-type fields instead of this.",
      "items": {
       "$ref": "Message"
      }
+    },
+    "messagesAdded": {
+     "type": "array",
+     "description": "Messages added to the mailbox in this history record.",
+     "items": {
+      "$ref": "HistoryMessageAdded"
+     }
+    },
+    "messagesDeleted": {
+     "type": "array",
+     "description": "Messages deleted (not Trashed) from the mailbox in this history record.",
+     "items": {
+      "$ref": "HistoryMessageDeleted"
+     }
+    }
+   }
+  },
+  "HistoryLabelAdded": {
+   "id": "HistoryLabelAdded",
+   "type": "object",
+   "properties": {
+    "labelIds": {
+     "type": "array",
+     "description": "Label IDs added to the message.",
+     "items": {
+      "type": "string"
+     }
+    },
+    "message": {
+     "$ref": "Message"
+    }
+   }
+  },
+  "HistoryLabelRemoved": {
+   "id": "HistoryLabelRemoved",
+   "type": "object",
+   "properties": {
+    "labelIds": {
+     "type": "array",
+     "description": "Label IDs removed from the message.",
+     "items": {
+      "type": "string"
+     }
+    },
+    "message": {
+     "$ref": "Message"
+    }
+   }
+  },
+  "HistoryMessageAdded": {
+   "id": "HistoryMessageAdded",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "Message"
+    }
+   }
+  },
+  "HistoryMessageDeleted": {
+   "id": "HistoryMessageDeleted",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "Message"
     }
    }
   },
@@ -248,7 +332,7 @@
    "properties": {
     "history": {
      "type": "array",
-     "description": "List of history records.",
+     "description": "List of history records. Any messages contained in the response will typically only have id and threadId fields populated.",
      "items": {
       "$ref": "History"
      }
@@ -922,6 +1006,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.labels",
         "https://www.googleapis.com/auth/gmail.modify"
        ]
       },
@@ -951,6 +1036,7 @@
        ],
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.labels",
         "https://www.googleapis.com/auth/gmail.modify"
        ]
       },
@@ -983,6 +1069,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.labels",
         "https://www.googleapis.com/auth/gmail.modify",
         "https://www.googleapis.com/auth/gmail.readonly"
        ]
@@ -1009,6 +1096,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.labels",
         "https://www.googleapis.com/auth/gmail.modify",
         "https://www.googleapis.com/auth/gmail.readonly"
        ]
@@ -1045,6 +1133,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.labels",
         "https://www.googleapis.com/auth/gmail.modify"
        ]
       },
@@ -1080,6 +1169,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.labels",
         "https://www.googleapis.com/auth/gmail.modify"
        ]
       }
@@ -1200,7 +1290,7 @@
         },
         "neverMarkSpam": {
          "type": "boolean",
-         "description": "Ignore the Gmail spam classifer decision and never mark this email as SPAM in the mailbox.",
+         "description": "Ignore the Gmail spam classifier decision and never mark this email as SPAM in the mailbox.",
          "default": "false",
          "location": "query"
         },
@@ -1229,6 +1319,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.insert",
         "https://www.googleapis.com/auth/gmail.modify"
        ],
        "supportsMediaUpload": true,
@@ -1255,6 +1346,12 @@
        "httpMethod": "POST",
        "description": "Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.",
        "parameters": {
+        "deleted": {
+         "type": "boolean",
+         "description": "Mark the email as permanently deleted (not TRASH) and only visible in Google Apps Vault to a Vault administrator. Only used for Google Apps for Work accounts.",
+         "default": "false",
+         "location": "query"
+        },
         "internalDateSource": {
          "type": "string",
          "description": "Source for Gmail's internal date of the message.",
@@ -1288,6 +1385,7 @@
        },
        "scopes": [
         "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.insert",
         "https://www.googleapis.com/auth/gmail.modify"
        ],
        "supportsMediaUpload": true,

@@ -75,10 +75,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Accounts *AccountsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAccountsService(s *Service) *AccountsService {
@@ -212,20 +220,29 @@ type AccountAccess struct {
 type Condition struct {
 	// Parameter: A list of named parameters (key/value), depending on the
 	// condition's type. Notes:
-	// - For binary operators, include parameters
-	// named arg0 and arg1 for specifying the left and right operands,
-	// respectively.
-	// - At this time, the left operand (arg0) must be a
-	// reference to a macro.
-	// - For case-insensitive Regex matching, include
-	// a boolean parameter named ignore_case that is set to true. If not
-	// specified or set to any other value, the matching will be case
-	// sensitive.
-	// - To negate an operator, include a boolean parameter
-	// named negate boolean parameter that is set to true.
+	// - For binary operators, include parameters named arg0 and arg1 for
+	// specifying the left and right operands, respectively.
+	// - At this time, the left operand (arg0) must be a reference to a
+	// macro.
+	// - For case-insensitive Regex matching, include a boolean parameter
+	// named ignore_case that is set to true. If not specified or set to any
+	// other value, the matching will be case sensitive.
+	// - To negate an operator, include a boolean parameter named negate
+	// boolean parameter that is set to true.
 	Parameter []*Parameter `json:"parameter,omitempty"`
 
 	// Type: The type of operator for this condition.
+	//
+	// Possible values:
+	//   "contains"
+	//   "endsWith"
+	//   "equals"
+	//   "greater"
+	//   "greaterOrEquals"
+	//   "less"
+	//   "lessOrEquals"
+	//   "matchRegex"
+	//   "startsWith"
 	Type string `json:"type,omitempty"`
 }
 
@@ -493,17 +510,21 @@ type Parameter struct {
 	Map []*Parameter `json:"map,omitempty"`
 
 	// Type: The parameter type. Valid values are:
-	// - boolean: The value
-	// represents a boolean, represented as 'true' or 'false'
-	// - integer:
-	// The value represents a 64-bit signed integer value, in base 10
-	// -
-	// list: A list of parameters should be specified
-	// - map: A map of
-	// parameters should be specified
-	// - template: The value represents any
-	// text; this can include macro references (even macro references that
-	// might return non-string types)
+	// - boolean: The value represents a boolean, represented as 'true' or
+	// 'false'
+	// - integer: The value represents a 64-bit signed integer value, in
+	// base 10
+	// - list: A list of parameters should be specified
+	// - map: A map of parameters should be specified
+	// - template: The value represents any text; this can include macro
+	// references (even macro references that might return non-string types)
+	//
+	// Possible values:
+	//   "boolean"
+	//   "integer"
+	//   "list"
+	//   "map"
+	//   "template"
 	Type string `json:"type,omitempty"`
 
 	// Value: A parameter's value (may contain macro references such as
@@ -659,6 +680,21 @@ type Trigger struct {
 	TriggerId string `json:"triggerId,omitempty"`
 
 	// Type: Defines the data layer event that causes this trigger.
+	//
+	// Possible values:
+	//   "ajaxSubmission"
+	//   "always"
+	//   "click"
+	//   "customEvent"
+	//   "domReady"
+	//   "formSubmission"
+	//   "historyChange"
+	//   "jsError"
+	//   "linkClick"
+	//   "pageview"
+	//   "timer"
+	//   "windowLoaded"
+	//   "youTube"
 	Type string `json:"type,omitempty"`
 
 	// UniqueTriggerId: Globally unique id of the trigger that
@@ -787,7 +823,7 @@ func (c *AccountsGetCall) Do() (*Account, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": c.accountId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -861,7 +897,7 @@ func (c *AccountsListCall) Do() (*ListAccountsResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -947,7 +983,7 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 		"accountId": c.accountId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1039,7 +1075,7 @@ func (c *AccountsContainersCreateCall) Do() (*Container, error) {
 		"accountId": c.accountId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1121,7 +1157,7 @@ func (c *AccountsContainersDeleteCall) Do() error {
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1200,7 +1236,7 @@ func (c *AccountsContainersGetCall) Do() (*Container, error) {
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1284,7 +1320,7 @@ func (c *AccountsContainersListCall) Do() (*ListContainersResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": c.accountId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1383,7 +1419,7 @@ func (c *AccountsContainersUpdateCall) Do() (*Container, error) {
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1485,7 +1521,7 @@ func (c *AccountsContainersMacrosCreateCall) Do() (*Macro, error) {
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1577,7 +1613,7 @@ func (c *AccountsContainersMacrosDeleteCall) Do() error {
 		"containerId": c.containerId,
 		"macroId":     c.macroId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1666,7 +1702,7 @@ func (c *AccountsContainersMacrosGetCall) Do() (*Macro, error) {
 		"containerId": c.containerId,
 		"macroId":     c.macroId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1760,7 +1796,7 @@ func (c *AccountsContainersMacrosListCall) Do() (*ListMacrosResponse, error) {
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1868,7 +1904,7 @@ func (c *AccountsContainersMacrosUpdateCall) Do() (*Macro, error) {
 		"macroId":     c.macroId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1977,7 +2013,7 @@ func (c *AccountsContainersRulesCreateCall) Do() (*Rule, error) {
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2069,7 +2105,7 @@ func (c *AccountsContainersRulesDeleteCall) Do() error {
 		"containerId": c.containerId,
 		"ruleId":      c.ruleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2158,7 +2194,7 @@ func (c *AccountsContainersRulesGetCall) Do() (*Rule, error) {
 		"containerId": c.containerId,
 		"ruleId":      c.ruleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2252,7 +2288,7 @@ func (c *AccountsContainersRulesListCall) Do() (*ListRulesResponse, error) {
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2360,7 +2396,7 @@ func (c *AccountsContainersRulesUpdateCall) Do() (*Rule, error) {
 		"ruleId":      c.ruleId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2469,7 +2505,7 @@ func (c *AccountsContainersTagsCreateCall) Do() (*Tag, error) {
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2561,7 +2597,7 @@ func (c *AccountsContainersTagsDeleteCall) Do() error {
 		"containerId": c.containerId,
 		"tagId":       c.tagId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2650,7 +2686,7 @@ func (c *AccountsContainersTagsGetCall) Do() (*Tag, error) {
 		"containerId": c.containerId,
 		"tagId":       c.tagId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2744,7 +2780,7 @@ func (c *AccountsContainersTagsListCall) Do() (*ListTagsResponse, error) {
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2852,7 +2888,7 @@ func (c *AccountsContainersTagsUpdateCall) Do() (*Tag, error) {
 		"tagId":       c.tagId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2961,7 +2997,7 @@ func (c *AccountsContainersTriggersCreateCall) Do() (*Trigger, error) {
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3053,7 +3089,7 @@ func (c *AccountsContainersTriggersDeleteCall) Do() error {
 		"containerId": c.containerId,
 		"triggerId":   c.triggerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3142,7 +3178,7 @@ func (c *AccountsContainersTriggersGetCall) Do() (*Trigger, error) {
 		"containerId": c.containerId,
 		"triggerId":   c.triggerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3236,7 +3272,7 @@ func (c *AccountsContainersTriggersListCall) Do() (*ListTriggersResponse, error)
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3345,7 +3381,7 @@ func (c *AccountsContainersTriggersUpdateCall) Do() (*Trigger, error) {
 		"triggerId":   c.triggerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3454,7 +3490,7 @@ func (c *AccountsContainersVariablesCreateCall) Do() (*Variable, error) {
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3546,7 +3582,7 @@ func (c *AccountsContainersVariablesDeleteCall) Do() error {
 		"containerId": c.containerId,
 		"variableId":  c.variableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3635,7 +3671,7 @@ func (c *AccountsContainersVariablesGetCall) Do() (*Variable, error) {
 		"containerId": c.containerId,
 		"variableId":  c.variableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3729,7 +3765,7 @@ func (c *AccountsContainersVariablesListCall) Do() (*ListVariablesResponse, erro
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3838,7 +3874,7 @@ func (c *AccountsContainersVariablesUpdateCall) Do() (*Variable, error) {
 		"variableId":  c.variableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3947,7 +3983,7 @@ func (c *AccountsContainersVersionsCreateCall) Do() (*CreateContainerVersionResp
 		"containerId": c.containerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4039,7 +4075,7 @@ func (c *AccountsContainersVersionsDeleteCall) Do() error {
 		"containerId":        c.containerId,
 		"containerVersionId": c.containerVersionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4128,7 +4164,7 @@ func (c *AccountsContainersVersionsGetCall) Do() (*ContainerVersion, error) {
 		"containerId":        c.containerId,
 		"containerVersionId": c.containerVersionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4233,7 +4269,7 @@ func (c *AccountsContainersVersionsListCall) Do() (*ListContainerVersionsRespons
 		"accountId":   c.accountId,
 		"containerId": c.containerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4341,7 +4377,7 @@ func (c *AccountsContainersVersionsPublishCall) Do() (*PublishContainerVersionRe
 		"containerId":        c.containerId,
 		"containerVersionId": c.containerVersionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4445,7 +4481,7 @@ func (c *AccountsContainersVersionsRestoreCall) Do() (*ContainerVersion, error) 
 		"containerId":        c.containerId,
 		"containerVersionId": c.containerVersionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4541,7 +4577,7 @@ func (c *AccountsContainersVersionsUndeleteCall) Do() (*ContainerVersion, error)
 		"containerId":        c.containerId,
 		"containerVersionId": c.containerVersionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4656,7 +4692,7 @@ func (c *AccountsContainersVersionsUpdateCall) Do() (*ContainerVersion, error) {
 		"containerVersionId": c.containerVersionId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4762,7 +4798,7 @@ func (c *AccountsPermissionsCreateCall) Do() (*UserAccess, error) {
 		"accountId": c.accountId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4845,7 +4881,7 @@ func (c *AccountsPermissionsDeleteCall) Do() error {
 		"accountId":    c.accountId,
 		"permissionId": c.permissionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4924,7 +4960,7 @@ func (c *AccountsPermissionsGetCall) Do() (*UserAccess, error) {
 		"accountId":    c.accountId,
 		"permissionId": c.permissionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5008,7 +5044,7 @@ func (c *AccountsPermissionsListCall) Do() (*ListAccountUsersResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": c.accountId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5095,7 +5131,7 @@ func (c *AccountsPermissionsUpdateCall) Do() (*UserAccess, error) {
 		"permissionId": c.permissionId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

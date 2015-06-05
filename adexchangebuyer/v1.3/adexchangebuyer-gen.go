@@ -63,8 +63,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Accounts *AccountsService
 
@@ -79,6 +80,13 @@ type Service struct {
 	PerformanceReport *PerformanceReportService
 
 	PretargetingConfig *PretargetingConfigService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAccountsService(s *Service) *AccountsService {
@@ -188,8 +196,7 @@ type AccountBidderLocation struct {
 	// - ASIA
 	// - EUROPE
 	// - US_EAST
-	// -
-	// US_WEST
+	// - US_WEST
 	Region string `json:"region,omitempty"`
 
 	// Url: The URL to which the Ad Exchange will send bid requests.
@@ -294,9 +301,8 @@ type Creative struct {
 	// requests.
 	DisapprovalReasons []*CreativeDisapprovalReasons `json:"disapprovalReasons,omitempty"`
 
-	// FilteringReasons: The filtering reasons for the creative. If this
-	// feature is not enabled, please ask your technical account manager.
-	// Read-only. This field should not be set in requests.
+	// FilteringReasons: The filtering reasons for the creative. Read-only.
+	// This field should not be set in requests.
 	FilteringReasons *CreativeFilteringReasons `json:"filteringReasons,omitempty"`
 
 	// Height: Ad height.
@@ -683,7 +689,7 @@ func (c *AccountsGetCall) Do() (*Account, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -756,7 +762,7 @@ func (c *AccountsListCall) Do() (*AccountsList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -830,7 +836,7 @@ func (c *AccountsPatchCall) Do() (*Account, error) {
 		"id": strconv.FormatInt(c.id, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -918,7 +924,7 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 		"id": strconv.FormatInt(c.id, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -999,7 +1005,7 @@ func (c *BillingInfoGetCall) Do() (*BillingInfo, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1073,7 +1079,7 @@ func (c *BillingInfoListCall) Do() (*BillingInfoList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1142,7 +1148,7 @@ func (c *BudgetGetCall) Do() (*Budget, error) {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"billingId": strconv.FormatInt(c.billingId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1240,7 +1246,7 @@ func (c *BudgetPatchCall) Do() (*Budget, error) {
 		"billingId": strconv.FormatInt(c.billingId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1341,7 +1347,7 @@ func (c *BudgetUpdateCall) Do() (*Budget, error) {
 		"billingId": strconv.FormatInt(c.billingId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1433,7 +1439,7 @@ func (c *CreativesGetCall) Do() (*Creative, error) {
 		"accountId":       strconv.FormatInt(c.accountId, 10),
 		"buyerCreativeId": c.buyerCreativeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1521,7 +1527,7 @@ func (c *CreativesInsertCall) Do() (*Creative, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1601,6 +1607,11 @@ func (c *CreativesListCall) PageToken(pageToken string) *CreativesListCall {
 
 // StatusFilter sets the optional parameter "statusFilter": When
 // specified, only creatives having the given status are returned.
+//
+// Possible values:
+//   "approved" - Creatives which have been approved.
+//   "disapproved" - Creatives which have been disapproved.
+//   "not_checked" - Creatives whose status is not yet checked.
 func (c *CreativesListCall) StatusFilter(statusFilter string) *CreativesListCall {
 	c.opt_["statusFilter"] = statusFilter
 	return c
@@ -1640,7 +1651,7 @@ func (c *CreativesListCall) Do() (*CreativesList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1748,7 +1759,7 @@ func (c *DirectDealsGetCall) Do() (*DirectDeal, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1821,7 +1832,7 @@ func (c *DirectDealsListCall) Do() (*DirectDealsList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1914,7 +1925,7 @@ func (c *PerformanceReportListCall) Do() (*PerformanceReportList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2021,7 +2032,7 @@ func (c *PretargetingConfigDeleteCall) Do() error {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2102,7 +2113,7 @@ func (c *PretargetingConfigGetCall) Do() (*PretargetingConfig, error) {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2195,7 +2206,7 @@ func (c *PretargetingConfigInsertCall) Do() (*PretargetingConfig, error) {
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2276,7 +2287,7 @@ func (c *PretargetingConfigListCall) Do() (*PretargetingConfigList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"accountId": strconv.FormatInt(c.accountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2365,7 +2376,7 @@ func (c *PretargetingConfigPatchCall) Do() (*PretargetingConfig, error) {
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2464,7 +2475,7 @@ func (c *PretargetingConfigUpdateCall) Do() (*PretargetingConfig, error) {
 		"configId":  strconv.FormatInt(c.configId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

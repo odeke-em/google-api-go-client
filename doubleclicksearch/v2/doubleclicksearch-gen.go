@@ -59,14 +59,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Conversion *ConversionService
 
 	Reports *ReportsService
 
 	SavedColumns *SavedColumnsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewConversionService(s *Service) *ConversionService {
@@ -133,11 +141,14 @@ type Conversion struct {
 	// AgencyId: DS agency ID.
 	AgencyId int64 `json:"agencyId,omitempty,string"`
 
-	// AttributionModel: Attribution model name.
+	// AttributionModel: Attribution model name. This field is ignored.
 	AttributionModel string `json:"attributionModel,omitempty"`
 
 	// CampaignId: DS campaign ID.
 	CampaignId int64 `json:"campaignId,omitempty,string"`
+
+	// Channel: Channel of the product: local or online.
+	Channel string `json:"channel,omitempty"`
 
 	// ClickId: DS click ID for the conversion.
 	ClickId string `json:"clickId,omitempty"`
@@ -154,7 +165,8 @@ type Conversion struct {
 	// epoch millis UTC.
 	ConversionTimestamp uint64 `json:"conversionTimestamp,omitempty,string"`
 
-	// CountMillis: Conversion count in millis.
+	// CountMillis: The number of conversions, formatted in millis
+	// (conversions multiplied by 1000). This field is ignored.
 	CountMillis int64 `json:"countMillis,omitempty,string"`
 
 	// CriterionId: DS criterion (keyword) ID.
@@ -171,15 +183,35 @@ type Conversion struct {
 	// CustomMetric: Custom metrics for the conversion.
 	CustomMetric []*CustomMetric `json:"customMetric,omitempty"`
 
+	// DeviceType: The type of device on which the conversion occurred.
+	// Valid values are "DESKTOP", "TABLET", "HIGH_END_MOBILE",
+	// "OTHER_DEVICE".
+	DeviceType string `json:"deviceType,omitempty"`
+
 	// DsConversionId: DS conversion ID.
 	DsConversionId int64 `json:"dsConversionId,omitempty,string"`
 
 	// EngineAccountId: DS engine account ID.
 	EngineAccountId int64 `json:"engineAccountId,omitempty,string"`
 
+	// FeedId: DS inventory feed ID.
+	FeedId int64 `json:"feedId,omitempty,string"`
+
 	// FloodlightOrderId: The advertiser-provided order id for the
 	// conversion.
 	FloodlightOrderId string `json:"floodlightOrderId,omitempty"`
+
+	// ProductCountry: ISO 3166 code of the product country.
+	ProductCountry string `json:"productCountry,omitempty"`
+
+	// ProductGroupId: DS product group ID.
+	ProductGroupId int64 `json:"productGroupId,omitempty,string"`
+
+	// ProductId: The product ID (SKU).
+	ProductId string `json:"productId,omitempty"`
+
+	// ProductLanguage: ISO 639 code of the product language.
+	ProductLanguage string `json:"productLanguage,omitempty"`
 
 	// QuantityMillis: The quantity of this conversion, in millis.
 	QuantityMillis int64 `json:"quantityMillis,omitempty,string"`
@@ -203,6 +235,10 @@ type Conversion struct {
 	// State: The state of the conversion, that is, either ACTIVE or
 	// REMOVED. Note: state DELETED is deprecated.
 	State string `json:"state,omitempty"`
+
+	// StoreId: The store id for which the product was advertised, when the
+	// channel is "local".
+	StoreId string `json:"storeId,omitempty"`
 
 	// Type: The type of the conversion, that is, either ACTION or
 	// TRANSACTION. An ACTION conversion is an action by the user that has
@@ -264,7 +300,7 @@ type Report struct {
 	RowCount int64 `json:"rowCount,omitempty"`
 
 	// Rows: Synchronous report only. Generated report rows.
-	Rows []*ReportRow `json:"rows,omitempty"`
+	Rows []ReportRow `json:"rows,omitempty"`
 
 	// StatisticsCurrencyCode: The currency code of all monetary values
 	// produced in the report, including values that are set by users (e.g.,
@@ -296,9 +332,9 @@ type ReportApiColumnSpec struct {
 	// dimension must already be set up in DoubleClick Search. The custom
 	// dimension name, which appears in DoubleClick Search, is case
 	// sensitive.
-	// If used in a conversion report, returns the value of the
-	// specified custom dimension for the given conversion, if set. This
-	// column does not segment the conversion report.
+	// If used in a conversion report, returns the value of the specified
+	// custom dimension for the given conversion, if set. This column does
+	// not segment the conversion report.
 	CustomDimensionName string `json:"customDimensionName,omitempty"`
 
 	// CustomMetricName: Name of a custom metric to include in the report.
@@ -385,7 +421,9 @@ type ReportRequest struct {
 	// RowCount: Synchronous report only. The maxinum number of rows to
 	// return; additional rows are dropped. Acceptable values are 0 to
 	// 10000, inclusive. Defaults to 10000.
-	RowCount int64 `json:"rowCount,omitempty"`
+	//
+	// Default: 10000
+	RowCount *int64 `json:"rowCount,omitempty"`
 
 	// StartRow: Synchronous report only. Zero-based index of the first row
 	// to return. Acceptable values are 0 to 50000, inclusive. Defaults to
@@ -473,8 +511,7 @@ type ReportRequestTimeRange struct {
 	StartDate string `json:"startDate,omitempty"`
 }
 
-type ReportRow struct {
-}
+type ReportRow interface{}
 
 type SavedColumn struct {
 	// Kind: Identifies this as a SavedColumn resource. Value: the fixed
@@ -601,7 +638,7 @@ func (c *ConversionGetCall) Do() (*ConversionList, error) {
 		"advertiserId":    strconv.FormatInt(c.advertiserId, 10),
 		"engineAccountId": strconv.FormatInt(c.engineAccountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -760,7 +797,7 @@ func (c *ConversionInsertCall) Do() (*ConversionList, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -854,7 +891,7 @@ func (c *ConversionPatchCall) Do() (*ConversionList, error) {
 	req, _ := http.NewRequest("PATCH", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -992,7 +1029,7 @@ func (c *ConversionUpdateCall) Do() (*ConversionList, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1065,7 +1102,7 @@ func (c *ConversionUpdateAvailabilityCall) Do() (*UpdateAvailabilityResponse, er
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1138,7 +1175,7 @@ func (c *ReportsGenerateCall) Do() (*Report, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1207,7 +1244,7 @@ func (c *ReportsGetCall) Do() (*Report, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"reportId": c.reportId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1256,7 +1293,7 @@ type ReportsGetFileCall struct {
 	opt_           map[string]interface{}
 }
 
-// GetFile: Downloads a report file.
+// GetFile: Downloads a report file encoded in UTF-8.
 func (r *ReportsService) GetFile(reportId string, reportFragment int64) *ReportsGetFileCall {
 	c := &ReportsGetFileCall{s: r.s, opt_: make(map[string]interface{})}
 	c.reportId = reportId
@@ -1286,7 +1323,7 @@ func (c *ReportsGetFileCall) Do() error {
 		"reportId":       c.reportId,
 		"reportFragment": strconv.FormatInt(c.reportFragment, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1297,7 +1334,7 @@ func (c *ReportsGetFileCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Downloads a report file.",
+	//   "description": "Downloads a report file encoded in UTF-8.",
 	//   "httpMethod": "GET",
 	//   "id": "doubleclicksearch.reports.getFile",
 	//   "parameterOrder": [
@@ -1369,7 +1406,7 @@ func (c *ReportsRequestCall) Do() (*Report, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1441,7 +1478,7 @@ func (c *SavedColumnsListCall) Do() (*SavedColumnList, error) {
 		"agencyId":     strconv.FormatInt(c.agencyId, 10),
 		"advertiserId": strconv.FormatInt(c.advertiserId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

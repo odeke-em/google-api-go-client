@@ -67,8 +67,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	BlogUserInfos *BlogUserInfosService
 
@@ -85,6 +86,13 @@ type Service struct {
 	Posts *PostsService
 
 	Users *UsersService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewBlogUserInfosService(s *Service) *BlogUserInfosService {
@@ -269,8 +277,8 @@ type BlogUserInfo struct {
 	// Blog: The Blog resource.
 	Blog *Blog `json:"blog,omitempty"`
 
-	// Blog_user_info: Information about a User for the Blog.
-	Blog_user_info *BlogPerUserInfo `json:"blog_user_info,omitempty"`
+	// BlogUserInfo: Information about a User for the Blog.
+	BlogUserInfo *BlogPerUserInfo `json:"blog_user_info,omitempty"`
 
 	// Kind: The kind of this entity. Always blogger#blogUserInfo
 	Kind string `json:"kind,omitempty"`
@@ -346,6 +354,9 @@ type CommentPost struct {
 }
 
 type CommentList struct {
+	// Etag: Etag of the response.
+	Etag string `json:"etag,omitempty"`
+
 	// Items: The List of Comments for a Post.
 	Items []*Comment `json:"items,omitempty"`
 
@@ -426,6 +437,9 @@ type PageBlog struct {
 }
 
 type PageList struct {
+	// Etag: Etag of the response.
+	Etag string `json:"etag,omitempty"`
+
 	// Items: The list of Pages for a Blog.
 	Items []*Page `json:"items,omitempty"`
 
@@ -571,6 +585,9 @@ type PostReplies struct {
 }
 
 type PostList struct {
+	// Etag: Etag of the response.
+	Etag string `json:"etag,omitempty"`
+
 	// Items: The list of Posts for this Blog.
 	Items []*Post `json:"items,omitempty"`
 
@@ -606,8 +623,8 @@ type PostUserInfo struct {
 	// Post: The Post resource.
 	Post *Post `json:"post,omitempty"`
 
-	// Post_user_info: Information about a User for the Post.
-	Post_user_info *PostPerUserInfo `json:"post_user_info,omitempty"`
+	// PostUserInfo: Information about a User for the Post.
+	PostUserInfo *PostPerUserInfo `json:"post_user_info,omitempty"`
 }
 
 type PostUserInfosList struct {
@@ -718,7 +735,7 @@ func (c *BlogUserInfosGetCall) Do() (*BlogUserInfo, error) {
 		"userId": c.userId,
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -796,6 +813,11 @@ func (c *BlogsGetCall) MaxPosts(maxPosts int64) *BlogsGetCall {
 
 // View sets the optional parameter "view": Access level with which to
 // view the blog. Note that some fields require elevated access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail.
+//   "AUTHOR" - Author level detail.
+//   "READER" - Reader level detail.
 func (c *BlogsGetCall) View(view string) *BlogsGetCall {
 	c.opt_["view"] = view
 	return c
@@ -828,7 +850,7 @@ func (c *BlogsGetCall) Do() (*Blog, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -907,6 +929,11 @@ func (r *BlogsService) GetByUrl(url string) *BlogsGetByUrlCall {
 
 // View sets the optional parameter "view": Access level with which to
 // view the blog. Note that some fields require elevated access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail.
+//   "AUTHOR" - Author level detail.
+//   "READER" - Reader level detail.
 func (c *BlogsGetByUrlCall) View(view string) *BlogsGetByUrlCall {
 	c.opt_["view"] = view
 	return c
@@ -935,7 +962,7 @@ func (c *BlogsGetByUrlCall) Do() (*Blog, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1018,6 +1045,13 @@ func (c *BlogsListByUserCall) FetchUserInfo(fetchUserInfo bool) *BlogsListByUser
 // to include in the results, e.g. AUTHOR will return blogs where the
 // user has author level access. If no roles are specified, defaults to
 // ADMIN and AUTHOR roles.
+//
+// Possible values:
+//   "ADMIN" - Admin role - Blogs where the user has Admin level access.
+//   "AUTHOR" - Author role - Blogs where the user has Author level
+// access.
+//   "READER" - Reader role - Blogs where the user has Reader level
+// access (to a private blog).
 func (c *BlogsListByUserCall) Role(role string) *BlogsListByUserCall {
 	c.opt_["role"] = role
 	return c
@@ -1026,6 +1060,10 @@ func (c *BlogsListByUserCall) Role(role string) *BlogsListByUserCall {
 // Status sets the optional parameter "status": Blog statuses to include
 // in the result (default: Live blogs only). Note that ADMIN access is
 // required to view deleted blogs.
+//
+// Possible values:
+//   "DELETED" - Blog has been deleted by an administrator.
+//   "LIVE" (default) - Blog is currently live.
 func (c *BlogsListByUserCall) Status(status string) *BlogsListByUserCall {
 	c.opt_["status"] = status
 	return c
@@ -1033,6 +1071,11 @@ func (c *BlogsListByUserCall) Status(status string) *BlogsListByUserCall {
 
 // View sets the optional parameter "view": Access level with which to
 // view the blogs. Note that some fields require elevated access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail.
+//   "AUTHOR" - Author level detail.
+//   "READER" - Reader level detail.
 func (c *BlogsListByUserCall) View(view string) *BlogsListByUserCall {
 	c.opt_["view"] = view
 	return c
@@ -1071,7 +1114,7 @@ func (c *BlogsListByUserCall) Do() (*BlogList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1205,7 +1248,7 @@ func (c *CommentsApproveCall) Do() (*Comment, error) {
 		"postId":    c.postId,
 		"commentId": c.commentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1301,7 +1344,7 @@ func (c *CommentsDeleteCall) Do() error {
 		"postId":    c.postId,
 		"commentId": c.commentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1372,6 +1415,11 @@ func (r *CommentsService) Get(blogId string, postId string, commentId string) *C
 // require elevated permissions, for example comments where the parent
 // posts which is in a draft state, or comments that are pending
 // moderation.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Admin level detail
 func (c *CommentsGetCall) View(view string) *CommentsGetCall {
 	c.opt_["view"] = view
 	return c
@@ -1403,7 +1451,7 @@ func (c *CommentsGetCall) Do() (*Comment, error) {
 		"postId":    c.postId,
 		"commentId": c.commentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1526,6 +1574,12 @@ func (c *CommentsListCall) StartDate(startDate string) *CommentsListCall {
 }
 
 // Status sets the optional parameter "status":
+//
+// Possible values:
+//   "emptied" - Comments that have had their content removed
+//   "live" - Comments that are publicly visible
+//   "pending" - Comments that are awaiting administrator approval
+//   "spam" - Comments marked as spam by the administrator
 func (c *CommentsListCall) Status(status string) *CommentsListCall {
 	c.opt_["status"] = status
 	return c
@@ -1534,6 +1588,11 @@ func (c *CommentsListCall) Status(status string) *CommentsListCall {
 // View sets the optional parameter "view": Access level with which to
 // view the returned result. Note that some fields require elevated
 // access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *CommentsListCall) View(view string) *CommentsListCall {
 	c.opt_["view"] = view
 	return c
@@ -1582,7 +1641,7 @@ func (c *CommentsListCall) Do() (*CommentList, error) {
 		"blogId": c.blogId,
 		"postId": c.postId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1742,6 +1801,12 @@ func (c *CommentsListByBlogCall) StartDate(startDate string) *CommentsListByBlog
 }
 
 // Status sets the optional parameter "status":
+//
+// Possible values:
+//   "emptied" - Comments that have had their content removed
+//   "live" - Comments that are publicly visible
+//   "pending" - Comments that are awaiting administrator approval
+//   "spam" - Comments marked as spam by the administrator
 func (c *CommentsListByBlogCall) Status(status string) *CommentsListByBlogCall {
 	c.opt_["status"] = status
 	return c
@@ -1786,7 +1851,7 @@ func (c *CommentsListByBlogCall) Do() (*CommentList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1914,7 +1979,7 @@ func (c *CommentsMarkAsSpamCall) Do() (*Comment, error) {
 		"postId":    c.postId,
 		"commentId": c.commentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2010,7 +2075,7 @@ func (c *CommentsRemoveContentCall) Do() (*Comment, error) {
 		"postId":    c.postId,
 		"commentId": c.commentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2080,6 +2145,11 @@ func (r *PageViewsService) Get(blogId string) *PageViewsGetCall {
 }
 
 // Range sets the optional parameter "range":
+//
+// Possible values:
+//   "30DAYS" - Page view counts from the last thirty days.
+//   "7DAYS" - Page view counts from the last seven days.
+//   "all" - Total page view counts from all time.
 func (c *PageViewsGetCall) Range(range_ string) *PageViewsGetCall {
 	c.opt_["range"] = range_
 	return c
@@ -2109,7 +2179,7 @@ func (c *PageViewsGetCall) Do() (*Pageviews, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2203,7 +2273,7 @@ func (c *PagesDeleteCall) Do() error {
 		"blogId": c.blogId,
 		"pageId": c.pageId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2261,6 +2331,11 @@ func (r *PagesService) Get(blogId string, pageId string) *PagesGetCall {
 }
 
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *PagesGetCall) View(view string) *PagesGetCall {
 	c.opt_["view"] = view
 	return c
@@ -2291,7 +2366,7 @@ func (c *PagesGetCall) Do() (*Page, error) {
 		"blogId": c.blogId,
 		"pageId": c.pageId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2407,7 +2482,7 @@ func (c *PagesInsertCall) Do() (*Page, error) {
 		"blogId": c.blogId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2493,6 +2568,10 @@ func (c *PagesListCall) PageToken(pageToken string) *PagesListCall {
 }
 
 // Status sets the optional parameter "status":
+//
+// Possible values:
+//   "draft" - Draft (unpublished) Pages
+//   "live" - Pages that are publicly visible
 func (c *PagesListCall) Status(status string) *PagesListCall {
 	c.opt_["status"] = status
 	return c
@@ -2501,6 +2580,11 @@ func (c *PagesListCall) Status(status string) *PagesListCall {
 // View sets the optional parameter "view": Access level with which to
 // view the returned result. Note that some fields require elevated
 // access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *PagesListCall) View(view string) *PagesListCall {
 	c.opt_["view"] = view
 	return c
@@ -2542,7 +2626,7 @@ func (c *PagesListCall) Do() (*PageList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2694,7 +2778,7 @@ func (c *PagesPatchCall) Do() (*Page, error) {
 		"pageId": c.pageId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2793,7 +2877,7 @@ func (c *PagesPublishCall) Do() (*Page, error) {
 		"blogId": c.blogId,
 		"pageId": c.pageId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2879,7 +2963,7 @@ func (c *PagesRevertCall) Do() (*Page, error) {
 		"blogId": c.blogId,
 		"pageId": c.pageId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2993,7 +3077,7 @@ func (c *PagesUpdateCall) Do() (*Page, error) {
 		"pageId": c.pageId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3107,7 +3191,7 @@ func (c *PostUserInfosGetCall) Do() (*PostUserInfo, error) {
 		"blogId": c.blogId,
 		"postId": c.postId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3217,6 +3301,10 @@ func (c *PostUserInfosListCall) MaxResults(maxResults int64) *PostUserInfosListC
 
 // OrderBy sets the optional parameter "orderBy": Sort order applied to
 // search results. Default is published.
+//
+// Possible values:
+//   "published" - Order by the date the post was published
+//   "updated" - Order by the date the post was last updated
 func (c *PostUserInfosListCall) OrderBy(orderBy string) *PostUserInfosListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -3237,6 +3325,11 @@ func (c *PostUserInfosListCall) StartDate(startDate string) *PostUserInfosListCa
 }
 
 // Status sets the optional parameter "status":
+//
+// Possible values:
+//   "draft" - Draft posts
+//   "live" - Published posts
+//   "scheduled" - Posts that are scheduled to publish in future.
 func (c *PostUserInfosListCall) Status(status string) *PostUserInfosListCall {
 	c.opt_["status"] = status
 	return c
@@ -3245,6 +3338,11 @@ func (c *PostUserInfosListCall) Status(status string) *PostUserInfosListCall {
 // View sets the optional parameter "view": Access level with which to
 // view the returned result. Note that some fields require elevated
 // access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *PostUserInfosListCall) View(view string) *PostUserInfosListCall {
 	c.opt_["view"] = view
 	return c
@@ -3299,7 +3397,7 @@ func (c *PostUserInfosListCall) Do() (*PostUserInfosList, error) {
 		"userId": c.userId,
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3464,7 +3562,7 @@ func (c *PostsDeleteCall) Do() error {
 		"blogId": c.blogId,
 		"postId": c.postId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3547,6 +3645,11 @@ func (c *PostsGetCall) MaxComments(maxComments int64) *PostsGetCall {
 // View sets the optional parameter "view": Access level with which to
 // view the returned result. Note that some fields require elevated
 // access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *PostsGetCall) View(view string) *PostsGetCall {
 	c.opt_["view"] = view
 	return c
@@ -3586,7 +3689,7 @@ func (c *PostsGetCall) Do() (*Post, error) {
 		"blogId": c.blogId,
 		"postId": c.postId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3693,6 +3796,11 @@ func (c *PostsGetByPathCall) MaxComments(maxComments int64) *PostsGetByPathCall 
 // View sets the optional parameter "view": Access level with which to
 // view the returned result. Note that some fields require elevated
 // access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *PostsGetByPathCall) View(view string) *PostsGetByPathCall {
 	c.opt_["view"] = view
 	return c
@@ -3726,7 +3834,7 @@ func (c *PostsGetByPathCall) Do() (*Post, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3870,7 +3978,7 @@ func (c *PostsInsertCall) Do() (*Post, error) {
 		"blogId": c.blogId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3982,6 +4090,10 @@ func (c *PostsListCall) MaxResults(maxResults int64) *PostsListCall {
 }
 
 // OrderBy sets the optional parameter "orderBy": Sort search results
+//
+// Possible values:
+//   "published" - Order by the date the post was published
+//   "updated" - Order by the date the post was last updated
 func (c *PostsListCall) OrderBy(orderBy string) *PostsListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -4003,6 +4115,11 @@ func (c *PostsListCall) StartDate(startDate string) *PostsListCall {
 
 // Status sets the optional parameter "status": Statuses to include in
 // the results.
+//
+// Possible values:
+//   "draft" - Draft (non-published) posts.
+//   "live" - Published posts
+//   "scheduled" - Posts that are scheduled to publish in the future.
 func (c *PostsListCall) Status(status string) *PostsListCall {
 	c.opt_["status"] = status
 	return c
@@ -4011,6 +4128,11 @@ func (c *PostsListCall) Status(status string) *PostsListCall {
 // View sets the optional parameter "view": Access level with which to
 // view the returned result. Note that some fields require escalated
 // access.
+//
+// Possible values:
+//   "ADMIN" - Admin level detail
+//   "AUTHOR" - Author level detail
+//   "READER" - Reader level detail
 func (c *PostsListCall) View(view string) *PostsListCall {
 	c.opt_["view"] = view
 	return c
@@ -4067,7 +4189,7 @@ func (c *PostsListCall) Do() (*PostList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4290,7 +4412,7 @@ func (c *PostsPatchCall) Do() (*Post, error) {
 		"postId": c.postId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4420,7 +4542,7 @@ func (c *PostsPublishCall) Do() (*Post, error) {
 		"blogId": c.blogId,
 		"postId": c.postId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4512,7 +4634,7 @@ func (c *PostsRevertCall) Do() (*Post, error) {
 		"blogId": c.blogId,
 		"postId": c.postId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4586,6 +4708,10 @@ func (c *PostsSearchCall) FetchBodies(fetchBodies bool) *PostsSearchCall {
 }
 
 // OrderBy sets the optional parameter "orderBy": Sort search results
+//
+// Possible values:
+//   "published" - Order by the date the post was published
+//   "updated" - Order by the date the post was last updated
 func (c *PostsSearchCall) OrderBy(orderBy string) *PostsSearchCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -4619,7 +4745,7 @@ func (c *PostsSearchCall) Do() (*PostList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"blogId": c.blogId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4785,7 +4911,7 @@ func (c *PostsUpdateCall) Do() (*Post, error) {
 		"postId": c.postId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4898,7 +5024,7 @@ func (c *UsersGetCall) Do() (*User, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

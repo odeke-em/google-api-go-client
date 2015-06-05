@@ -46,6 +46,9 @@ const (
 	// Manage your YouTube account
 	YoutubeScope = "https://www.googleapis.com/auth/youtube"
 
+	// Manage your YouTube account
+	YoutubeForceSslScope = "https://www.googleapis.com/auth/youtube.force-ssl"
+
 	// View your YouTube account
 	YoutubeReadonlyScope = "https://www.googleapis.com/auth/youtube.readonly"
 
@@ -66,9 +69,12 @@ func New(client *http.Client) (*Service, error) {
 	}
 	s := &Service{client: client, BasePath: basePath}
 	s.Activities = NewActivitiesService(s)
+	s.Captions = NewCaptionsService(s)
 	s.ChannelBanners = NewChannelBannersService(s)
 	s.ChannelSections = NewChannelSectionsService(s)
 	s.Channels = NewChannelsService(s)
+	s.CommentThreads = NewCommentThreadsService(s)
+	s.Comments = NewCommentsService(s)
 	s.GuideCategories = NewGuideCategoriesService(s)
 	s.I18nLanguages = NewI18nLanguagesService(s)
 	s.I18nRegions = NewI18nRegionsService(s)
@@ -79,6 +85,7 @@ func New(client *http.Client) (*Service, error) {
 	s.Search = NewSearchService(s)
 	s.Subscriptions = NewSubscriptionsService(s)
 	s.Thumbnails = NewThumbnailsService(s)
+	s.VideoAbuseReportReasons = NewVideoAbuseReportReasonsService(s)
 	s.VideoCategories = NewVideoCategoriesService(s)
 	s.Videos = NewVideosService(s)
 	s.Watermarks = NewWatermarksService(s)
@@ -86,16 +93,23 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Activities *ActivitiesService
+
+	Captions *CaptionsService
 
 	ChannelBanners *ChannelBannersService
 
 	ChannelSections *ChannelSectionsService
 
 	Channels *ChannelsService
+
+	CommentThreads *CommentThreadsService
+
+	Comments *CommentsService
 
 	GuideCategories *GuideCategoriesService
 
@@ -117,11 +131,20 @@ type Service struct {
 
 	Thumbnails *ThumbnailsService
 
+	VideoAbuseReportReasons *VideoAbuseReportReasonsService
+
 	VideoCategories *VideoCategoriesService
 
 	Videos *VideosService
 
 	Watermarks *WatermarksService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewActivitiesService(s *Service) *ActivitiesService {
@@ -130,6 +153,15 @@ func NewActivitiesService(s *Service) *ActivitiesService {
 }
 
 type ActivitiesService struct {
+	s *Service
+}
+
+func NewCaptionsService(s *Service) *CaptionsService {
+	rs := &CaptionsService{s: s}
+	return rs
+}
+
+type CaptionsService struct {
 	s *Service
 }
 
@@ -157,6 +189,24 @@ func NewChannelsService(s *Service) *ChannelsService {
 }
 
 type ChannelsService struct {
+	s *Service
+}
+
+func NewCommentThreadsService(s *Service) *CommentThreadsService {
+	rs := &CommentThreadsService{s: s}
+	return rs
+}
+
+type CommentThreadsService struct {
+	s *Service
+}
+
+func NewCommentsService(s *Service) *CommentsService {
+	rs := &CommentsService{s: s}
+	return rs
+}
+
+type CommentsService struct {
 	s *Service
 }
 
@@ -247,6 +297,15 @@ func NewThumbnailsService(s *Service) *ThumbnailsService {
 }
 
 type ThumbnailsService struct {
+	s *Service
+}
+
+func NewVideoAbuseReportReasonsService(s *Service) *VideoAbuseReportReasonsService {
+	rs := &VideoAbuseReportReasonsService{s: s}
+	return rs
+}
+
+type VideoAbuseReportReasonsService struct {
 	s *Service
 }
 
@@ -421,6 +480,10 @@ type ActivityContentDetailsPromotedItem struct {
 
 	// CtaType: The type of call-to-action, a message to the user indicating
 	// action that can be taken.
+	//
+	// Possible values:
+	//   "unspecified"
+	//   "visitAdvertiserSite"
 	CtaType string `json:"ctaType,omitempty"`
 
 	// CustomCtaButtonText: The custom call-to-action button text. If
@@ -451,6 +514,12 @@ type ActivityContentDetailsPromotedItem struct {
 
 type ActivityContentDetailsRecommendation struct {
 	// Reason: The reason that the resource is recommended to the user.
+	//
+	// Possible values:
+	//   "unspecified"
+	//   "videoFavorited"
+	//   "videoLiked"
+	//   "videoWatched"
 	Reason string `json:"reason,omitempty"`
 
 	// ResourceId: The resourceId object contains information that
@@ -477,6 +546,12 @@ type ActivityContentDetailsSocial struct {
 	ResourceId *ResourceId `json:"resourceId,omitempty"`
 
 	// Type: The name of the social network.
+	//
+	// Possible values:
+	//   "facebook"
+	//   "googlePlus"
+	//   "twitter"
+	//   "unspecified"
 	Type string `json:"type,omitempty"`
 }
 
@@ -560,7 +635,137 @@ type ActivitySnippet struct {
 	Title string `json:"title,omitempty"`
 
 	// Type: The type of activity that the resource describes.
+	//
+	// Possible values:
+	//   "bulletin"
+	//   "channelItem"
+	//   "comment"
+	//   "favorite"
+	//   "like"
+	//   "playlistItem"
+	//   "promotedItem"
+	//   "recommendation"
+	//   "social"
+	//   "subscription"
+	//   "upload"
 	Type string `json:"type,omitempty"`
+}
+
+type Caption struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID that YouTube uses to uniquely identify the caption track.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#caption".
+	Kind string `json:"kind,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the caption.
+	Snippet *CaptionSnippet `json:"snippet,omitempty"`
+}
+
+type CaptionListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of captions that match the request criteria.
+	Items []*Caption `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#captionListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type CaptionSnippet struct {
+	// AudioTrackType: The type of audio track associated with the caption
+	// track.
+	//
+	// Possible values:
+	//   "commentary"
+	//   "descriptive"
+	//   "primary"
+	//   "unknown"
+	AudioTrackType string `json:"audioTrackType,omitempty"`
+
+	// FailureReason: The reason that YouTube failed to process the caption
+	// track. This property is only present if the state property's value is
+	// failed.
+	//
+	// Possible values:
+	//   "processingFailed"
+	//   "unknownFormat"
+	//   "unsupportedFormat"
+	FailureReason string `json:"failureReason,omitempty"`
+
+	// IsAutoSynced: Indicates whether YouTube synchronized the caption
+	// track to the audio track in the video. The value will be true if a
+	// sync was explicitly requested when the caption track was uploaded.
+	// For example, when calling the captions.insert or captions.update
+	// methods, you can set the sync parameter to true to instruct YouTube
+	// to sync the uploaded track to the video. If the value is false,
+	// YouTube uses the time codes in the uploaded caption track to
+	// determine when to display captions.
+	IsAutoSynced bool `json:"isAutoSynced,omitempty"`
+
+	// IsCC: Indicates whether the track contains closed captions for the
+	// deaf and hard of hearing. The default value is false.
+	IsCC bool `json:"isCC,omitempty"`
+
+	// IsDraft: Indicates whether the caption track is a draft. If the value
+	// is true, then the track is not publicly visible. The default value is
+	// false.
+	IsDraft bool `json:"isDraft,omitempty"`
+
+	// IsEasyReader: Indicates whether caption track is formatted for "easy
+	// reader," meaning it is at a third-grade level for language learners.
+	// The default value is false.
+	IsEasyReader bool `json:"isEasyReader,omitempty"`
+
+	// IsLarge: Indicates whether the caption track uses large text for the
+	// vision-impaired. The default value is false.
+	IsLarge bool `json:"isLarge,omitempty"`
+
+	// Language: The language of the caption track. The property value is a
+	// BCP-47 language tag.
+	Language string `json:"language,omitempty"`
+
+	// LastUpdated: The date and time when the caption track was last
+	// updated. The value is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ)
+	// format.
+	LastUpdated string `json:"lastUpdated,omitempty"`
+
+	// Name: The name of the caption track. The name is intended to be
+	// visible to the user as an option during playback.
+	Name string `json:"name,omitempty"`
+
+	// Status: The caption track's status.
+	//
+	// Possible values:
+	//   "failed"
+	//   "serving"
+	//   "syncing"
+	Status string `json:"status,omitempty"`
+
+	// TrackKind: The caption track's type.
+	//
+	// Possible values:
+	//   "ASR"
+	//   "forced"
+	//   "standard"
+	TrackKind string `json:"trackKind,omitempty"`
+
+	// VideoId: The ID that YouTube uses to uniquely identify the video
+	// associated with the caption track.
+	VideoId string `json:"videoId,omitempty"`
 }
 
 type CdnSettings struct {
@@ -575,6 +780,10 @@ type CdnSettings struct {
 
 	// IngestionType: The method or protocol used to transmit the video
 	// stream.
+	//
+	// Possible values:
+	//   "dash"
+	//   "rtmp"
 	IngestionType string `json:"ingestionType,omitempty"`
 }
 
@@ -729,6 +938,11 @@ type ChannelContentOwnerDetails struct {
 
 type ChannelConversionPing struct {
 	// Context: Defines the context of the ping.
+	//
+	// Possible values:
+	//   "cview"
+	//   "subscribe"
+	//   "unsubscribe"
 	Context string `json:"context,omitempty"`
 
 	// ConversionUrl: The url (without the schema) that the player shall
@@ -747,6 +961,10 @@ type ChannelConversionPings struct {
 	// cookie). Each ping has a context, in which the app must fire the
 	// ping, and a url identifying the ping.
 	Pings []*ChannelConversionPing `json:"pings,omitempty"`
+}
+
+type ChannelId struct {
+	Value string `json:"value,omitempty"`
 }
 
 type ChannelListResponse struct {
@@ -784,7 +1002,7 @@ type ChannelLocalization struct {
 	// Description: The localized strings for channel's description.
 	Description string `json:"description,omitempty"`
 
-	// Title: The localized strings for channel's title, read-only.
+	// Title: The localized strings for channel's title.
 	Title string `json:"title,omitempty"`
 }
 
@@ -811,6 +1029,10 @@ type ChannelSection struct {
 	// Snippet: The snippet object contains basic details about the channel
 	// section, such as its type, style and title.
 	Snippet *ChannelSectionSnippet `json:"snippet,omitempty"`
+
+	// Targeting: The targeting object contains basic targeting settings
+	// about the channel section.
+	Targeting *ChannelSectionTargeting `json:"targeting,omitempty"`
 }
 
 type ChannelSectionContentDetails struct {
@@ -863,6 +1085,11 @@ type ChannelSectionSnippet struct {
 	Position int64 `json:"position,omitempty"`
 
 	// Style: The style of the channel section.
+	//
+	// Possible values:
+	//   "channelsectionStyleUndefined"
+	//   "horizontalRow"
+	//   "verticalList"
 	Style string `json:"style,omitempty"`
 
 	// Title: The channel section's title for multiple_playlists and
@@ -870,10 +1097,43 @@ type ChannelSectionSnippet struct {
 	Title string `json:"title,omitempty"`
 
 	// Type: The type of the channel section.
+	//
+	// Possible values:
+	//   "allPlaylists"
+	//   "channelsectionTypeUndefined"
+	//   "completedEvents"
+	//   "likedPlaylists"
+	//   "likes"
+	//   "liveEvents"
+	//   "multipleChannels"
+	//   "multiplePlaylists"
+	//   "popularUploads"
+	//   "postedPlaylists"
+	//   "postedVideos"
+	//   "recentActivity"
+	//   "recentPosts"
+	//   "recentUploads"
+	//   "singlePlaylist"
+	//   "subscriptions"
+	//   "upcomingEvents"
 	Type string `json:"type,omitempty"`
 }
 
+type ChannelSectionTargeting struct {
+	// Countries: The country the channel section is targeting.
+	Countries []string `json:"countries,omitempty"`
+
+	// Languages: The language the channel section is targeting.
+	Languages []string `json:"languages,omitempty"`
+
+	// Regions: The region the channel section is targeting.
+	Regions []string `json:"regions,omitempty"`
+}
+
 type ChannelSettings struct {
+	// Country: The country of the channel.
+	Country string `json:"country,omitempty"`
+
 	DefaultLanguage string `json:"defaultLanguage,omitempty"`
 
 	// DefaultTab: Which content tab users should see when viewing the
@@ -921,6 +1181,9 @@ type ChannelSettings struct {
 }
 
 type ChannelSnippet struct {
+	// Country: The country of the channel.
+	Country string `json:"country,omitempty"`
+
 	// DefaultLanguage: The language of the channel's default title and
 	// description.
 	DefaultLanguage string `json:"defaultLanguage,omitempty"`
@@ -970,9 +1233,20 @@ type ChannelStatus struct {
 	IsLinked bool `json:"isLinked,omitempty"`
 
 	// LongUploadsStatus: The long uploads status of this channel. See
+	//
+	// Possible values:
+	//   "allowed"
+	//   "disallowed"
+	//   "eligible"
+	//   "longUploadsUnspecified"
 	LongUploadsStatus string `json:"longUploadsStatus,omitempty"`
 
 	// PrivacyStatus: Privacy status of the channel.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 }
 
@@ -983,230 +1257,958 @@ type ChannelTopicDetails struct {
 	TopicIds []string `json:"topicIds,omitempty"`
 }
 
+type Comment struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID that YouTube uses to uniquely identify the comment.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#comment".
+	Kind string `json:"kind,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the comment.
+	Snippet *CommentSnippet `json:"snippet,omitempty"`
+}
+
+type CommentListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of comments that match the request criteria.
+	Items []*Comment `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#commentListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// NextPageToken: The token that can be used as the value of the
+	// pageToken parameter to retrieve the next page in the result set.
+	NextPageToken string `json:"nextPageToken,omitempty"`
+
+	PageInfo *PageInfo `json:"pageInfo,omitempty"`
+
+	TokenPagination *TokenPagination `json:"tokenPagination,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type CommentSnippet struct {
+	// AuthorChannelId: The id of the author's YouTube channel, if any.
+	AuthorChannelId *ChannelId `json:"authorChannelId,omitempty"`
+
+	// AuthorChannelUrl: Link to the author's YouTube channel, if any.
+	AuthorChannelUrl string `json:"authorChannelUrl,omitempty"`
+
+	// AuthorDisplayName: The name of the user who posted the comment.
+	AuthorDisplayName string `json:"authorDisplayName,omitempty"`
+
+	// AuthorGoogleplusProfileUrl: Link to the author's Google+ profile, if
+	// any.
+	AuthorGoogleplusProfileUrl string `json:"authorGoogleplusProfileUrl,omitempty"`
+
+	// AuthorProfileImageUrl: The URL for the avatar of the user who posted
+	// the comment.
+	AuthorProfileImageUrl string `json:"authorProfileImageUrl,omitempty"`
+
+	// CanRate: Whether the current viewer can rate this comment.
+	CanRate bool `json:"canRate,omitempty"`
+
+	// ChannelId: The id of the corresponding YouTube channel. In case of a
+	// channel comment this is the channel the comment refers to. In case of
+	// a video comment it's the video's channel.
+	ChannelId string `json:"channelId,omitempty"`
+
+	// LikeCount: The total number of likes this comment has received.
+	LikeCount int64 `json:"likeCount,omitempty"`
+
+	// ModerationStatus: The comment's moderation status. Will not be set if
+	// the comments were requested through the id filter.
+	//
+	// Possible values:
+	//   "heldForReview"
+	//   "likelySpam"
+	//   "published"
+	//   "rejected"
+	ModerationStatus string `json:"moderationStatus,omitempty"`
+
+	// ParentId: The unique id of the parent comment, only set for replies.
+	ParentId string `json:"parentId,omitempty"`
+
+	// PublishedAt: The date and time when the comment was orignally
+	// published. The value is specified in ISO 8601
+	// (YYYY-MM-DDThh:mm:ss.sZ) format.
+	PublishedAt string `json:"publishedAt,omitempty"`
+
+	// TextDisplay: The comment's text. The format is either plain text or
+	// HTML dependent on what has been requested. Even the plain text
+	// representation may differ from the text originally posted in that it
+	// may replace video links with video titles etc.
+	TextDisplay string `json:"textDisplay,omitempty"`
+
+	// TextOriginal: The comment's original raw text as initially posted or
+	// last updated. The original text will only be returned if it is
+	// accessible to the viewer, which is only guaranteed if the viewer is
+	// the comment's author.
+	TextOriginal string `json:"textOriginal,omitempty"`
+
+	// UpdatedAt: The date and time when was last updated . The value is
+	// specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.
+	UpdatedAt string `json:"updatedAt,omitempty"`
+
+	// VideoId: The ID of the video the comment refers to, if any.
+	VideoId string `json:"videoId,omitempty"`
+
+	// ViewerRating: The rating the viewer has given to this comment. For
+	// the time being this will never return RATE_TYPE_DISLIKE and instead
+	// return RATE_TYPE_NONE. This may change in the future.
+	//
+	// Possible values:
+	//   "dislike"
+	//   "like"
+	//   "none"
+	//   "unspecified"
+	ViewerRating string `json:"viewerRating,omitempty"`
+}
+
+type CommentThread struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID that YouTube uses to uniquely identify the comment thread.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#commentThread".
+	Kind string `json:"kind,omitempty"`
+
+	// Replies: The replies object contains a limited number of replies (if
+	// any) to the top level comment found in the snippet.
+	Replies *CommentThreadReplies `json:"replies,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the comment
+	// thread and also the top level comment.
+	Snippet *CommentThreadSnippet `json:"snippet,omitempty"`
+}
+
+type CommentThreadListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of comment threads that match the request criteria.
+	Items []*CommentThread `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#commentThreadListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// NextPageToken: The token that can be used as the value of the
+	// pageToken parameter to retrieve the next page in the result set.
+	NextPageToken string `json:"nextPageToken,omitempty"`
+
+	PageInfo *PageInfo `json:"pageInfo,omitempty"`
+
+	TokenPagination *TokenPagination `json:"tokenPagination,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type CommentThreadReplies struct {
+	// Comments: A limited number of replies. Unless the number of replies
+	// returned equals total_reply_count in the snippet the returned replies
+	// are only a subset of the total number of replies.
+	Comments []*Comment `json:"comments,omitempty"`
+}
+
+type CommentThreadSnippet struct {
+	// CanReply: Whether the current viewer of the thread can reply to it.
+	// This is viewer specific - other viewers may see a different value for
+	// this field.
+	CanReply bool `json:"canReply,omitempty"`
+
+	// ChannelId: The YouTube channel the comments in the thread refer to or
+	// the channel with the video the comments refer to. If video_id isn't
+	// set the comments refer to the channel itself.
+	ChannelId string `json:"channelId,omitempty"`
+
+	// IsPublic: Whether the thread (and therefore all its comments) is
+	// visible to all YouTube users.
+	IsPublic bool `json:"isPublic,omitempty"`
+
+	// TopLevelComment: The top level comment of this thread.
+	TopLevelComment *Comment `json:"topLevelComment,omitempty"`
+
+	// TotalReplyCount: The total number of replies (not including the top
+	// level comment).
+	TotalReplyCount int64 `json:"totalReplyCount,omitempty"`
+
+	// VideoId: The ID of the video the comments refer to, if any. No
+	// video_id implies a channel discussion comment.
+	VideoId string `json:"videoId,omitempty"`
+}
+
 type ContentRating struct {
 	// AcbRating: Rating system in Australia - Australian Classification
 	// Board
+	//
+	// Possible values:
+	//   "acbC"
+	//   "acbE"
+	//   "acbG"
+	//   "acbM"
+	//   "acbMa15plus"
+	//   "acbP"
+	//   "acbPg"
+	//   "acbR18plus"
+	//   "acbUnrated"
 	AcbRating string `json:"acbRating,omitempty"`
 
 	// AgcomRating: Rating system for Italy - Autorit� per le Garanzie
 	// nelle Comunicazioni
+	//
+	// Possible values:
+	//   "agcomT"
+	//   "agcomUnrated"
+	//   "agcomVm14"
+	//   "agcomVm18"
 	AgcomRating string `json:"agcomRating,omitempty"`
 
 	// AnatelRating: Rating system for Chile - Asociaci�n Nacional de
 	// Televisi�n
+	//
+	// Possible values:
+	//   "anatelA"
+	//   "anatelF"
+	//   "anatelI"
+	//   "anatelI10"
+	//   "anatelI12"
+	//   "anatelI7"
+	//   "anatelR"
+	//   "anatelUnrated"
 	AnatelRating string `json:"anatelRating,omitempty"`
 
 	// BbfcRating: British Board of Film Classification
+	//
+	// Possible values:
+	//   "bbfc12"
+	//   "bbfc12a"
+	//   "bbfc15"
+	//   "bbfc18"
+	//   "bbfcPg"
+	//   "bbfcR18"
+	//   "bbfcU"
+	//   "bbfcUnrated"
 	BbfcRating string `json:"bbfcRating,omitempty"`
 
 	// BfvcRating: Rating system for Thailand - Board of Filmand Video
 	// Censors
+	//
+	// Possible values:
+	//   "bfvc13"
+	//   "bfvc15"
+	//   "bfvc18"
+	//   "bfvc20"
+	//   "bfvcB"
+	//   "bfvcE"
+	//   "bfvcG"
+	//   "bfvcUnrated"
 	BfvcRating string `json:"bfvcRating,omitempty"`
 
 	// BmukkRating: Rating system for Austria - Bundesministeriums f�r
 	// Unterricht, Kunst und Kultur!
+	//
+	// Possible values:
+	//   "bmukk10"
+	//   "bmukk12"
+	//   "bmukk14"
+	//   "bmukk16"
+	//   "bmukk6"
+	//   "bmukk8"
+	//   "bmukkAa"
+	//   "bmukkUnrated"
 	BmukkRating string `json:"bmukkRating,omitempty"`
 
 	// CatvRating: Rating system for Canadian TV - Canadian TV
 	// Classification System
+	//
+	// Possible values:
+	//   "catv14plus"
+	//   "catv18plus"
+	//   "catvC"
+	//   "catvC8"
+	//   "catvG"
+	//   "catvPg"
+	//   "catvUnrated"
 	CatvRating string `json:"catvRating,omitempty"`
 
 	// CatvfrRating: Rating system for French Canadian TV - Regie du cinema
+	//
+	// Possible values:
+	//   "catvfr13plus"
+	//   "catvfr16plus"
+	//   "catvfr18plus"
+	//   "catvfr8plus"
+	//   "catvfrG"
+	//   "catvfrUnrated"
 	CatvfrRating string `json:"catvfrRating,omitempty"`
 
 	// CbfcRating: Rating system in India - Central Board of Film
 	// Certification
+	//
+	// Possible values:
+	//   "cbfcA"
+	//   "cbfcS"
+	//   "cbfcU"
+	//   "cbfcUA"
+	//   "cbfcUnrated"
 	CbfcRating string `json:"cbfcRating,omitempty"`
 
 	// CccRating: Rating system for Chile - Consejo de Calificaci�n
 	// Cinematogr�fica
+	//
+	// Possible values:
+	//   "ccc14"
+	//   "ccc18"
+	//   "ccc18s"
+	//   "ccc18v"
+	//   "ccc6"
+	//   "cccTe"
+	//   "cccUnrated"
 	CccRating string `json:"cccRating,omitempty"`
 
 	// CceRating: Rating system for Portugal - Comiss�o de
 	// Classifica��o de Espect�culos
+	//
+	// Possible values:
+	//   "cceM12"
+	//   "cceM16"
+	//   "cceM18"
+	//   "cceM4"
+	//   "cceM6"
+	//   "cceUnrated"
 	CceRating string `json:"cceRating,omitempty"`
 
 	// ChfilmRating: Rating system for Switzerland - Switzerland Rating
 	// System
+	//
+	// Possible values:
+	//   "chfilm0"
+	//   "chfilm12"
+	//   "chfilm16"
+	//   "chfilm18"
+	//   "chfilm6"
+	//   "chfilmUnrated"
 	ChfilmRating string `json:"chfilmRating,omitempty"`
 
 	// ChvrsRating: Canadian Home Video Rating System
+	//
+	// Possible values:
+	//   "chvrs14a"
+	//   "chvrs18a"
+	//   "chvrsE"
+	//   "chvrsG"
+	//   "chvrsPg"
+	//   "chvrsR"
+	//   "chvrsUnrated"
 	ChvrsRating string `json:"chvrsRating,omitempty"`
 
 	// CicfRating: Rating system for Belgium - Belgium Rating System
+	//
+	// Possible values:
+	//   "cicfE"
+	//   "cicfKntEna"
+	//   "cicfKtEa"
+	//   "cicfUnrated"
 	CicfRating string `json:"cicfRating,omitempty"`
 
 	// CnaRating: Rating system for Romania - CONSILIUL NATIONAL AL
 	// AUDIOVIZUALULUI - CNA
+	//
+	// Possible values:
+	//   "cna12"
+	//   "cna15"
+	//   "cna18"
+	//   "cna18plus"
+	//   "cnaAp"
+	//   "cnaUnrated"
 	CnaRating string `json:"cnaRating,omitempty"`
 
 	// CsaRating: Rating system for France - Conseil sup�rieur de
 	// l?audiovisuel
+	//
+	// Possible values:
+	//   "csa10"
+	//   "csa12"
+	//   "csa16"
+	//   "csa18"
+	//   "csaInterdiction"
+	//   "csaUnrated"
 	CsaRating string `json:"csaRating,omitempty"`
 
 	// CscfRating: Rating system for Luxembourg - Commission de surveillance
 	// de la classification des films
+	//
+	// Possible values:
+	//   "cscf12"
+	//   "cscf16"
+	//   "cscf18"
+	//   "cscf6"
+	//   "cscfA"
+	//   "cscfUnrated"
 	CscfRating string `json:"cscfRating,omitempty"`
 
 	// CzfilmRating: Rating system for Czech republic - Czech republic
 	// Rating System
+	//
+	// Possible values:
+	//   "czfilm12"
+	//   "czfilm14"
+	//   "czfilm18"
+	//   "czfilmU"
+	//   "czfilmUnrated"
 	CzfilmRating string `json:"czfilmRating,omitempty"`
 
 	// DjctqRating: Rating system in Brazil - Department of Justice, Rating,
 	// Titles and Qualification
+	//
+	// Possible values:
+	//   "djctq10"
+	//   "djctq12"
+	//   "djctq14"
+	//   "djctq16"
+	//   "djctq18"
+	//   "djctqL"
+	//   "djctqUnrated"
 	DjctqRating string `json:"djctqRating,omitempty"`
 
 	DjctqRatingReasons []string `json:"djctqRatingReasons,omitempty"`
 
 	// EefilmRating: Rating system for Estonia - Estonia Rating System
+	//
+	// Possible values:
+	//   "eefilmK12"
+	//   "eefilmK14"
+	//   "eefilmK16"
+	//   "eefilmK6"
+	//   "eefilmL"
+	//   "eefilmMs12"
+	//   "eefilmMs6"
+	//   "eefilmPere"
+	//   "eefilmUnrated"
 	EefilmRating string `json:"eefilmRating,omitempty"`
 
 	// EgfilmRating: Rating system for Egypt - Egypt Rating System
+	//
+	// Possible values:
+	//   "egfilm18"
+	//   "egfilmBn"
+	//   "egfilmGn"
+	//   "egfilmUnrated"
 	EgfilmRating string `json:"egfilmRating,omitempty"`
 
 	// EirinRating: Rating system in Japan - Eiga Rinri Kanri Iinkai
+	//
+	// Possible values:
+	//   "eirinG"
+	//   "eirinPg12"
+	//   "eirinR15plus"
+	//   "eirinR18plus"
+	//   "eirinUnrated"
 	EirinRating string `json:"eirinRating,omitempty"`
 
 	// FcbmRating: Rating system for Malaysia - Film Censorship Board of
 	// Malaysia
+	//
+	// Possible values:
+	//   "fcbm18"
+	//   "fcbm18pa"
+	//   "fcbm18pl"
+	//   "fcbm18sg"
+	//   "fcbm18sx"
+	//   "fcbmP13"
+	//   "fcbmU"
+	//   "fcbmUnrated"
 	FcbmRating string `json:"fcbmRating,omitempty"`
 
 	// FcoRating: Rating system for Hong kong - Office for Film, Newspaper
 	// and Article Administration
+	//
+	// Possible values:
+	//   "fcoI"
+	//   "fcoIia"
+	//   "fcoIib"
+	//   "fcoIii"
+	//   "fcoUnrated"
 	FcoRating string `json:"fcoRating,omitempty"`
 
 	// FmocRating: Rating system in France - French Minister of Culture
+	//
+	// Possible values:
+	//   "fmoc10"
+	//   "fmoc12"
+	//   "fmoc16"
+	//   "fmoc18"
+	//   "fmocE"
+	//   "fmocU"
+	//   "fmocUnrated"
 	FmocRating string `json:"fmocRating,omitempty"`
 
 	// FpbRating: Rating system for South africa - Film & Publication Board
+	//
+	// Possible values:
+	//   "fpb1012Pg"
+	//   "fpb13"
+	//   "fpb16"
+	//   "fpb18"
+	//   "fpb79Pg"
+	//   "fpbA"
+	//   "fpbPg"
+	//   "fpbUnrated"
+	//   "fpbX18"
+	//   "fpbXx"
 	FpbRating string `json:"fpbRating,omitempty"`
 
 	// FskRating: Rating system in Germany - Voluntary Self Regulation of
 	// the Movie Industry
+	//
+	// Possible values:
+	//   "fsk0"
+	//   "fsk12"
+	//   "fsk16"
+	//   "fsk18"
+	//   "fsk6"
+	//   "fskUnrated"
 	FskRating string `json:"fskRating,omitempty"`
 
 	// GrfilmRating: Rating system for Greece - Greece Rating System
+	//
+	// Possible values:
+	//   "grfilmE"
+	//   "grfilmK"
+	//   "grfilmK13"
+	//   "grfilmK17"
+	//   "grfilmUnrated"
 	GrfilmRating string `json:"grfilmRating,omitempty"`
 
 	// IcaaRating: Rating system in Spain - Instituto de Cinematografia y de
 	// las Artes Audiovisuales
+	//
+	// Possible values:
+	//   "icaa12"
+	//   "icaa13"
+	//   "icaa16"
+	//   "icaa18"
+	//   "icaa7"
+	//   "icaaApta"
+	//   "icaaUnrated"
+	//   "icaaX"
 	IcaaRating string `json:"icaaRating,omitempty"`
 
 	// IfcoRating: Rating system in Ireland - Irish Film Classification
 	// Office
+	//
+	// Possible values:
+	//   "ifco12"
+	//   "ifco15"
+	//   "ifco18"
+	//   "ifcoG"
+	//   "ifcoPg"
+	//   "ifcoUnrated"
 	IfcoRating string `json:"ifcoRating,omitempty"`
 
 	// IlfilmRating: Rating system for Israel - Israel Rating System
+	//
+	// Possible values:
+	//   "ilfilm12"
+	//   "ilfilm16"
+	//   "ilfilm18"
+	//   "ilfilmAa"
+	//   "ilfilmUnrated"
 	IlfilmRating string `json:"ilfilmRating,omitempty"`
 
 	// IncaaRating: Rating system for Argentina - Instituto Nacional de Cine
 	// y Artes Audiovisuales
+	//
+	// Possible values:
+	//   "incaaAtp"
+	//   "incaaC"
+	//   "incaaSam13"
+	//   "incaaSam16"
+	//   "incaaSam18"
+	//   "incaaUnrated"
 	IncaaRating string `json:"incaaRating,omitempty"`
 
 	// KfcbRating: Rating system for Kenya - Kenya Film Classification Board
+	//
+	// Possible values:
+	//   "kfcb16plus"
+	//   "kfcbG"
+	//   "kfcbPg"
+	//   "kfcbR"
+	//   "kfcbUnrated"
 	KfcbRating string `json:"kfcbRating,omitempty"`
 
 	// KijkwijzerRating: Rating system for Netherlands - Nederlands
 	// Instituut voor de Classificatie van Audiovisuele Media
+	//
+	// Possible values:
+	//   "kijkwijzer12"
+	//   "kijkwijzer16"
+	//   "kijkwijzer6"
+	//   "kijkwijzer9"
+	//   "kijkwijzerAl"
+	//   "kijkwijzerUnrated"
 	KijkwijzerRating string `json:"kijkwijzerRating,omitempty"`
 
 	// KmrbRating: Rating system in South Korea - Korea Media Rating Board
+	//
+	// Possible values:
+	//   "kmrb12plus"
+	//   "kmrb15plus"
+	//   "kmrbAll"
+	//   "kmrbR"
+	//   "kmrbTeenr"
+	//   "kmrbUnrated"
 	KmrbRating string `json:"kmrbRating,omitempty"`
 
 	// LsfRating: Rating system for Indonesia - Lembaga Sensor Film
+	//
+	// Possible values:
+	//   "lsfA"
+	//   "lsfBo"
+	//   "lsfD"
+	//   "lsfR"
+	//   "lsfSu"
+	//   "lsfUnrated"
 	LsfRating string `json:"lsfRating,omitempty"`
 
 	// MccaaRating: Rating system for Malta - Film Age-Classification Board
+	//
+	// Possible values:
+	//   "mccaa12"
+	//   "mccaa12a"
+	//   "mccaa14"
+	//   "mccaa15"
+	//   "mccaa16"
+	//   "mccaa18"
+	//   "mccaaPg"
+	//   "mccaaU"
+	//   "mccaaUnrated"
 	MccaaRating string `json:"mccaaRating,omitempty"`
 
 	// MccypRating: Rating system for Denmark - The Media Council for
 	// Children and Young People
+	//
+	// Possible values:
+	//   "mccyp11"
+	//   "mccyp15"
+	//   "mccyp7"
+	//   "mccypA"
+	//   "mccypUnrated"
 	MccypRating string `json:"mccypRating,omitempty"`
 
 	// MdaRating: Rating system for Singapore - Media Development Authority
+	//
+	// Possible values:
+	//   "mdaG"
+	//   "mdaM18"
+	//   "mdaNc16"
+	//   "mdaPg"
+	//   "mdaPg13"
+	//   "mdaR21"
+	//   "mdaUnrated"
 	MdaRating string `json:"mdaRating,omitempty"`
 
 	// MedietilsynetRating: Rating system for Norway - Medietilsynet
+	//
+	// Possible values:
+	//   "medietilsynet11"
+	//   "medietilsynet15"
+	//   "medietilsynet18"
+	//   "medietilsynet7"
+	//   "medietilsynetA"
+	//   "medietilsynetUnrated"
 	MedietilsynetRating string `json:"medietilsynetRating,omitempty"`
 
 	// MekuRating: Rating system for Finland - Finnish Centre for Media
 	// Education and Audiovisual Media
+	//
+	// Possible values:
+	//   "meku12"
+	//   "meku16"
+	//   "meku18"
+	//   "meku7"
+	//   "mekuS"
+	//   "mekuUnrated"
 	MekuRating string `json:"mekuRating,omitempty"`
 
 	// MibacRating: Rating system in Italy - Ministero dei Beni e delle
 	// Attivita Culturali e del Turismo
+	//
+	// Possible values:
+	//   "mibacT"
+	//   "mibacUnrated"
+	//   "mibacVap"
+	//   "mibacVm12"
+	//   "mibacVm14"
+	//   "mibacVm18"
 	MibacRating string `json:"mibacRating,omitempty"`
 
 	// MocRating: Rating system for Colombia - MoC
+	//
+	// Possible values:
+	//   "moc12"
+	//   "moc15"
+	//   "moc18"
+	//   "moc7"
+	//   "mocBanned"
+	//   "mocE"
+	//   "mocT"
+	//   "mocUnrated"
+	//   "mocX"
 	MocRating string `json:"mocRating,omitempty"`
 
 	// MoctwRating: Rating system for Taiwan - Ministry of Culture - Tawan
+	//
+	// Possible values:
+	//   "moctwG"
+	//   "moctwP"
+	//   "moctwPg"
+	//   "moctwR"
+	//   "moctwUnrated"
 	MoctwRating string `json:"moctwRating,omitempty"`
 
 	// MpaaRating: Motion Picture Association of America rating for the
 	// content.
+	//
+	// Possible values:
+	//   "mpaaG"
+	//   "mpaaNc17"
+	//   "mpaaPg"
+	//   "mpaaPg13"
+	//   "mpaaR"
+	//   "mpaaUnrated"
 	MpaaRating string `json:"mpaaRating,omitempty"`
 
 	// MtrcbRating: Rating system for Philippines - MOVIE AND TELEVISION
 	// REVIEW AND CLASSIFICATION BOARD
+	//
+	// Possible values:
+	//   "mtrcbG"
+	//   "mtrcbPg"
+	//   "mtrcbR13"
+	//   "mtrcbR16"
+	//   "mtrcbR18"
+	//   "mtrcbUnrated"
+	//   "mtrcbX"
 	MtrcbRating string `json:"mtrcbRating,omitempty"`
 
 	// NbcRating: Rating system for Maldives - National Bureau of
 	// Classification
+	//
+	// Possible values:
+	//   "nbc12plus"
+	//   "nbc15plus"
+	//   "nbc18plus"
+	//   "nbc18plusr"
+	//   "nbcG"
+	//   "nbcPg"
+	//   "nbcPu"
+	//   "nbcUnrated"
 	NbcRating string `json:"nbcRating,omitempty"`
 
 	// NbcplRating: Rating system for Poland - National Broadcasting Council
+	//
+	// Possible values:
+	//   "nbcpl18plus"
+	//   "nbcplI"
+	//   "nbcplIi"
+	//   "nbcplIii"
+	//   "nbcplIv"
+	//   "nbcplUnrated"
 	NbcplRating string `json:"nbcplRating,omitempty"`
 
 	// NfrcRating: Rating system for Bulgaria - National Film Centre
+	//
+	// Possible values:
+	//   "nfrcA"
+	//   "nfrcB"
+	//   "nfrcC"
+	//   "nfrcD"
+	//   "nfrcUnrated"
+	//   "nfrcX"
 	NfrcRating string `json:"nfrcRating,omitempty"`
 
 	// NfvcbRating: Rating system for Nigeria - National Film and Video
 	// Censors Board
+	//
+	// Possible values:
+	//   "nfvcb12"
+	//   "nfvcb12a"
+	//   "nfvcb15"
+	//   "nfvcb18"
+	//   "nfvcbG"
+	//   "nfvcbPg"
+	//   "nfvcbRe"
+	//   "nfvcbUnrated"
 	NfvcbRating string `json:"nfvcbRating,omitempty"`
 
 	// NkclvRating: Rating system for Latvia - National Film Center of
 	// Latvia
+	//
+	// Possible values:
+	//   "nkclv12plus"
+	//   "nkclv18plus"
+	//   "nkclv7plus"
+	//   "nkclvU"
+	//   "nkclvUnrated"
 	NkclvRating string `json:"nkclvRating,omitempty"`
 
 	// OflcRating: Rating system in New Zealand - Office of Film and
 	// Literature Classification
+	//
+	// Possible values:
+	//   "oflcG"
+	//   "oflcM"
+	//   "oflcPg"
+	//   "oflcR13"
+	//   "oflcR15"
+	//   "oflcR16"
+	//   "oflcR18"
+	//   "oflcRp13"
+	//   "oflcRp16"
+	//   "oflcUnrated"
 	OflcRating string `json:"oflcRating,omitempty"`
 
 	// PefilmRating: Rating system for Peru - Peru Rating System
+	//
+	// Possible values:
+	//   "pefilm14"
+	//   "pefilm18"
+	//   "pefilmPg"
+	//   "pefilmPt"
+	//   "pefilmUnrated"
 	PefilmRating string `json:"pefilmRating,omitempty"`
 
 	// RcnofRating: Rating system for Hungary - Rating Committee of the
 	// National Office of Film
+	//
+	// Possible values:
+	//   "rcnofI"
+	//   "rcnofIi"
+	//   "rcnofIii"
+	//   "rcnofIv"
+	//   "rcnofUnrated"
+	//   "rcnofV"
+	//   "rcnofVi"
 	RcnofRating string `json:"rcnofRating,omitempty"`
 
 	// ResorteviolenciaRating: Rating system for Venezuela - SiBCI
+	//
+	// Possible values:
+	//   "resorteviolenciaA"
+	//   "resorteviolenciaB"
+	//   "resorteviolenciaC"
+	//   "resorteviolenciaD"
+	//   "resorteviolenciaE"
+	//   "resorteviolenciaUnrated"
 	ResorteviolenciaRating string `json:"resorteviolenciaRating,omitempty"`
 
 	// RtcRating: Rating system in Mexico - General Directorate of Radio,
 	// Television and Cinematography
+	//
+	// Possible values:
+	//   "rtcA"
+	//   "rtcAa"
+	//   "rtcB"
+	//   "rtcB15"
+	//   "rtcC"
+	//   "rtcD"
+	//   "rtcUnrated"
 	RtcRating string `json:"rtcRating,omitempty"`
 
 	// RteRating: Rating system for Ireland - Raidi� Teilif�s �ireann
+	//
+	// Possible values:
+	//   "rteCh"
+	//   "rteGa"
+	//   "rteMa"
+	//   "rtePs"
+	//   "rteUnrated"
 	RteRating string `json:"rteRating,omitempty"`
 
 	// RussiaRating: Rating system in Russia
+	//
+	// Possible values:
+	//   "russia0"
+	//   "russia12"
+	//   "russia16"
+	//   "russia18"
+	//   "russia6"
+	//   "russiaUnrated"
 	RussiaRating string `json:"russiaRating,omitempty"`
 
 	// SkfilmRating: Rating system for Slovakia - Slovakia Rating System
+	//
+	// Possible values:
+	//   "skfilmG"
+	//   "skfilmP2"
+	//   "skfilmP5"
+	//   "skfilmP8"
+	//   "skfilmUnrated"
 	SkfilmRating string `json:"skfilmRating,omitempty"`
 
 	// SmaisRating: Rating system for Iceland - SMAIS
+	//
+	// Possible values:
+	//   "smais12"
+	//   "smais14"
+	//   "smais16"
+	//   "smais18"
+	//   "smais7"
+	//   "smaisL"
+	//   "smaisUnrated"
 	SmaisRating string `json:"smaisRating,omitempty"`
 
 	// SmsaRating: Rating system for Sweden - Statens medier�d (National
 	// Media Council)
+	//
+	// Possible values:
+	//   "smsa11"
+	//   "smsa15"
+	//   "smsa7"
+	//   "smsaA"
+	//   "smsaUnrated"
 	SmsaRating string `json:"smsaRating,omitempty"`
 
 	// TvpgRating: TV Parental Guidelines rating of the content.
+	//
+	// Possible values:
+	//   "pg14"
+	//   "tvpgG"
+	//   "tvpgMa"
+	//   "tvpgPg"
+	//   "tvpgUnrated"
+	//   "tvpgY"
+	//   "tvpgY7"
+	//   "tvpgY7Fv"
 	TvpgRating string `json:"tvpgRating,omitempty"`
 
 	// YtRating: Internal YouTube rating.
+	//
+	// Possible values:
+	//   "ytAgeRestricted"
 	YtRating string `json:"ytRating,omitempty"`
 }
 
@@ -1468,8 +2470,8 @@ type IngestionInfo struct {
 	// stream video to YouTube. You must stream video to this
 	// URL.
 	//
-	// Depending on which application or tool you use to encode your
-	// video stream, you may need to enter the stream URL and stream name
+	// Depending on which application or tool you use to encode your video
+	// stream, you may need to enter the stream URL and stream name
 	// separately or you may need to concatenate them in the following
 	// format:
 	//
@@ -1496,9 +2498,18 @@ type InvideoBranding struct {
 type InvideoPosition struct {
 	// CornerPosition: Describes in which corner of the video the visual
 	// widget will appear.
+	//
+	// Possible values:
+	//   "bottomLeft"
+	//   "bottomRight"
+	//   "topLeft"
+	//   "topRight"
 	CornerPosition string `json:"cornerPosition,omitempty"`
 
 	// Type: Defines the position type.
+	//
+	// Possible values:
+	//   "corner"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1539,6 +2550,10 @@ type InvideoTiming struct {
 	// the offsetMs field represents an offset from the start of the video.
 	// If the value is offsetFromEnd, then the offsetMs field represents an
 	// offset from the end of the video.
+	//
+	// Possible values:
+	//   "offsetFromEnd"
+	//   "offsetFromStart"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1615,12 +2630,12 @@ type LiveBroadcastContentDetails struct {
 	//
 	//
 	//
-	// Important: You
-	// must also set the enableDvr property's value to true if you want the
-	// playback to be available immediately after the broadcast ends. If you
-	// set this property's value to true but do not also set the enableDvr
-	// property to true, there may be a delay of around one day before the
-	// archived video will be available for playback.
+	// Important: You must also set the enableDvr property's value to true
+	// if you want the playback to be available immediately after the
+	// broadcast ends. If you set this property's value to true but do not
+	// also set the enableDvr property to true, there may be a delay of
+	// around one day before the archived video will be available for
+	// playback.
 	RecordFromStart bool `json:"recordFromStart,omitempty"`
 
 	// StartWithSlate: This setting indicates whether the broadcast should
@@ -1714,12 +2729,34 @@ type LiveBroadcastSnippet struct {
 }
 
 type LiveBroadcastStatus struct {
+	// IsDefaultBroadcast: Whether or not this broadcast is the default
+	// broadcast
+	IsDefaultBroadcast bool `json:"isDefaultBroadcast,omitempty"`
+
 	// LifeCycleStatus: The broadcast's status. The status can be updated
 	// using the API's liveBroadcasts.transition method.
+	//
+	// Possible values:
+	//   "abandoned"
+	//   "complete"
+	//   "completeStarting"
+	//   "created"
+	//   "live"
+	//   "liveStarting"
+	//   "ready"
+	//   "reclaimed"
+	//   "revoked"
+	//   "testStarting"
+	//   "testing"
 	LifeCycleStatus string `json:"lifeCycleStatus,omitempty"`
 
 	// LiveBroadcastPriority: Priority of the live broadcast event (internal
 	// state).
+	//
+	// Possible values:
+	//   "high"
+	//   "low"
+	//   "normal"
 	LiveBroadcastPriority string `json:"liveBroadcastPriority,omitempty"`
 
 	// PrivacyStatus: The broadcast's privacy status. Note that the
@@ -1727,9 +2764,19 @@ type LiveBroadcastStatus struct {
 	// settings are identical to those supported for videos. In addition,
 	// you can set this field by modifying the broadcast resource or by
 	// setting the privacyStatus field of the corresponding video resource.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 
 	// RecordingStatus: The broadcast's recording status.
+	//
+	// Possible values:
+	//   "notRecording"
+	//   "recorded"
+	//   "recording"
 	RecordingStatus string `json:"recordingStatus,omitempty"`
 }
 
@@ -1772,19 +2819,16 @@ type LiveStreamContentDetails struct {
 	// broadcasters to reuse the same stream for many different broadcasts
 	// if those broadcasts occur at different times.
 	//
-	// If you set this value
-	// to false, then the stream will not be reusable, which means that it
-	// can only be bound to one broadcast. Non-reusable streams differ from
-	// reusable streams in the following ways:
-	// - A non-reusable stream can
-	// only be bound to one broadcast.
-	// - A non-reusable stream might be
-	// deleted by an automated process after the broadcast ends.
-	// - The
-	// liveStreams.list method does not list non-reusable streams if you
-	// call the method and set the mine parameter to true. The only way to
-	// use that method to retrieve the resource for a non-reusable stream is
-	// to use the id parameter to identify the stream.
+	// If you set this value to false, then the stream will not be reusable,
+	// which means that it can only be bound to one broadcast. Non-reusable
+	// streams differ from reusable streams in the following ways:
+	// - A non-reusable stream can only be bound to one broadcast.
+	// - A non-reusable stream might be deleted by an automated process
+	// after the broadcast ends.
+	// - The  liveStreams.list method does not list non-reusable streams if
+	// you call the method and set the mine parameter to true. The only way
+	// to use that method to retrieve the resource for a non-reusable stream
+	// is to use the id parameter to identify the stream.
 	IsReusable bool `json:"isReusable,omitempty"`
 }
 
@@ -1838,6 +2882,14 @@ type LiveStreamSnippet struct {
 }
 
 type LiveStreamStatus struct {
+	IsDefaultStream bool `json:"isDefaultStream,omitempty"`
+
+	// Possible values:
+	//   "active"
+	//   "created"
+	//   "error"
+	//   "inactive"
+	//   "ready"
 	StreamStatus string `json:"streamStatus,omitempty"`
 }
 
@@ -1873,11 +2925,11 @@ type MonitorStreamInfo struct {
 	// stream to review the event content and also to identify the optimal
 	// times to insert cuepoints.
 	//
-	// You need to set this value to true if you
-	// intend to have a broadcast delay for your event.
+	// You need to set this value to true if you intend to have a broadcast
+	// delay for your event.
 	//
-	// Note: This property
-	// cannot be updated once the broadcast is in the testing or live state.
+	// Note: This property cannot be updated once the broadcast is in the
+	// testing or live state.
 	EnableMonitorStream bool `json:"enableMonitorStream,omitempty"`
 }
 
@@ -2047,6 +3099,11 @@ type PlaylistItemSnippet struct {
 
 type PlaylistItemStatus struct {
 	// PrivacyStatus: This resource's privacy status.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 }
 
@@ -2133,6 +3190,11 @@ type PlaylistSnippet struct {
 
 type PlaylistStatus struct {
 	// PrivacyStatus: The playlist's privacy status.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 }
 
@@ -2162,6 +3224,11 @@ type PromotedItemId struct {
 	RecentlyUploadedBy string `json:"recentlyUploadedBy,omitempty"`
 
 	// Type: Describes the type of the promoted item.
+	//
+	// Possible values:
+	//   "recentUpload"
+	//   "video"
+	//   "website"
 	Type string `json:"type,omitempty"`
 
 	// VideoId: If the promoted item represents a video, this field
@@ -2269,6 +3336,11 @@ type SearchResultSnippet struct {
 	// LiveBroadcastContent: It indicates if the resource (video or channel)
 	// has upcoming/active live broadcast content. Or it's "none" if there
 	// is not any upcoming/active live broadcasts.
+	//
+	// Possible values:
+	//   "live"
+	//   "none"
+	//   "upcoming"
 	LiveBroadcastContent string `json:"liveBroadcastContent,omitempty"`
 
 	// PublishedAt: The creation date and time of the resource that the
@@ -2314,6 +3386,10 @@ type Subscription struct {
 type SubscriptionContentDetails struct {
 	// ActivityType: The type of activity this subscription is for (only
 	// uploads, everything).
+	//
+	// Possible values:
+	//   "all"
+	//   "uploads"
 	ActivityType string `json:"activityType,omitempty"`
 
 	// NewItemCount: The number of new items in the subscription since its
@@ -2505,10 +3581,10 @@ type Video struct {
 	// types of data or content, such as file details or thumbnail images,
 	// are available for the video.
 	//
-	// The processingProgress object is
-	// designed to be polled so that the video uploaded can track the
-	// progress that YouTube has made in processing the uploaded video file.
-	// This data can only be retrieved by the video owner.
+	// The processingProgress object is designed to be polled so that the
+	// video uploaded can track the progress that YouTube has made in
+	// processing the uploaded video file. This data can only be retrieved
+	// by the video owner.
 	ProcessingDetails *VideoProcessingDetails `json:"processingDetails,omitempty"`
 
 	// ProjectDetails: The projectDetails object contains information about
@@ -2543,6 +3619,79 @@ type Video struct {
 	TopicDetails *VideoTopicDetails `json:"topicDetails,omitempty"`
 }
 
+type VideoAbuseReport struct {
+	// Comments: Additional comments regarding the abuse report.
+	Comments string `json:"comments,omitempty"`
+
+	// Language: The language that the content was viewed in.
+	Language string `json:"language,omitempty"`
+
+	// ReasonId: The high-level, or primary, reason that the content is
+	// abusive. The value is an abuse report reason ID.
+	ReasonId string `json:"reasonId,omitempty"`
+
+	// SecondaryReasonId: The specific, or secondary, reason that this
+	// content is abusive (if available). The value is an abuse report
+	// reason ID that is a valid secondary reason for the primary reason.
+	SecondaryReasonId string `json:"secondaryReasonId,omitempty"`
+
+	// VideoId: The ID that YouTube uses to uniquely identify the video.
+	VideoId string `json:"videoId,omitempty"`
+}
+
+type VideoAbuseReportReason struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// Id: The ID of this abuse report reason.
+	Id string `json:"id,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#videoAbuseReportReason".
+	Kind string `json:"kind,omitempty"`
+
+	// Snippet: The snippet object contains basic details about the abuse
+	// report reason.
+	Snippet *VideoAbuseReportReasonSnippet `json:"snippet,omitempty"`
+}
+
+type VideoAbuseReportReasonListResponse struct {
+	// Etag: Etag of this resource.
+	Etag string `json:"etag,omitempty"`
+
+	// EventId: Serialized EventId of the request which produced this
+	// response.
+	EventId string `json:"eventId,omitempty"`
+
+	// Items: A list of valid abuse reasons that are used with
+	// video.ReportAbuse.
+	Items []*VideoAbuseReportReason `json:"items,omitempty"`
+
+	// Kind: Identifies what kind of resource this is. Value: the fixed
+	// string "youtube#videoAbuseReportReasonListResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// VisitorId: The visitorId identifies the visitor.
+	VisitorId string `json:"visitorId,omitempty"`
+}
+
+type VideoAbuseReportReasonSnippet struct {
+	// Label: The localized label belonging to this abuse report reason.
+	Label string `json:"label,omitempty"`
+
+	// SecondaryReasons: The secondary reasons associated with this reason,
+	// if any are available. (There might be 0 or more.)
+	SecondaryReasons []*VideoAbuseReportSecondaryReason `json:"secondaryReasons,omitempty"`
+}
+
+type VideoAbuseReportSecondaryReason struct {
+	// Id: The ID of this abuse report secondary reason.
+	Id string `json:"id,omitempty"`
+
+	// Label: The localized label for this abuse report secondary reason.
+	Label string `json:"label,omitempty"`
+}
+
 type VideoAgeGating struct {
 	// AlcoholContent: Indicates whether or not the video has alcoholic
 	// beverage content. Only users of legal purchasing age in a particular
@@ -2556,6 +3705,12 @@ type VideoAgeGating struct {
 	Restricted bool `json:"restricted,omitempty"`
 
 	// VideoGameRating: Video game rating, if any.
+	//
+	// Possible values:
+	//   "anyone"
+	//   "m15Plus"
+	//   "m16Plus"
+	//   "m17Plus"
 	VideoGameRating string `json:"videoGameRating,omitempty"`
 }
 
@@ -2621,6 +3776,10 @@ type VideoCategorySnippet struct {
 type VideoContentDetails struct {
 	// Caption: The value of captions indicates whether the video has
 	// captions or not.
+	//
+	// Possible values:
+	//   "false"
+	//   "true"
 	Caption string `json:"caption,omitempty"`
 
 	// ContentRating: Specifies the ratings that the video received under
@@ -2634,6 +3793,10 @@ type VideoContentDetails struct {
 
 	// Definition: The value of definition indicates whether the video is
 	// available in high definition or only in standard definition.
+	//
+	// Possible values:
+	//   "hd"
+	//   "sd"
 	Definition string `json:"definition,omitempty"`
 
 	// Dimension: The value of dimension indicates whether the video is
@@ -2678,6 +3841,12 @@ type VideoContentDetailsRegionRestriction struct {
 
 type VideoConversionPing struct {
 	// Context: Defines the context of the ping.
+	//
+	// Possible values:
+	//   "comment"
+	//   "dislike"
+	//   "like"
+	//   "share"
 	Context string `json:"context,omitempty"`
 
 	// ConversionUrl: The url (without the schema) that the app shall send
@@ -2715,10 +3884,8 @@ type VideoFileDetails struct {
 	// created. The value is specified in ISO 8601 format. Currently, the
 	// following ISO 8601 formats are supported:
 	// - Date only: YYYY-MM-DD
-	//
 	// - Naive time: YYYY-MM-DDTHH:MM:SS
-	// - Time with timezone:
-	// YYYY-MM-DDTHH:MM:SS+HH:MM
+	// - Time with timezone: YYYY-MM-DDTHH:MM:SS+HH:MM
 	CreationTime string `json:"creationTime,omitempty"`
 
 	// DurationMs: The length of the uploaded video in milliseconds.
@@ -2736,6 +3903,15 @@ type VideoFileDetails struct {
 	// processing engine. Currently, YouTube only processes video files, but
 	// this field is present whether a video file or another type of file
 	// was uploaded.
+	//
+	// Possible values:
+	//   "archive"
+	//   "audio"
+	//   "document"
+	//   "image"
+	//   "other"
+	//   "project"
+	//   "video"
 	FileType string `json:"fileType,omitempty"`
 
 	// RecordingLocation: Geographic coordinates that identify the place
@@ -2783,6 +3959,13 @@ type VideoFileDetailsVideoStream struct {
 
 	// Rotation: The amount that YouTube needs to rotate the original source
 	// content to properly display the video.
+	//
+	// Possible values:
+	//   "clockwise"
+	//   "counterClockwise"
+	//   "none"
+	//   "other"
+	//   "upsideDown"
 	Rotation string `json:"rotation,omitempty"`
 
 	// Vendor: A value that uniquely identifies a video vendor. Typically,
@@ -2914,6 +4097,12 @@ type VideoProcessingDetails struct {
 	// ProcessingFailureReason: The reason that YouTube failed to process
 	// the video. This property will only have a value if the
 	// processingStatus property's value is failed.
+	//
+	// Possible values:
+	//   "other"
+	//   "streamingFailed"
+	//   "transcodeFailed"
+	//   "uploadFailed"
 	ProcessingFailureReason string `json:"processingFailureReason,omitempty"`
 
 	// ProcessingIssuesAvailability: This value indicates whether the video
@@ -2933,6 +4122,12 @@ type VideoProcessingDetails struct {
 	// ProcessingStatus: The video's processing status. This value indicates
 	// whether YouTube was able to process the video or if the video is
 	// still being processed.
+	//
+	// Possible values:
+	//   "failed"
+	//   "processing"
+	//   "succeeded"
+	//   "terminated"
 	ProcessingStatus string `json:"processingStatus,omitempty"`
 
 	// TagSuggestionsAvailability: This value indicates whether keyword
@@ -2951,13 +4146,12 @@ type VideoProcessingDetailsProcessingProgress struct {
 	// PartsProcessed: The number of parts of the video that YouTube has
 	// already processed. You can estimate the percentage of the video that
 	// YouTube has already processed by calculating:
-	// 100 * parts_processed /
-	// parts_total
+	// 100 * parts_processed / parts_total
 	//
-	// Note that since the estimated number of parts could
-	// increase without a corresponding increase in the number of parts that
-	// have already been processed, it is possible that the calculated
-	// progress could periodically decrease while YouTube processes a video.
+	// Note that since the estimated number of parts could increase without
+	// a corresponding increase in the number of parts that have already
+	// been processed, it is possible that the calculated progress could
+	// periodically decrease while YouTube processes a video.
 	PartsProcessed uint64 `json:"partsProcessed,omitempty,string"`
 
 	// PartsTotal: An estimate of the total number of parts that need to be
@@ -2977,6 +4171,11 @@ type VideoProjectDetails struct {
 }
 
 type VideoRating struct {
+	// Possible values:
+	//   "dislike"
+	//   "like"
+	//   "none"
+	//   "unspecified"
 	Rating string `json:"rating,omitempty"`
 
 	VideoId string `json:"videoId,omitempty"`
@@ -3016,6 +4215,11 @@ type VideoSnippet struct {
 	// LiveBroadcastContent: Indicates if the video is an upcoming/active
 	// live broadcast. Or it's "none" if the video is not an upcoming/active
 	// live broadcast.
+	//
+	// Possible values:
+	//   "live"
+	//   "none"
+	//   "upcoming"
 	LiveBroadcastContent string `json:"liveBroadcastContent,omitempty"`
 
 	// Localized: Localized snippet selected with the hl parameter. If no
@@ -3069,12 +4273,29 @@ type VideoStatus struct {
 	// FailureReason: This value explains why a video failed to upload. This
 	// property is only present if the uploadStatus property indicates that
 	// the upload failed.
+	//
+	// Possible values:
+	//   "codec"
+	//   "conversion"
+	//   "emptyFile"
+	//   "invalidFile"
+	//   "tooSmall"
+	//   "uploadAborted"
 	FailureReason string `json:"failureReason,omitempty"`
 
 	// License: The video's license.
+	//
+	// Possible values:
+	//   "creativeCommon"
+	//   "youtube"
 	License string `json:"license,omitempty"`
 
 	// PrivacyStatus: The video's privacy status.
+	//
+	// Possible values:
+	//   "private"
+	//   "public"
+	//   "unlisted"
 	PrivacyStatus string `json:"privacyStatus,omitempty"`
 
 	// PublicStatsViewable: This value indicates if the extended video
@@ -3090,9 +4311,27 @@ type VideoStatus struct {
 	// RejectionReason: This value explains why YouTube rejected an uploaded
 	// video. This property is only present if the uploadStatus property
 	// indicates that the upload was rejected.
+	//
+	// Possible values:
+	//   "claim"
+	//   "copyright"
+	//   "duplicate"
+	//   "inappropriate"
+	//   "length"
+	//   "termsOfUse"
+	//   "trademark"
+	//   "uploaderAccountClosed"
+	//   "uploaderAccountSuspended"
 	RejectionReason string `json:"rejectionReason,omitempty"`
 
 	// UploadStatus: The status of the uploaded video.
+	//
+	// Possible values:
+	//   "deleted"
+	//   "failed"
+	//   "processed"
+	//   "rejected"
+	//   "uploaded"
 	UploadStatus string `json:"uploadStatus,omitempty"`
 }
 
@@ -3181,12 +4420,12 @@ type ActivitiesInsertCall struct {
 // the request must be authorized to act on the channel's
 // behalf.)
 //
-// Note: Even though an activity resource can contain
-// information about actions like a user rating a video or marking a
-// video as a favorite, you need to use other API methods to generate
-// those activity resources. For example, you would use the API's
-// videos.rate() method to rate a video and the playlistItems.insert()
-// method to mark a video as a favorite.
+// Note: Even though an activity resource can contain information about
+// actions like a user rating a video or marking a video as a favorite,
+// you need to use other API methods to generate those activity
+// resources. For example, you would use the API's videos.rate() method
+// to rate a video and the playlistItems.insert() method to mark a video
+// as a favorite.
 func (r *ActivitiesService) Insert(part string, activity *Activity) *ActivitiesInsertCall {
 	c := &ActivitiesInsertCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -3220,7 +4459,7 @@ func (c *ActivitiesInsertCall) Do() (*Activity, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3257,7 +4496,8 @@ func (c *ActivitiesInsertCall) Do() (*Activity, error) {
 	//     "$ref": "Activity"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -3401,7 +4641,7 @@ func (c *ActivitiesListCall) Do() (*ActivityListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3482,8 +4722,879 @@ func (c *ActivitiesListCall) Do() (*ActivityListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly"
 	//   ]
+	// }
+
+}
+
+// method id "youtube.captions.delete":
+
+type CaptionsDeleteCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// Delete: Deletes a specified caption track.
+func (r *CaptionsService) Delete(id string) *CaptionsDeleteCall {
+	c := &CaptionsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID
+func (c *CaptionsDeleteCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsDeleteCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsDeleteCall) OnBehalfOf(onBehalfOf string) *CaptionsDeleteCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsDeleteCall) Fields(s ...googleapi.Field) *CaptionsDeleteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsDeleteCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Deletes a specified caption track.",
+	//   "httpMethod": "DELETE",
+	//   "id": "youtube.captions.delete",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter identifies the caption track that is being deleted. The value is a caption track ID as identified by the id property in a caption resource.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.captions.download":
+
+type CaptionsDownloadCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// Download: Downloads a caption track. The caption track is returned in
+// its original format unless the request specifies a value for the tfmt
+// parameter and in its original language unless the request specifies a
+// value for the tlang parameter.
+func (r *CaptionsService) Download(id string) *CaptionsDownloadCall {
+	c := &CaptionsDownloadCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID
+func (c *CaptionsDownloadCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsDownloadCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsDownloadCall) OnBehalfOf(onBehalfOf string) *CaptionsDownloadCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Tfmt sets the optional parameter "tfmt": The tfmt parameter specifies
+// that the caption track should be returned in a specific format. If
+// the parameter is not included in the request, the track is returned
+// in its original format.
+//
+// Possible values:
+//   "sbv" - SubViewer subtitle.
+//   "scc" - Scenarist Closed Caption format.
+//   "srt" - SubRip subtitle.
+//   "ttml" - Timed Text Markup Language caption.
+//   "vtt" - Web Video Text Tracks caption.
+func (c *CaptionsDownloadCall) Tfmt(tfmt string) *CaptionsDownloadCall {
+	c.opt_["tfmt"] = tfmt
+	return c
+}
+
+// Tlang sets the optional parameter "tlang": The tlang parameter
+// specifies that the API response should return a translation of the
+// specified caption track. The parameter value is an ISO 639-1
+// two-letter language code that identifies the desired caption
+// language. The translation is generated by using machine translation,
+// such as Google Translate.
+func (c *CaptionsDownloadCall) Tlang(tlang string) *CaptionsDownloadCall {
+	c.opt_["tlang"] = tlang
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsDownloadCall) Fields(s ...googleapi.Field) *CaptionsDownloadCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsDownloadCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["tfmt"]; ok {
+		params.Set("tfmt", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["tlang"]; ok {
+		params.Set("tlang", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions/{id}")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"id": c.id,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Downloads a caption track. The caption track is returned in its original format unless the request specifies a value for the tfmt parameter and in its original language unless the request specifies a value for the tlang parameter.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.captions.download",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter identifies the caption track that is being retrieved. The value is a caption track ID as identified by the id property in a caption resource.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "tfmt": {
+	//       "description": "The tfmt parameter specifies that the caption track should be returned in a specific format. If the parameter is not included in the request, the track is returned in its original format.",
+	//       "enum": [
+	//         "sbv",
+	//         "scc",
+	//         "srt",
+	//         "ttml",
+	//         "vtt"
+	//       ],
+	//       "enumDescriptions": [
+	//         "SubViewer subtitle.",
+	//         "Scenarist Closed Caption format.",
+	//         "SubRip subtitle.",
+	//         "Timed Text Markup Language caption.",
+	//         "Web Video Text Tracks caption."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "tlang": {
+	//       "description": "The tlang parameter specifies that the API response should return a translation of the specified caption track. The parameter value is an ISO 639-1 two-letter language code that identifies the desired caption language. The translation is generated by using machine translation, such as Google Translate.",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "captions/{id}",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ],
+	//   "supportsMediaDownload": true
+	// }
+
+}
+
+// method id "youtube.captions.insert":
+
+type CaptionsInsertCall struct {
+	s          *Service
+	part       string
+	caption    *Caption
+	opt_       map[string]interface{}
+	media_     io.Reader
+	resumable_ googleapi.SizeReaderAt
+	mediaType_ string
+	ctx_       context.Context
+	protocol_  string
+}
+
+// Insert: Uploads a caption track.
+func (r *CaptionsService) Insert(part string, caption *Caption) *CaptionsInsertCall {
+	c := &CaptionsInsertCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.caption = caption
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID.
+func (c *CaptionsInsertCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsInsertCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsInsertCall) OnBehalfOf(onBehalfOf string) *CaptionsInsertCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Sync sets the optional parameter "sync": The sync parameter indicates
+// whether YouTube should automatically synchronize the caption file
+// with the audio track of the video. If you set the value to true,
+// YouTube will disregard any time codes that are in the uploaded
+// caption file and generate new time codes for the captions.
+//
+// You should set the sync parameter to true if you are uploading a
+// transcript, which has no time codes, or if you suspect the time codes
+// in your file are incorrect and want YouTube to try to fix them.
+func (c *CaptionsInsertCall) Sync(sync bool) *CaptionsInsertCall {
+	c.opt_["sync"] = sync
+	return c
+}
+
+// Media specifies the media to upload in a single chunk.
+// At most one of Media and ResumableMedia may be set.
+func (c *CaptionsInsertCall) Media(r io.Reader) *CaptionsInsertCall {
+	c.media_ = r
+	c.protocol_ = "multipart"
+	return c
+}
+
+// ResumableMedia specifies the media to upload in chunks and can be cancelled with ctx.
+// At most one of Media and ResumableMedia may be set.
+// mediaType identifies the MIME media type of the upload, such as "image/png".
+// If mediaType is "", it will be auto-detected.
+func (c *CaptionsInsertCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *CaptionsInsertCall {
+	c.ctx_ = ctx
+	c.resumable_ = io.NewSectionReader(r, 0, size)
+	c.mediaType_ = mediaType
+	c.protocol_ = "resumable"
+	return c
+}
+
+// ProgressUpdater provides a callback function that will be called after every chunk.
+// It should be a low-latency function in order to not slow down the upload operation.
+// This should only be called when using ResumableMedia (as opposed to Media).
+func (c *CaptionsInsertCall) ProgressUpdater(pu googleapi.ProgressUpdater) *CaptionsInsertCall {
+	c.opt_["progressUpdater"] = pu
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsInsertCall) Fields(s ...googleapi.Field) *CaptionsInsertCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsInsertCall) Do() (*Caption, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.caption)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["sync"]; ok {
+		params.Set("sync", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	var progressUpdater_ googleapi.ProgressUpdater
+	if v, ok := c.opt_["progressUpdater"]; ok {
+		if pu, ok := v.(googleapi.ProgressUpdater); ok {
+			progressUpdater_ = pu
+		}
+	}
+	if c.media_ != nil || c.resumable_ != nil {
+		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
+		params.Set("uploadType", c.protocol_)
+	}
+	urls += "?" + params.Encode()
+	if c.protocol_ != "resumable" {
+		var cancel func()
+		cancel, _ = googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		if cancel != nil {
+			defer cancel()
+		}
+	}
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	if c.protocol_ == "resumable" {
+		req.ContentLength = 0
+		if c.mediaType_ == "" {
+			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+		}
+		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Body = nil
+	} else {
+		req.Header.Set("Content-Type", ctype)
+	}
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	if c.protocol_ == "resumable" {
+		loc := res.Header.Get("Location")
+		rx := &googleapi.ResumableUpload{
+			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
+			URI:           loc,
+			Media:         c.resumable_,
+			MediaType:     c.mediaType_,
+			ContentLength: c.resumable_.Size(),
+			Callback:      progressUpdater_,
+		}
+		res, err = rx.Upload(c.ctx_)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+	}
+	var ret *Caption
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Uploads a caption track.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.captions.insert",
+	//   "mediaUpload": {
+	//     "accept": [
+	//       "*/*",
+	//       "application/octet-stream",
+	//       "text/xml"
+	//     ],
+	//     "maxSize": "100MB",
+	//     "protocols": {
+	//       "resumable": {
+	//         "multipart": true,
+	//         "path": "/resumable/upload/youtube/v3/captions"
+	//       },
+	//       "simple": {
+	//         "multipart": true,
+	//         "path": "/upload/youtube/v3/captions"
+	//       }
+	//     }
+	//   },
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "sync": {
+	//       "description": "The sync parameter indicates whether YouTube should automatically synchronize the caption file with the audio track of the video. If you set the value to true, YouTube will disregard any time codes that are in the uploaded caption file and generate new time codes for the captions.\n\nYou should set the sync parameter to true if you are uploading a transcript, which has no time codes, or if you suspect the time codes in your file are incorrect and want YouTube to try to fix them.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "request": {
+	//     "$ref": "Caption"
+	//   },
+	//   "response": {
+	//     "$ref": "Caption"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ],
+	//   "supportsMediaUpload": true
+	// }
+
+}
+
+// method id "youtube.captions.list":
+
+type CaptionsListCall struct {
+	s       *Service
+	part    string
+	videoId string
+	opt_    map[string]interface{}
+}
+
+// List: Returns a list of caption tracks that are associated with a
+// specified video. Note that the API response does not contain the
+// actual captions and that the captions.download method provides the
+// ability to retrieve a caption track.
+func (r *CaptionsService) List(part string, videoId string) *CaptionsListCall {
+	c := &CaptionsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.videoId = videoId
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID.
+func (c *CaptionsListCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsListCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// Id sets the optional parameter "id": The id parameter specifies a
+// comma-separated list of IDs that identify the caption resources that
+// should be retrieved. Each ID must identify a caption track associated
+// with the specified video.
+func (c *CaptionsListCall) Id(id string) *CaptionsListCall {
+	c.opt_["id"] = id
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is on behalf of.
+func (c *CaptionsListCall) OnBehalfOf(onBehalfOf string) *CaptionsListCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsListCall) Fields(s ...googleapi.Field) *CaptionsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsListCall) Do() (*CaptionListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	params.Set("videoId", fmt.Sprintf("%v", c.videoId))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["id"]; ok {
+		params.Set("id", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CaptionListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of caption tracks that are associated with a specified video. Note that the API response does not contain the actual captions and that the captions.download method provides the ability to retrieve a caption track.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.captions.list",
+	//   "parameterOrder": [
+	//     "part",
+	//     "videoId"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of IDs that identify the caption resources that should be retrieved. Each ID must identify a caption track associated with the specified video.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is on behalf of.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies a comma-separated list of one or more caption resource parts that the API response will include. The part names that you can include in the parameter value are id and snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "videoId": {
+	//       "description": "The videoId parameter specifies the YouTube video ID of the video for which the API should return caption tracks.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "response": {
+	//     "$ref": "CaptionListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.captions.update":
+
+type CaptionsUpdateCall struct {
+	s          *Service
+	part       string
+	caption    *Caption
+	opt_       map[string]interface{}
+	media_     io.Reader
+	resumable_ googleapi.SizeReaderAt
+	mediaType_ string
+	ctx_       context.Context
+	protocol_  string
+}
+
+// Update: Updates a caption track. When updating a caption track, you
+// can change the track's draft status, upload a new caption file for
+// the track, or both.
+func (r *CaptionsService) Update(part string, caption *Caption) *CaptionsUpdateCall {
+	c := &CaptionsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.caption = caption
+	return c
+}
+
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID.
+func (c *CaptionsUpdateCall) DebugProjectIdOverride(debugProjectIdOverride int64) *CaptionsUpdateCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
+// OnBehalfOf sets the optional parameter "onBehalfOf": ID of the
+// Google+ Page for the channel that the request is be on behalf of
+func (c *CaptionsUpdateCall) OnBehalfOf(onBehalfOf string) *CaptionsUpdateCall {
+	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// Sync sets the optional parameter "sync": Note: The API server only
+// processes the parameter value if the request contains an updated
+// caption file.
+//
+// The sync parameter indicates whether YouTube should automatically
+// synchronize the caption file with the audio track of the video. If
+// you set the value to true, YouTube will automatically synchronize the
+// caption track with the audio track.
+func (c *CaptionsUpdateCall) Sync(sync bool) *CaptionsUpdateCall {
+	c.opt_["sync"] = sync
+	return c
+}
+
+// Media specifies the media to upload in a single chunk.
+// At most one of Media and ResumableMedia may be set.
+func (c *CaptionsUpdateCall) Media(r io.Reader) *CaptionsUpdateCall {
+	c.media_ = r
+	c.protocol_ = "multipart"
+	return c
+}
+
+// ResumableMedia specifies the media to upload in chunks and can be cancelled with ctx.
+// At most one of Media and ResumableMedia may be set.
+// mediaType identifies the MIME media type of the upload, such as "image/png".
+// If mediaType is "", it will be auto-detected.
+func (c *CaptionsUpdateCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *CaptionsUpdateCall {
+	c.ctx_ = ctx
+	c.resumable_ = io.NewSectionReader(r, 0, size)
+	c.mediaType_ = mediaType
+	c.protocol_ = "resumable"
+	return c
+}
+
+// ProgressUpdater provides a callback function that will be called after every chunk.
+// It should be a low-latency function in order to not slow down the upload operation.
+// This should only be called when using ResumableMedia (as opposed to Media).
+func (c *CaptionsUpdateCall) ProgressUpdater(pu googleapi.ProgressUpdater) *CaptionsUpdateCall {
+	c.opt_["progressUpdater"] = pu
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CaptionsUpdateCall) Fields(s ...googleapi.Field) *CaptionsUpdateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CaptionsUpdateCall) Do() (*Caption, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.caption)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOf"]; ok {
+		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["sync"]; ok {
+		params.Set("sync", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "captions")
+	var progressUpdater_ googleapi.ProgressUpdater
+	if v, ok := c.opt_["progressUpdater"]; ok {
+		if pu, ok := v.(googleapi.ProgressUpdater); ok {
+			progressUpdater_ = pu
+		}
+	}
+	if c.media_ != nil || c.resumable_ != nil {
+		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
+		params.Set("uploadType", c.protocol_)
+	}
+	urls += "?" + params.Encode()
+	if c.protocol_ != "resumable" {
+		var cancel func()
+		cancel, _ = googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		if cancel != nil {
+			defer cancel()
+		}
+	}
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	if c.protocol_ == "resumable" {
+		req.ContentLength = 0
+		if c.mediaType_ == "" {
+			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+		}
+		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Body = nil
+	} else {
+		req.Header.Set("Content-Type", ctype)
+	}
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	if c.protocol_ == "resumable" {
+		loc := res.Header.Get("Location")
+		rx := &googleapi.ResumableUpload{
+			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
+			URI:           loc,
+			Media:         c.resumable_,
+			MediaType:     c.mediaType_,
+			ContentLength: c.resumable_.Size(),
+			Callback:      progressUpdater_,
+		}
+		res, err = rx.Upload(c.ctx_)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+	}
+	var ret *Caption
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Updates a caption track. When updating a caption track, you can change the track's draft status, upload a new caption file for the track, or both.",
+	//   "httpMethod": "PUT",
+	//   "id": "youtube.captions.update",
+	//   "mediaUpload": {
+	//     "accept": [
+	//       "*/*",
+	//       "application/octet-stream",
+	//       "text/xml"
+	//     ],
+	//     "maxSize": "100MB",
+	//     "protocols": {
+	//       "resumable": {
+	//         "multipart": true,
+	//         "path": "/resumable/upload/youtube/v3/captions"
+	//       },
+	//       "simple": {
+	//         "multipart": true,
+	//         "path": "/upload/youtube/v3/captions"
+	//       }
+	//     }
+	//   },
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID.",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "onBehalfOf": {
+	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Set the property value to snippet if you are updating the track's draft status. Otherwise, set the property value to id.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "sync": {
+	//       "description": "Note: The API server only processes the parameter value if the request contains an updated caption file.\n\nThe sync parameter indicates whether YouTube should automatically synchronize the caption file with the audio track of the video. If you set the value to true, YouTube will automatically synchronize the caption track with the audio track.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
+	//   "path": "captions",
+	//   "request": {
+	//     "$ref": "Caption"
+	//   },
+	//   "response": {
+	//     "$ref": "Caption"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ],
+	//   "supportsMediaUpload": true
 	// }
 
 }
@@ -3505,13 +5616,12 @@ type ChannelBannersInsertCall struct {
 // represents the first two steps in a three-step process to update the
 // banner image for a channel:
 //
-// - Call the channelBanners.insert method
-// to upload the binary image data to YouTube. The image must have a
-// 16:9 aspect ratio and be at least 2120x1192 pixels.
-// - Extract the url
-// property's value from the response that the API returns for step 1.
-// -
-// Call the channels.update method to update the channel's branding
+// - Call the channelBanners.insert method to upload the binary image
+// data to YouTube. The image must have a 16:9 aspect ratio and be at
+// least 2120x1192 pixels.
+// - Extract the url property's value from the response that the API
+// returns for step 1.
+// - Call the channels.update method to update the channel's branding
 // settings. Set the brandingSettings.image.bannerExternalUrl property's
 // value to the URL obtained in step 2.
 func (r *ChannelBannersService) Insert(channelbannerresource *ChannelBannerResource) *ChannelBannersInsertCall {
@@ -3524,16 +5634,15 @@ func (r *ChannelBannersService) Insert(channelbannerresource *ChannelBannerResou
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *ChannelBannersInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ChannelBannersInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -3618,13 +5727,10 @@ func (c *ChannelBannersInsertCall) Do() (*ChannelBannerResource, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3637,6 +5743,7 @@ func (c *ChannelBannersInsertCall) Do() (*ChannelBannerResource, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -3692,6 +5799,7 @@ func (c *ChannelBannersInsertCall) Do() (*ChannelBannerResource, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.upload"
 	//   ],
 	//   "supportsMediaUpload": true
@@ -3718,16 +5826,15 @@ func (r *ChannelSectionsService) Delete(id string) *ChannelSectionsDeleteCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *ChannelSectionsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ChannelSectionsDeleteCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -3756,7 +5863,7 @@ func (c *ChannelSectionsDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3789,6 +5896,7 @@ func (c *ChannelSectionsDeleteCall) Do() error {
 	//   "path": "channelSections",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -3816,16 +5924,15 @@ func (r *ChannelSectionsService) Insert(part string, channelsection *ChannelSect
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *ChannelSectionsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ChannelSectionsInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -3836,10 +5943,9 @@ func (c *ChannelSectionsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwne
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -3848,12 +5954,11 @@ func (c *ChannelSectionsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwne
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *ChannelSectionsInsertCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *ChannelSectionsInsertCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -3891,7 +5996,7 @@ func (c *ChannelSectionsInsertCall) Do() (*ChannelSection, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3939,6 +6044,7 @@ func (c *ChannelSectionsInsertCall) Do() (*ChannelSection, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -3969,6 +6075,19 @@ func (c *ChannelSectionsListCall) ChannelId(channelId string) *ChannelSectionsLi
 	return c
 }
 
+// Hl sets the optional parameter "hl": The hl parameter indicates that
+// the snippet.localized property values in the returned channelSection
+// resources should be in the specified language if localized values for
+// that language are available. For example, if the API request
+// specifies hl=de, the snippet.localized properties in the API response
+// will contain German titles if German titles are available. Channel
+// owners can provide localized channel section titles using either the
+// channelSections.insert or channelSections.update method.
+func (c *ChannelSectionsListCall) Hl(hl string) *ChannelSectionsListCall {
+	c.opt_["hl"] = hl
+	return c
+}
+
 // Id sets the optional parameter "id": The id parameter specifies a
 // comma-separated list of the YouTube channelSection ID(s) for the
 // resource(s) that are being retrieved. In a channelSection resource,
@@ -3990,16 +6109,15 @@ func (c *ChannelSectionsListCall) Mine(mine bool) *ChannelSectionsListCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *ChannelSectionsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ChannelSectionsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -4021,6 +6139,9 @@ func (c *ChannelSectionsListCall) Do() (*ChannelSectionListResponse, error) {
 	if v, ok := c.opt_["channelId"]; ok {
 		params.Set("channelId", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["id"]; ok {
 		params.Set("id", fmt.Sprintf("%v", v))
 	}
@@ -4037,7 +6158,7 @@ func (c *ChannelSectionsListCall) Do() (*ChannelSectionListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4061,6 +6182,11 @@ func (c *ChannelSectionsListCall) Do() (*ChannelSectionListResponse, error) {
 	//   "parameters": {
 	//     "channelId": {
 	//       "description": "The channelId parameter specifies a YouTube channel ID. The API will only return that channel's channelSections.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "hl": {
+	//       "description": "The hl parameter indicates that the snippet.localized property values in the returned channelSection resources should be in the specified language if localized values for that language are available. For example, if the API request specifies hl=de, the snippet.localized properties in the API response will contain German titles if German titles are available. Channel owners can provide localized channel section titles using either the channelSections.insert or channelSections.update method.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -4092,6 +6218,7 @@ func (c *ChannelSectionsListCall) Do() (*ChannelSectionListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -4120,16 +6247,15 @@ func (r *ChannelSectionsService) Update(part string, channelsection *ChannelSect
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *ChannelSectionsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ChannelSectionsUpdateCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -4164,7 +6290,7 @@ func (c *ChannelSectionsUpdateCall) Do() (*ChannelSection, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4207,6 +6333,7 @@ func (c *ChannelSectionsUpdateCall) Do() (*ChannelSection, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -4242,6 +6369,14 @@ func (c *ChannelsListCall) CategoryId(categoryId string) *ChannelsListCall {
 // requesting the channel associated with that username.
 func (c *ChannelsListCall) ForUsername(forUsername string) *ChannelsListCall {
 	c.opt_["forUsername"] = forUsername
+	return c
+}
+
+// Hl sets the optional parameter "hl": The hl parameter should be used
+// for filter out the properties that are not in the given language.
+// Used for the brandingSettings part.
+func (c *ChannelsListCall) Hl(hl string) *ChannelsListCall {
+	c.opt_["hl"] = hl
 	return c
 }
 
@@ -4332,6 +6467,9 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	if v, ok := c.opt_["forUsername"]; ok {
 		params.Set("forUsername", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["id"]; ok {
 		params.Set("id", fmt.Sprintf("%v", v))
 	}
@@ -4360,7 +6498,7 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4389,6 +6527,11 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	//     },
 	//     "forUsername": {
 	//       "description": "The forUsername parameter specifies a YouTube username, thereby requesting the channel associated with that username.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "hl": {
+	//       "description": "The hl parameter should be used for filter out the properties that are not in the given language. Used for the brandingSettings part.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -4444,6 +6587,7 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner",
 	//     "https://www.googleapis.com/auth/youtubepartner-channel-audit"
@@ -4513,7 +6657,7 @@ func (c *ChannelsUpdateCall) Do() (*Channel, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4556,7 +6700,1072 @@ func (c *ChannelsUpdateCall) Do() (*Channel, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.commentThreads.insert":
+
+type CommentThreadsInsertCall struct {
+	s             *Service
+	part          string
+	commentthread *CommentThread
+	opt_          map[string]interface{}
+}
+
+// Insert: Creates a new comment thread and top level comment.
+func (r *CommentThreadsService) Insert(part string, commentthread *CommentThread) *CommentThreadsInsertCall {
+	c := &CommentThreadsInsertCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.commentthread = commentthread
+	return c
+}
+
+// ShareOnGooglePlus sets the optional parameter "shareOnGooglePlus":
+// The shareOnGooglePlus determines whether this thread should also be
+// posted on Google+.
+func (c *CommentThreadsInsertCall) ShareOnGooglePlus(shareOnGooglePlus bool) *CommentThreadsInsertCall {
+	c.opt_["shareOnGooglePlus"] = shareOnGooglePlus
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentThreadsInsertCall) Fields(s ...googleapi.Field) *CommentThreadsInsertCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentThreadsInsertCall) Do() (*CommentThread, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.commentthread)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["shareOnGooglePlus"]; ok {
+		params.Set("shareOnGooglePlus", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "commentThreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentThread
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Creates a new comment thread and top level comment.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.commentThreads.insert",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "shareOnGooglePlus": {
+	//       "default": "false",
+	//       "description": "The shareOnGooglePlus determines whether this thread should also be posted on Google+.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
+	//   "path": "commentThreads",
+	//   "request": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "response": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.commentThreads.list":
+
+type CommentThreadsListCall struct {
+	s    *Service
+	part string
+	opt_ map[string]interface{}
+}
+
+// List: Returns a list of comment threads that match the API request
+// parameters.
+func (r *CommentThreadsService) List(part string) *CommentThreadsListCall {
+	c := &CommentThreadsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	return c
+}
+
+// AllThreadsRelatedToChannelId sets the optional parameter
+// "allThreadsRelatedToChannelId": The allThreadsRelatedToChannelId
+// parameter instructs the API to return the comment threads of all
+// videos of the channel and the channel comments as well.
+func (c *CommentThreadsListCall) AllThreadsRelatedToChannelId(allThreadsRelatedToChannelId string) *CommentThreadsListCall {
+	c.opt_["allThreadsRelatedToChannelId"] = allThreadsRelatedToChannelId
+	return c
+}
+
+// ChannelId sets the optional parameter "channelId": The channelId
+// parameter instructs the API to return the comment threads for all the
+// channel comments (not including comments left on videos).
+func (c *CommentThreadsListCall) ChannelId(channelId string) *CommentThreadsListCall {
+	c.opt_["channelId"] = channelId
+	return c
+}
+
+// Id sets the optional parameter "id": The id parameter specifies a
+// comma-separated list of comment thread IDs for the resources that
+// should be retrieved.
+func (c *CommentThreadsListCall) Id(id string) *CommentThreadsListCall {
+	c.opt_["id"] = id
+	return c
+}
+
+// MaxResults sets the optional parameter "maxResults": The maxResults
+// parameter specifies the maximum number of items that should be
+// returned in the result set.
+//
+// Note: This parameter is not supported for use in conjunction with the
+// id parameter.
+func (c *CommentThreadsListCall) MaxResults(maxResults int64) *CommentThreadsListCall {
+	c.opt_["maxResults"] = maxResults
+	return c
+}
+
+// ModerationStatus sets the optional parameter "moderationStatus": Set
+// this parameter to limit the returned comment threads to a particular
+// moderation state.
+//
+// Note: This parameter is not supported for use in conjunction with the
+// id parameter.
+//
+// Possible values:
+//   "heldForReview" - Returns only comment threads awaiting review by a
+// moderator.
+//   "likelySpam" - Returns only comment threads classified as likely
+// being spam.
+//   "published" (default) - Returns only published comment threads.
+func (c *CommentThreadsListCall) ModerationStatus(moderationStatus string) *CommentThreadsListCall {
+	c.opt_["moderationStatus"] = moderationStatus
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": The pageToken
+// parameter identifies a specific page in the result set that should be
+// returned. In an API response, the nextPageToken property identifies
+// the next page of the result that can be retrieved.
+//
+// Note: This parameter is not supported for use in conjunction with the
+// id parameter.
+func (c *CommentThreadsListCall) PageToken(pageToken string) *CommentThreadsListCall {
+	c.opt_["pageToken"] = pageToken
+	return c
+}
+
+// SearchTerms sets the optional parameter "searchTerms": The
+// searchTerms parameter instructs the API to limit the returned
+// comments to those which contain the specified search terms.
+//
+// Note: This parameter is not supported for use in conjunction with the
+// id parameter.
+func (c *CommentThreadsListCall) SearchTerms(searchTerms string) *CommentThreadsListCall {
+	c.opt_["searchTerms"] = searchTerms
+	return c
+}
+
+// TextFormat sets the optional parameter "textFormat": Set this
+// parameter's value to html or plainText to instruct the API to return
+// the comments left by users in html formatted or in plain text.
+//
+// Possible values:
+//   "html" - Returns the comments in HTML format.
+//   "plainText" - Returns the comments in plain text format.
+func (c *CommentThreadsListCall) TextFormat(textFormat string) *CommentThreadsListCall {
+	c.opt_["textFormat"] = textFormat
+	return c
+}
+
+// VideoId sets the optional parameter "videoId": The videoId parameter
+// instructs the API to return the comment threads for the video
+// specified by the video id.
+func (c *CommentThreadsListCall) VideoId(videoId string) *CommentThreadsListCall {
+	c.opt_["videoId"] = videoId
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentThreadsListCall) Fields(s ...googleapi.Field) *CommentThreadsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["allThreadsRelatedToChannelId"]; ok {
+		params.Set("allThreadsRelatedToChannelId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["channelId"]; ok {
+		params.Set("channelId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["id"]; ok {
+		params.Set("id", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["maxResults"]; ok {
+		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["moderationStatus"]; ok {
+		params.Set("moderationStatus", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["pageToken"]; ok {
+		params.Set("pageToken", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["searchTerms"]; ok {
+		params.Set("searchTerms", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["textFormat"]; ok {
+		params.Set("textFormat", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["videoId"]; ok {
+		params.Set("videoId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "commentThreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentThreadListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of comment threads that match the API request parameters.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.commentThreads.list",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "allThreadsRelatedToChannelId": {
+	//       "description": "The allThreadsRelatedToChannelId parameter instructs the API to return the comment threads of all videos of the channel and the channel comments as well.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "channelId": {
+	//       "description": "The channelId parameter instructs the API to return the comment threads for all the channel comments (not including comments left on videos).",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of comment thread IDs for the resources that should be retrieved.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxResults": {
+	//       "default": "20",
+	//       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "maximum": "100",
+	//       "minimum": "1",
+	//       "type": "integer"
+	//     },
+	//     "moderationStatus": {
+	//       "default": "published",
+	//       "description": "Set this parameter to limit the returned comment threads to a particular moderation state.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "enum": [
+	//         "heldForReview",
+	//         "likelySpam",
+	//         "published"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Returns only comment threads awaiting review by a moderator.",
+	//         "Returns only comment threads classified as likely being spam.",
+	//         "Returns only published comment threads."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "pageToken": {
+	//       "description": "The pageToken parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identifies the next page of the result that can be retrieved.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the commentThread resource parts that the API response will include. Supported values are id, snippet and replies.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "searchTerms": {
+	//       "description": "The searchTerms parameter instructs the API to limit the returned comments to those which contain the specified search terms.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "textFormat": {
+	//       "default": "FORMAT_HTML",
+	//       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users in html formatted or in plain text.",
+	//       "enum": [
+	//         "html",
+	//         "plainText"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Returns the comments in HTML format.",
+	//         "Returns the comments in plain text format."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "videoId": {
+	//       "description": "The videoId parameter instructs the API to return the comment threads for the video specified by the video id.",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "commentThreads",
+	//   "response": {
+	//     "$ref": "CommentThreadListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.commentThreads.update":
+
+type CommentThreadsUpdateCall struct {
+	s             *Service
+	part          string
+	commentthread *CommentThread
+	opt_          map[string]interface{}
+}
+
+// Update: Modifies an existing comment.
+func (r *CommentThreadsService) Update(part string, commentthread *CommentThread) *CommentThreadsUpdateCall {
+	c := &CommentThreadsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.commentthread = commentthread
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentThreadsUpdateCall) Fields(s ...googleapi.Field) *CommentThreadsUpdateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentThreadsUpdateCall) Do() (*CommentThread, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.commentthread)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "commentThreads")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentThread
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Modifies an existing comment.",
+	//   "httpMethod": "PUT",
+	//   "id": "youtube.commentThreads.update",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id, snippet and replies. However only snippet contains properties that can be updated.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "commentThreads",
+	//   "request": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "response": {
+	//     "$ref": "CommentThread"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.delete":
+
+type CommentsDeleteCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// Delete: Deletes a comment.
+func (r *CommentsService) Delete(id string) *CommentsDeleteCall {
+	c := &CommentsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsDeleteCall) Fields(s ...googleapi.Field) *CommentsDeleteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsDeleteCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Deletes a comment.",
+	//   "httpMethod": "DELETE",
+	//   "id": "youtube.comments.delete",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "id": {
+	//       "description": "The id parameter specifies the comment ID for the resource that should be deleted.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.insert":
+
+type CommentsInsertCall struct {
+	s       *Service
+	part    string
+	comment *Comment
+	opt_    map[string]interface{}
+}
+
+// Insert: Creates a new comment.
+//
+// Note: to create a top level comment it is also necessary to create a
+// comment thread. Both are accomplished through the commentThreads
+// resource.
+func (r *CommentsService) Insert(part string, comment *Comment) *CommentsInsertCall {
+	c := &CommentsInsertCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.comment = comment
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsInsertCall) Fields(s ...googleapi.Field) *CommentsInsertCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsInsertCall) Do() (*Comment, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.comment)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *Comment
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Creates a new comment.\n\nNote: to create a top level comment it is also necessary to create a comment thread. Both are accomplished through the commentThreads resource.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.comments.insert",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "request": {
+	//     "$ref": "Comment"
+	//   },
+	//   "response": {
+	//     "$ref": "Comment"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.list":
+
+type CommentsListCall struct {
+	s    *Service
+	part string
+	opt_ map[string]interface{}
+}
+
+// List: Returns a list of comments that match the API request
+// parameters.
+func (r *CommentsService) List(part string) *CommentsListCall {
+	c := &CommentsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	return c
+}
+
+// Id sets the optional parameter "id": The id parameter specifies a
+// comma-separated list of comment IDs for the resources that should be
+// retrieved.
+func (c *CommentsListCall) Id(id string) *CommentsListCall {
+	c.opt_["id"] = id
+	return c
+}
+
+// MaxResults sets the optional parameter "maxResults": The maxResults
+// parameter specifies the maximum number of items that should be
+// returned in the result set.
+//
+// Note: This parameter is not supported for use in conjunction with the
+// id parameter.
+func (c *CommentsListCall) MaxResults(maxResults int64) *CommentsListCall {
+	c.opt_["maxResults"] = maxResults
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": The pageToken
+// parameter identifies a specific page in the result set that should be
+// returned. In an API response, the nextPageToken property identifies
+// the next page of the result that can be retrieved.
+//
+// Note: This parameter is not supported for use in conjunction with the
+// id parameter.
+func (c *CommentsListCall) PageToken(pageToken string) *CommentsListCall {
+	c.opt_["pageToken"] = pageToken
+	return c
+}
+
+// ParentId sets the optional parameter "parentId": The parentId
+// parameter specifies the ID of the comment for which replies should be
+// retrieved.
+//
+// Note: Currently YouTube features only one level of replies (ie
+// replies to top level comments). However replies to replies may be
+// supported in the future.
+func (c *CommentsListCall) ParentId(parentId string) *CommentsListCall {
+	c.opt_["parentId"] = parentId
+	return c
+}
+
+// TextFormat sets the optional parameter "textFormat": Set this
+// parameter's value to html or plainText to instruct the API to return
+// the comments left by users formatted as HTML or as plain text.
+//
+// Possible values:
+//   "html" - Returns the comments in HTML format.
+//   "plainText" - Returns the comments in plain text format.
+func (c *CommentsListCall) TextFormat(textFormat string) *CommentsListCall {
+	c.opt_["textFormat"] = textFormat
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsListCall) Fields(s ...googleapi.Field) *CommentsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsListCall) Do() (*CommentListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["id"]; ok {
+		params.Set("id", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["maxResults"]; ok {
+		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["pageToken"]; ok {
+		params.Set("pageToken", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["parentId"]; ok {
+		params.Set("parentId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["textFormat"]; ok {
+		params.Set("textFormat", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CommentListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of comments that match the API request parameters.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.comments.list",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of comment IDs for the resources that should be retrieved.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxResults": {
+	//       "default": "20",
+	//       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "maximum": "100",
+	//       "minimum": "1",
+	//       "type": "integer"
+	//     },
+	//     "pageToken": {
+	//       "description": "The pageToken parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identifies the next page of the result that can be retrieved.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "parentId": {
+	//       "description": "The parentId parameter specifies the ID of the comment for which replies should be retrieved.\n\nNote: Currently YouTube features only one level of replies (ie replies to top level comments). However replies to replies may be supported in the future.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the comment resource parts that the API response will include. Supported values are id and snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "textFormat": {
+	//       "default": "FORMAT_HTML",
+	//       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users formatted as HTML or as plain text.",
+	//       "enum": [
+	//         "html",
+	//         "plainText"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Returns the comments in HTML format.",
+	//         "Returns the comments in plain text format."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "response": {
+	//     "$ref": "CommentListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.markAsSpam":
+
+type CommentsMarkAsSpamCall struct {
+	s    *Service
+	id   string
+	opt_ map[string]interface{}
+}
+
+// MarkAsSpam: Expresses the caller's opinion that a comment is spam.
+func (r *CommentsService) MarkAsSpam(id string) *CommentsMarkAsSpamCall {
+	c := &CommentsMarkAsSpamCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsMarkAsSpamCall) Fields(s ...googleapi.Field) *CommentsMarkAsSpamCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsMarkAsSpamCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments/markAsSpam")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Expresses the caller's opinion that a comment is spam.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.comments.markAsSpam",
+	//   "parameterOrder": [
+	//     "id"
+	//   ],
+	//   "parameters": {
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of IDs of comments which should get flagged as spam.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments/markAsSpam",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.setModerationStatus":
+
+type CommentsSetModerationStatusCall struct {
+	s                *Service
+	id               string
+	moderationStatus string
+	opt_             map[string]interface{}
+}
+
+// SetModerationStatus: Sets the moderation status of one or more
+// comments.
+func (r *CommentsService) SetModerationStatus(id string, moderationStatus string) *CommentsSetModerationStatusCall {
+	c := &CommentsSetModerationStatusCall{s: r.s, opt_: make(map[string]interface{})}
+	c.id = id
+	c.moderationStatus = moderationStatus
+	return c
+}
+
+// BanAuthor sets the optional parameter "banAuthor": The banAuthor
+// paramter, if set to true, adds the author of the comment to the ban
+// list. This means all future comments of the author will
+// autmomatically be rejected.
+//
+// Note: This parameter is only valid in combination with
+// moderationStatus 'rejected'.
+func (c *CommentsSetModerationStatusCall) BanAuthor(banAuthor bool) *CommentsSetModerationStatusCall {
+	c.opt_["banAuthor"] = banAuthor
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsSetModerationStatusCall) Fields(s ...googleapi.Field) *CommentsSetModerationStatusCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsSetModerationStatusCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("id", fmt.Sprintf("%v", c.id))
+	params.Set("moderationStatus", fmt.Sprintf("%v", c.moderationStatus))
+	if v, ok := c.opt_["banAuthor"]; ok {
+		params.Set("banAuthor", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments/setModerationStatus")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Sets the moderation status of one or more comments.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.comments.setModerationStatus",
+	//   "parameterOrder": [
+	//     "id",
+	//     "moderationStatus"
+	//   ],
+	//   "parameters": {
+	//     "banAuthor": {
+	//       "default": "false",
+	//       "description": "The banAuthor paramter, if set to true, adds the author of the comment to the ban list. This means all future comments of the author will autmomatically be rejected.\n\nNote: This parameter is only valid in combination with moderationStatus 'rejected'.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
+	//     "id": {
+	//       "description": "The id parameter specifies a comma-separated list of IDs of comments whose moderation status should be updated.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "moderationStatus": {
+	//       "description": "Determines the new moderation status of the specified comments.",
+	//       "enum": [
+	//         "heldForReview",
+	//         "published",
+	//         "rejected"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Marks a comment as awaiting review by a moderator.",
+	//         "Clears a comment for public display.",
+	//         "Rejects a comment as not fit for display.\n\nNote: currently there is no way to list or otherwise discover a rejected comment. However it is possible to change its moderation status as long as its ID is still known.\n\nNote: Currently, if you reject a comment you effectively also hide all its replies as there is no longer any way to discover them. This may change in the future."
+	//       ],
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments/setModerationStatus",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.comments.update":
+
+type CommentsUpdateCall struct {
+	s       *Service
+	part    string
+	comment *Comment
+	opt_    map[string]interface{}
+}
+
+// Update: Modifies an existing comment.
+func (r *CommentsService) Update(part string, comment *Comment) *CommentsUpdateCall {
+	c := &CommentsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	c.comment = comment
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *CommentsUpdateCall) Fields(s ...googleapi.Field) *CommentsUpdateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *CommentsUpdateCall) Do() (*Comment, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.comment)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "comments")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *Comment
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Modifies an existing comment.",
+	//   "httpMethod": "PUT",
+	//   "id": "youtube.comments.update",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "part": {
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be updated.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "comments",
+	//   "request": {
+	//     "$ref": "Comment"
+	//   },
+	//   "response": {
+	//     "$ref": "Comment"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -4632,7 +7841,7 @@ func (c *GuideCategoriesListCall) Do() (*GuideCategoryListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4683,6 +7892,7 @@ func (c *GuideCategoriesListCall) Do() (*GuideCategoryListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -4735,7 +7945,7 @@ func (c *I18nLanguagesListCall) Do() (*I18nLanguageListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4776,6 +7986,7 @@ func (c *I18nLanguagesListCall) Do() (*I18nLanguageListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -4828,7 +8039,7 @@ func (c *I18nRegionsListCall) Do() (*I18nRegionListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4869,6 +8080,7 @@ func (c *I18nRegionsListCall) Do() (*I18nRegionListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -4899,16 +8111,15 @@ func (r *LiveBroadcastsService) Bind(id string, part string) *LiveBroadcastsBind
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsBindCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsBindCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -4919,10 +8130,9 @@ func (c *LiveBroadcastsBindCall) OnBehalfOfContentOwner(onBehalfOfContentOwner s
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -4931,12 +8141,11 @@ func (c *LiveBroadcastsBindCall) OnBehalfOfContentOwner(onBehalfOfContentOwner s
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsBindCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsBindCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -4981,7 +8190,7 @@ func (c *LiveBroadcastsBindCall) Do() (*LiveBroadcast, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5037,7 +8246,8 @@ func (c *LiveBroadcastsBindCall) Do() (*LiveBroadcast, error) {
 	//     "$ref": "LiveBroadcast"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -5078,13 +8288,12 @@ func (c *LiveBroadcastsControlCall) DisplaySlate(displaySlate bool) *LiveBroadca
 // approximation, and YouTube completes the requested action as closely
 // as possible to that time.
 //
-// If you do not specify a value for this
-// parameter, then YouTube performs the action as soon as possible. See
-// the Getting started guide for more details.
+// If you do not specify a value for this parameter, then YouTube
+// performs the action as soon as possible. See the Getting started
+// guide for more details.
 //
-// Important: You should
-// only specify a value for this parameter if your broadcast stream is
-// delayed.
+// Important: You should only specify a value for this parameter if your
+// broadcast stream is delayed.
 func (c *LiveBroadcastsControlCall) OffsetTimeMs(offsetTimeMs uint64) *LiveBroadcastsControlCall {
 	c.opt_["offsetTimeMs"] = offsetTimeMs
 	return c
@@ -5094,16 +8303,15 @@ func (c *LiveBroadcastsControlCall) OffsetTimeMs(offsetTimeMs uint64) *LiveBroad
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsControlCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsControlCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -5114,10 +8322,9 @@ func (c *LiveBroadcastsControlCall) OnBehalfOfContentOwner(onBehalfOfContentOwne
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -5126,12 +8333,11 @@ func (c *LiveBroadcastsControlCall) OnBehalfOfContentOwner(onBehalfOfContentOwne
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsControlCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsControlCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -5182,7 +8388,7 @@ func (c *LiveBroadcastsControlCall) Do() (*LiveBroadcast, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5250,7 +8456,8 @@ func (c *LiveBroadcastsControlCall) Do() (*LiveBroadcast, error) {
 	//     "$ref": "LiveBroadcast"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -5275,16 +8482,15 @@ func (r *LiveBroadcastsService) Delete(id string) *LiveBroadcastsDeleteCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsDeleteCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -5295,10 +8501,9 @@ func (c *LiveBroadcastsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -5307,12 +8512,11 @@ func (c *LiveBroadcastsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsDeleteCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsDeleteCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -5344,7 +8548,7 @@ func (c *LiveBroadcastsDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5381,7 +8585,8 @@ func (c *LiveBroadcastsDeleteCall) Do() error {
 	//   },
 	//   "path": "liveBroadcasts",
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -5408,16 +8613,15 @@ func (r *LiveBroadcastsService) Insert(part string, livebroadcast *LiveBroadcast
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -5428,10 +8632,9 @@ func (c *LiveBroadcastsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -5440,12 +8643,11 @@ func (c *LiveBroadcastsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsInsertCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsInsertCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -5483,7 +8685,7 @@ func (c *LiveBroadcastsInsertCall) Do() (*LiveBroadcast, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5530,7 +8732,8 @@ func (c *LiveBroadcastsInsertCall) Do() (*LiveBroadcast, error) {
 	//     "$ref": "LiveBroadcast"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -5555,6 +8758,12 @@ func (r *LiveBroadcastsService) List(part string) *LiveBroadcastsListCall {
 // BroadcastStatus sets the optional parameter "broadcastStatus": The
 // broadcastStatus parameter filters the API response to only include
 // broadcasts with the specified status.
+//
+// Possible values:
+//   "active" - Return current live broadcasts.
+//   "all" - Return all broadcasts.
+//   "completed" - Return broadcasts that have already ended.
+//   "upcoming" - Return broadcasts that have not yet started.
 func (c *LiveBroadcastsListCall) BroadcastStatus(broadcastStatus string) *LiveBroadcastsListCall {
 	c.opt_["broadcastStatus"] = broadcastStatus
 	return c
@@ -5590,16 +8799,15 @@ func (c *LiveBroadcastsListCall) Mine(mine bool) *LiveBroadcastsListCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -5610,10 +8818,9 @@ func (c *LiveBroadcastsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner s
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -5622,12 +8829,11 @@ func (c *LiveBroadcastsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner s
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsListCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsListCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -5683,7 +8889,7 @@ func (c *LiveBroadcastsListCall) Do() (*LiveBroadcastListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5769,6 +8975,7 @@ func (c *LiveBroadcastsListCall) Do() (*LiveBroadcastListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly"
 	//   ]
 	// }
@@ -5804,16 +9011,15 @@ func (r *LiveBroadcastsService) Transition(broadcastStatus string, id string, pa
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsTransitionCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsTransitionCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -5824,10 +9030,9 @@ func (c *LiveBroadcastsTransitionCall) OnBehalfOfContentOwner(onBehalfOfContentO
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -5836,12 +9041,11 @@ func (c *LiveBroadcastsTransitionCall) OnBehalfOfContentOwner(onBehalfOfContentO
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsTransitionCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsTransitionCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -5875,7 +9079,7 @@ func (c *LiveBroadcastsTransitionCall) Do() (*LiveBroadcast, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5943,7 +9147,8 @@ func (c *LiveBroadcastsTransitionCall) Do() (*LiveBroadcast, error) {
 	//     "$ref": "LiveBroadcast"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -5972,16 +9177,15 @@ func (r *LiveBroadcastsService) Update(part string, livebroadcast *LiveBroadcast
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveBroadcastsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveBroadcastsUpdateCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -5992,10 +9196,9 @@ func (c *LiveBroadcastsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -6004,12 +9207,11 @@ func (c *LiveBroadcastsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveBroadcastsUpdateCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveBroadcastsUpdateCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -6047,7 +9249,7 @@ func (c *LiveBroadcastsUpdateCall) Do() (*LiveBroadcast, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6094,7 +9296,8 @@ func (c *LiveBroadcastsUpdateCall) Do() (*LiveBroadcast, error) {
 	//     "$ref": "LiveBroadcast"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -6119,16 +9322,15 @@ func (r *LiveStreamsService) Delete(id string) *LiveStreamsDeleteCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveStreamsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveStreamsDeleteCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -6139,10 +9341,9 @@ func (c *LiveStreamsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -6151,12 +9352,11 @@ func (c *LiveStreamsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveStreamsDeleteCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveStreamsDeleteCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -6188,7 +9388,7 @@ func (c *LiveStreamsDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6225,7 +9425,8 @@ func (c *LiveStreamsDeleteCall) Do() error {
 	//   },
 	//   "path": "liveStreams",
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -6254,16 +9455,15 @@ func (r *LiveStreamsService) Insert(part string, livestream *LiveStream) *LiveSt
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveStreamsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveStreamsInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -6274,10 +9474,9 @@ func (c *LiveStreamsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -6286,12 +9485,11 @@ func (c *LiveStreamsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveStreamsInsertCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveStreamsInsertCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -6329,7 +9527,7 @@ func (c *LiveStreamsInsertCall) Do() (*LiveStream, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6376,7 +9574,8 @@ func (c *LiveStreamsInsertCall) Do() (*LiveStream, error) {
 	//     "$ref": "LiveStream"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -6429,16 +9628,15 @@ func (c *LiveStreamsListCall) Mine(mine bool) *LiveStreamsListCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveStreamsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveStreamsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -6449,10 +9647,9 @@ func (c *LiveStreamsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner stri
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -6461,12 +9658,11 @@ func (c *LiveStreamsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner stri
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveStreamsListCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveStreamsListCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -6519,7 +9715,7 @@ func (c *LiveStreamsListCall) Do() (*LiveStreamListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6588,6 +9784,7 @@ func (c *LiveStreamsListCall) Do() (*LiveStreamListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly"
 	//   ]
 	// }
@@ -6617,16 +9814,15 @@ func (r *LiveStreamsService) Update(part string, livestream *LiveStream) *LiveSt
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *LiveStreamsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *LiveStreamsUpdateCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -6637,10 +9833,9 @@ func (c *LiveStreamsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -6649,12 +9844,11 @@ func (c *LiveStreamsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *LiveStreamsUpdateCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *LiveStreamsUpdateCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -6692,7 +9886,7 @@ func (c *LiveStreamsUpdateCall) Do() (*LiveStream, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6739,7 +9933,8 @@ func (c *LiveStreamsUpdateCall) Do() (*LiveStream, error) {
 	//     "$ref": "LiveStream"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube"
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl"
 	//   ]
 	// }
 
@@ -6780,7 +9975,7 @@ func (c *PlaylistItemsDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6808,6 +10003,7 @@ func (c *PlaylistItemsDeleteCall) Do() error {
 	//   "path": "playlistItems",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -6835,16 +10031,15 @@ func (r *PlaylistItemsService) Insert(part string, playlistitem *PlaylistItem) *
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *PlaylistItemsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *PlaylistItemsInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -6879,7 +10074,7 @@ func (c *PlaylistItemsInsertCall) Do() (*PlaylistItem, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6922,6 +10117,7 @@ func (c *PlaylistItemsInsertCall) Do() (*PlaylistItem, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -6965,16 +10161,15 @@ func (c *PlaylistItemsListCall) MaxResults(maxResults int64) *PlaylistItemsListC
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *PlaylistItemsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *PlaylistItemsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -7045,7 +10240,7 @@ func (c *PlaylistItemsListCall) Do() (*PlaylistItemListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7114,6 +10309,7 @@ func (c *PlaylistItemsListCall) Do() (*PlaylistItemListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
@@ -7166,7 +10362,7 @@ func (c *PlaylistItemsUpdateCall) Do() (*PlaylistItem, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7204,6 +10400,7 @@ func (c *PlaylistItemsUpdateCall) Do() (*PlaylistItem, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -7229,16 +10426,15 @@ func (r *PlaylistsService) Delete(id string) *PlaylistsDeleteCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *PlaylistsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *PlaylistsDeleteCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -7267,7 +10463,7 @@ func (c *PlaylistsDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -7300,6 +10496,7 @@ func (c *PlaylistsDeleteCall) Do() error {
 	//   "path": "playlists",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -7327,16 +10524,15 @@ func (r *PlaylistsService) Insert(part string, playlist *Playlist) *PlaylistsIns
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *PlaylistsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *PlaylistsInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -7347,10 +10543,9 @@ func (c *PlaylistsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner stri
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -7359,12 +10554,11 @@ func (c *PlaylistsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner stri
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *PlaylistsInsertCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *PlaylistsInsertCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -7402,7 +10596,7 @@ func (c *PlaylistsInsertCall) Do() (*Playlist, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7450,6 +10644,7 @@ func (c *PlaylistsInsertCall) Do() (*Playlist, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -7482,6 +10677,14 @@ func (c *PlaylistsListCall) ChannelId(channelId string) *PlaylistsListCall {
 	return c
 }
 
+// Hl sets the optional parameter "hl": The hl parameter should be used
+// for filter out the properties that are not in the given language.
+// Used for the snippet part.
+func (c *PlaylistsListCall) Hl(hl string) *PlaylistsListCall {
+	c.opt_["hl"] = hl
+	return c
+}
+
 // Id sets the optional parameter "id": The id parameter specifies a
 // comma-separated list of the YouTube playlist ID(s) for the
 // resource(s) that are being retrieved. In a playlist resource, the id
@@ -7511,16 +10714,15 @@ func (c *PlaylistsListCall) Mine(mine bool) *PlaylistsListCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *PlaylistsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *PlaylistsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -7531,10 +10733,9 @@ func (c *PlaylistsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -7543,12 +10744,11 @@ func (c *PlaylistsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *PlaylistsListCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *PlaylistsListCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -7579,6 +10779,9 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	if v, ok := c.opt_["channelId"]; ok {
 		params.Set("channelId", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["id"]; ok {
 		params.Set("id", fmt.Sprintf("%v", v))
 	}
@@ -7604,7 +10807,7 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7628,6 +10831,11 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	//   "parameters": {
 	//     "channelId": {
 	//       "description": "This value indicates that the API should only return the specified channel's playlists.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "hl": {
+	//       "description": "The hl parameter should be used for filter out the properties that are not in the given language. Used for the snippet part.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7678,6 +10886,7 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -7707,16 +10916,15 @@ func (r *PlaylistsService) Update(part string, playlist *Playlist) *PlaylistsUpd
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *PlaylistsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *PlaylistsUpdateCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -7751,7 +10959,7 @@ func (c *PlaylistsUpdateCall) Do() (*Playlist, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7794,6 +11002,7 @@ func (c *PlaylistsUpdateCall) Do() (*Playlist, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -7830,6 +11039,10 @@ func (c *SearchListCall) ChannelId(channelId string) *SearchListCall {
 // ChannelType sets the optional parameter "channelType": The
 // channelType parameter lets you restrict a search to a particular type
 // of channel.
+//
+// Possible values:
+//   "any" - Return all channels.
+//   "show" - Only retrieve shows.
 func (c *SearchListCall) ChannelType(channelType string) *SearchListCall {
 	c.opt_["channelType"] = channelType
 	return c
@@ -7837,6 +11050,11 @@ func (c *SearchListCall) ChannelType(channelType string) *SearchListCall {
 
 // EventType sets the optional parameter "eventType": The eventType
 // parameter restricts a search to broadcast events.
+//
+// Possible values:
+//   "completed" - Only include completed broadcasts.
+//   "live" - Only include active broadcasts.
+//   "upcoming" - Only include upcoming broadcasts.
 func (c *SearchListCall) EventType(eventType string) *SearchListCall {
 	c.opt_["eventType"] = eventType
 	return c
@@ -7846,13 +11064,25 @@ func (c *SearchListCall) EventType(eventType string) *SearchListCall {
 // This parameter is intended exclusively for YouTube content
 // partners.
 //
-// The forContentOwner parameter restricts the search to only
-// retrieve resources owned by the content owner specified by the
+// The forContentOwner parameter restricts the search to only retrieve
+// resources owned by the content owner specified by the
 // onBehalfOfContentOwner parameter. The user must be authenticated
 // using a CMS account linked to the specified content owner and
 // onBehalfOfContentOwner must be provided.
 func (c *SearchListCall) ForContentOwner(forContentOwner bool) *SearchListCall {
 	c.opt_["forContentOwner"] = forContentOwner
+	return c
+}
+
+// ForDeveloper sets the optional parameter "forDeveloper": The
+// forDeveloper parameter restricts the search to only retrieve videos
+// uploaded via the developer's application or website. The API server
+// uses the request's authorization credentials to identify the
+// developer. Therefore, a developer can restrict results to videos
+// uploaded through the developer's own app or website but not to videos
+// uploaded through other apps or sites.
+func (c *SearchListCall) ForDeveloper(forDeveloper bool) *SearchListCall {
+	c.opt_["forDeveloper"] = forDeveloper
 	return c
 }
 
@@ -7901,16 +11131,15 @@ func (c *SearchListCall) MaxResults(maxResults int64) *SearchListCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *SearchListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *SearchListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -7919,6 +11148,18 @@ func (c *SearchListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *
 // Order sets the optional parameter "order": The order parameter
 // specifies the method that will be used to order resources in the API
 // response.
+//
+// Possible values:
+//   "date" - Resources are sorted in reverse chronological order based
+// on the date they were created.
+//   "rating" - Resources are sorted from highest to lowest rating.
+//   "relevance" - Resources are sorted based on their relevance to the
+// search query. This is the default value for this parameter.
+//   "title" - Resources are sorted alphabetically by title.
+//   "videoCount" - Channels are sorted in descending order of their
+// number of uploaded videos.
+//   "viewCount" - Resources are sorted from highest to lowest number of
+// views.
 func (c *SearchListCall) Order(order string) *SearchListCall {
 	c.opt_["order"] = order
 	return c
@@ -7977,9 +11218,33 @@ func (c *SearchListCall) RelatedToVideoId(relatedToVideoId string) *SearchListCa
 	return c
 }
 
+// RelevanceLanguage sets the optional parameter "relevanceLanguage":
+// The relevanceLanguage parameter instructs the API to return search
+// results that are most relevant to the specified language. The
+// parameter value is typically an ISO 639-1 two-letter language code.
+// However, you should use the values zh-Hans for simplified Chinese and
+// zh-Hant for traditional Chinese. Please note that results in other
+// languages will still be returned if they are highly relevant to the
+// search query term.
+func (c *SearchListCall) RelevanceLanguage(relevanceLanguage string) *SearchListCall {
+	c.opt_["relevanceLanguage"] = relevanceLanguage
+	return c
+}
+
 // SafeSearch sets the optional parameter "safeSearch": The safeSearch
 // parameter indicates whether the search results should include
 // restricted content as well as standard content.
+//
+// Possible values:
+//   "moderate" - YouTube will filter some content from search results
+// and, at the least, will filter content that is restricted in your
+// locale. Based on their content, search results could be removed from
+// search results or demoted in search results. This is the default
+// parameter value.
+//   "none" - YouTube will not filter the search result set.
+//   "strict" - YouTube will try to exclude all restricted content from
+// the search result set. Based on their content, search results could
+// be removed from search results or demoted in search results.
 func (c *SearchListCall) SafeSearch(safeSearch string) *SearchListCall {
 	c.opt_["safeSearch"] = safeSearch
 	return c
@@ -8005,6 +11270,11 @@ func (c *SearchListCall) Type(type_ string) *SearchListCall {
 // VideoCaption sets the optional parameter "videoCaption": The
 // videoCaption parameter indicates whether the API should filter video
 // search results based on whether they have captions.
+//
+// Possible values:
+//   "any" - Do not filter results based on caption availability.
+//   "closedCaption" - Only include videos that have captions.
+//   "none" - Only include videos that do not have captions.
 func (c *SearchListCall) VideoCaption(videoCaption string) *SearchListCall {
 	c.opt_["videoCaption"] = videoCaption
 	return c
@@ -8023,6 +11293,11 @@ func (c *SearchListCall) VideoCategoryId(videoCategoryId string) *SearchListCall
 // either high definition (HD) or standard definition (SD) videos. HD
 // videos are available for playback in at least 720p, though higher
 // resolutions, like 1080p, might also be available.
+//
+// Possible values:
+//   "any" - Return all videos, regardless of their resolution.
+//   "high" - Only retrieve HD videos.
+//   "standard" - Only retrieve videos in standard definition.
 func (c *SearchListCall) VideoDefinition(videoDefinition string) *SearchListCall {
 	c.opt_["videoDefinition"] = videoDefinition
 	return c
@@ -8031,6 +11306,12 @@ func (c *SearchListCall) VideoDefinition(videoDefinition string) *SearchListCall
 // VideoDimension sets the optional parameter "videoDimension": The
 // videoDimension parameter lets you restrict a search to only retrieve
 // 2D or 3D videos.
+//
+// Possible values:
+//   "2d" - Restrict search results to exclude 3D videos.
+//   "3d" - Restrict search results to only include 3D videos.
+//   "any" - Include both 3D and non-3D videos in returned results. This
+// is the default value.
 func (c *SearchListCall) VideoDimension(videoDimension string) *SearchListCall {
 	c.opt_["videoDimension"] = videoDimension
 	return c
@@ -8039,6 +11320,14 @@ func (c *SearchListCall) VideoDimension(videoDimension string) *SearchListCall {
 // VideoDuration sets the optional parameter "videoDuration": The
 // videoDuration parameter filters video search results based on their
 // duration.
+//
+// Possible values:
+//   "any" - Do not filter video search results based on their duration.
+// This is the default value.
+//   "long" - Only include videos longer than 20 minutes.
+//   "medium" - Only include videos that are between four and 20 minutes
+// long (inclusive).
+//   "short" - Only include videos that are less than four minutes long.
 func (c *SearchListCall) VideoDuration(videoDuration string) *SearchListCall {
 	c.opt_["videoDuration"] = videoDuration
 	return c
@@ -8047,6 +11336,10 @@ func (c *SearchListCall) VideoDuration(videoDuration string) *SearchListCall {
 // VideoEmbeddable sets the optional parameter "videoEmbeddable": The
 // videoEmbeddable parameter lets you to restrict a search to only
 // videos that can be embedded into a webpage.
+//
+// Possible values:
+//   "any" - Return all videos, embeddable or not.
+//   "true" - Only retrieve embeddable videos.
 func (c *SearchListCall) VideoEmbeddable(videoEmbeddable string) *SearchListCall {
 	c.opt_["videoEmbeddable"] = videoEmbeddable
 	return c
@@ -8057,6 +11350,15 @@ func (c *SearchListCall) VideoEmbeddable(videoEmbeddable string) *SearchListCall
 // with a particular license. YouTube lets video uploaders choose to
 // attach either the Creative Commons license or the standard YouTube
 // license to each of their videos.
+//
+// Possible values:
+//   "any" - Return all videos, regardless of which license they have,
+// that match the query parameters.
+//   "creativeCommon" - Only return videos that have a Creative Commons
+// license. Users can reuse videos with this license in other videos
+// that they create. Learn more.
+//   "youtube" - Only return videos that have the standard YouTube
+// license.
 func (c *SearchListCall) VideoLicense(videoLicense string) *SearchListCall {
 	c.opt_["videoLicense"] = videoLicense
 	return c
@@ -8065,6 +11367,10 @@ func (c *SearchListCall) VideoLicense(videoLicense string) *SearchListCall {
 // VideoSyndicated sets the optional parameter "videoSyndicated": The
 // videoSyndicated parameter lets you to restrict a search to only
 // videos that can be played outside youtube.com.
+//
+// Possible values:
+//   "any" - Return all videos, syndicated or not.
+//   "true" - Only retrieve syndicated videos.
 func (c *SearchListCall) VideoSyndicated(videoSyndicated string) *SearchListCall {
 	c.opt_["videoSyndicated"] = videoSyndicated
 	return c
@@ -8072,6 +11378,11 @@ func (c *SearchListCall) VideoSyndicated(videoSyndicated string) *SearchListCall
 
 // VideoType sets the optional parameter "videoType": The videoType
 // parameter lets you restrict a search to a particular type of videos.
+//
+// Possible values:
+//   "any" - Return all videos.
+//   "episode" - Only retrieve episodes of shows.
+//   "movie" - Only retrieve movies.
 func (c *SearchListCall) VideoType(videoType string) *SearchListCall {
 	c.opt_["videoType"] = videoType
 	return c
@@ -8101,6 +11412,9 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	}
 	if v, ok := c.opt_["forContentOwner"]; ok {
 		params.Set("forContentOwner", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["forDeveloper"]; ok {
+		params.Set("forDeveloper", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["forMine"]; ok {
 		params.Set("forMine", fmt.Sprintf("%v", v))
@@ -8137,6 +11451,9 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	}
 	if v, ok := c.opt_["relatedToVideoId"]; ok {
 		params.Set("relatedToVideoId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["relevanceLanguage"]; ok {
+		params.Set("relevanceLanguage", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["safeSearch"]; ok {
 		params.Set("safeSearch", fmt.Sprintf("%v", v))
@@ -8181,7 +11498,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8238,6 +11555,11 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//     },
 	//     "forContentOwner": {
 	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe forContentOwner parameter restricts the search to only retrieve resources owned by the content owner specified by the onBehalfOfContentOwner parameter. The user must be authenticated using a CMS account linked to the specified content owner and onBehalfOfContentOwner must be provided.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
+	//     "forDeveloper": {
+	//       "description": "The forDeveloper parameter restricts the search to only retrieve videos uploaded via the developer's application or website. The API server uses the request's authorization credentials to identify the developer. Therefore, a developer can restrict results to videos uploaded through the developer's own app or website but not to videos uploaded through other apps or sites.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },
@@ -8327,6 +11649,11 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//     },
 	//     "relatedToVideoId": {
 	//       "description": "The relatedToVideoId parameter retrieves a list of videos that are related to the video that the parameter value identifies. The parameter value must be set to a YouTube video ID and, if you are using this parameter, the type parameter must be set to video.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "relevanceLanguage": {
+	//       "description": "The relevanceLanguage parameter instructs the API to return search results that are most relevant to the specified language. The parameter value is typically an ISO 639-1 two-letter language code. However, you should use the values zh-Hans for simplified Chinese and zh-Hant for traditional Chinese. Please note that results in other languages will still be returned if they are highly relevant to the search query term.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -8486,6 +11813,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -8528,7 +11856,7 @@ func (c *SubscriptionsDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -8556,6 +11884,7 @@ func (c *SubscriptionsDeleteCall) Do() error {
 	//   "path": "subscriptions",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -8605,7 +11934,7 @@ func (c *SubscriptionsInsertCall) Do() (*Subscription, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8643,6 +11972,7 @@ func (c *SubscriptionsInsertCall) Do() (*Subscription, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -8718,16 +12048,15 @@ func (c *SubscriptionsListCall) MySubscribers(mySubscribers bool) *Subscriptions
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *SubscriptionsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *SubscriptionsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -8738,10 +12067,9 @@ func (c *SubscriptionsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -8750,12 +12078,11 @@ func (c *SubscriptionsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner st
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *SubscriptionsListCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *SubscriptionsListCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -8764,6 +12091,11 @@ func (c *SubscriptionsListCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentO
 // Order sets the optional parameter "order": The order parameter
 // specifies the method that will be used to sort resources in the API
 // response.
+//
+// Possible values:
+//   "alphabetical" - Sort alphabetically.
+//   "relevance" - Sort by relevance.
+//   "unread" - Sort by order of activity.
 func (c *SubscriptionsListCall) Order(order string) *SubscriptionsListCall {
 	c.opt_["order"] = order
 	return c
@@ -8828,7 +12160,7 @@ func (c *SubscriptionsListCall) Do() (*SubscriptionListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8928,6 +12260,7 @@ func (c *SubscriptionsListCall) Do() (*SubscriptionListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -9048,13 +12381,10 @@ func (c *ThumbnailsSetCall) Do() (*ThumbnailSetResponse, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9067,6 +12397,7 @@ func (c *ThumbnailsSetCall) Do() (*ThumbnailSetResponse, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -9128,10 +12459,105 @@ func (c *ThumbnailsSetCall) Do() (*ThumbnailSetResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.upload",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
 	//   "supportsMediaUpload": true
+	// }
+
+}
+
+// method id "youtube.videoAbuseReportReasons.list":
+
+type VideoAbuseReportReasonsListCall struct {
+	s    *Service
+	part string
+	opt_ map[string]interface{}
+}
+
+// List: Returns a list of abuse reasons that can be used for reporting
+// abusive videos.
+func (r *VideoAbuseReportReasonsService) List(part string) *VideoAbuseReportReasonsListCall {
+	c := &VideoAbuseReportReasonsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.part = part
+	return c
+}
+
+// Hl sets the optional parameter "hl": The hl parameter specifies the
+// language that should be used for text values in the API response.
+func (c *VideoAbuseReportReasonsListCall) Hl(hl string) *VideoAbuseReportReasonsListCall {
+	c.opt_["hl"] = hl
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *VideoAbuseReportReasonsListCall) Fields(s ...googleapi.Field) *VideoAbuseReportReasonsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *VideoAbuseReportReasonsListCall) Do() (*VideoAbuseReportReasonListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	params.Set("part", fmt.Sprintf("%v", c.part))
+	if v, ok := c.opt_["hl"]; ok {
+		params.Set("hl", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "videoAbuseReportReasons")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *VideoAbuseReportReasonListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Returns a list of abuse reasons that can be used for reporting abusive videos.",
+	//   "httpMethod": "GET",
+	//   "id": "youtube.videoAbuseReportReasons.list",
+	//   "parameterOrder": [
+	//     "part"
+	//   ],
+	//   "parameters": {
+	//     "hl": {
+	//       "default": "en_US",
+	//       "description": "The hl parameter specifies the language that should be used for text values in the API response.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "part": {
+	//       "description": "The part parameter specifies the videoCategory resource parts that the API response will include. Supported values are id and snippet.",
+	//       "location": "query",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "videoAbuseReportReasons",
+	//   "response": {
+	//     "$ref": "VideoAbuseReportReasonListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtube.readonly"
+	//   ]
 	// }
 
 }
@@ -9205,7 +12631,7 @@ func (c *VideoCategoriesListCall) Do() (*VideoCategoryListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9256,6 +12682,7 @@ func (c *VideoCategoriesListCall) Do() (*VideoCategoryListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -9282,16 +12709,16 @@ func (r *VideosService) Delete(id string) *VideosDeleteCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// actual CMS account that the user authenticates with must be linked to
-// the specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
 func (c *VideosDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosDeleteCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -9320,7 +12747,7 @@ func (c *VideosDeleteCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -9353,6 +12780,7 @@ func (c *VideosDeleteCall) Do() error {
 	//   "path": "videos",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -9379,16 +12807,15 @@ func (r *VideosService) GetRating(id string) *VideosGetRatingCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *VideosGetRatingCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosGetRatingCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -9417,7 +12844,7 @@ func (c *VideosGetRatingCall) Do() (*VideoGetRatingResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9457,6 +12884,7 @@ func (c *VideosGetRatingCall) Do() (*VideoGetRatingResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -9506,16 +12934,15 @@ func (c *VideosInsertCall) NotifySubscribers(notifySubscribers bool) *VideosInse
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *VideosInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosInsertCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -9526,10 +12953,9 @@ func (c *VideosInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string)
 // properly authorized request. Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The
-// onBehalfOfContentOwnerChannel parameter specifies the YouTube channel
-// ID of the channel to which a video is being added. This parameter is
-// required when a request specifies a value for the
+// The onBehalfOfContentOwnerChannel parameter specifies the YouTube
+// channel ID of the channel to which a video is being added. This
+// parameter is required when a request specifies a value for the
 // onBehalfOfContentOwner parameter, and it can only be used in
 // conjunction with that parameter. In addition, the request must be
 // authorized using a CMS account that is linked to the content owner
@@ -9538,12 +12964,11 @@ func (c *VideosInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string)
 // specifies must be linked to the content owner that the
 // onBehalfOfContentOwner parameter specifies.
 //
-// This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and perform actions on behalf of the channel specified in the
-// parameter value, without having to provide authentication credentials
-// for each separate channel.
+// This parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and perform actions on behalf of the channel
+// specified in the parameter value, without having to provide
+// authentication credentials for each separate channel.
 func (c *VideosInsertCall) OnBehalfOfContentOwnerChannel(onBehalfOfContentOwnerChannel string) *VideosInsertCall {
 	c.opt_["onBehalfOfContentOwnerChannel"] = onBehalfOfContentOwnerChannel
 	return c
@@ -9649,13 +13074,10 @@ func (c *VideosInsertCall) Do() (*Video, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9668,6 +13090,7 @@ func (c *VideosInsertCall) Do() (*Video, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -9752,6 +13175,7 @@ func (c *VideosInsertCall) Do() (*Video, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.upload",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
@@ -9777,6 +13201,10 @@ func (r *VideosService) List(part string) *VideosListCall {
 
 // Chart sets the optional parameter "chart": The chart parameter
 // identifies the chart that you want to retrieve.
+//
+// Possible values:
+//   "mostPopular" - Return the most popular videos for the specified
+// content region and video category.
 func (c *VideosListCall) Chart(chart string) *VideosListCall {
 	c.opt_["chart"] = chart
 	return c
@@ -9814,9 +13242,9 @@ func (c *VideosListCall) Locale(locale string) *VideosListCall {
 // parameter specifies the maximum number of items that should be
 // returned in the result set.
 //
-// Note: This parameter is supported for
-// use in conjunction with the myRating parameter, but it is not
-// supported for use in conjunction with the id parameter.
+// Note: This parameter is supported for use in conjunction with the
+// myRating parameter, but it is not supported for use in conjunction
+// with the id parameter.
 func (c *VideosListCall) MaxResults(maxResults int64) *VideosListCall {
 	c.opt_["maxResults"] = maxResults
 	return c
@@ -9825,6 +13253,10 @@ func (c *VideosListCall) MaxResults(maxResults int64) *VideosListCall {
 // MyRating sets the optional parameter "myRating": Set this parameter's
 // value to like or dislike to instruct the API to only return videos
 // liked or disliked by the authenticated user.
+//
+// Possible values:
+//   "dislike" - Returns only videos disliked by the authenticated user.
+//   "like" - Returns only video liked by the authenticated user.
 func (c *VideosListCall) MyRating(myRating string) *VideosListCall {
 	c.opt_["myRating"] = myRating
 	return c
@@ -9834,16 +13266,15 @@ func (c *VideosListCall) MyRating(myRating string) *VideosListCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *VideosListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -9854,10 +13285,9 @@ func (c *VideosListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *
 // returned. In an API response, the nextPageToken and prevPageToken
 // properties identify other pages that could be retrieved.
 //
-// Note: This
-// parameter is supported for use in conjunction with the myRating
-// parameter, but it is not supported for use in conjunction with the id
-// parameter.
+// Note: This parameter is supported for use in conjunction with the
+// myRating parameter, but it is not supported for use in conjunction
+// with the id parameter.
 func (c *VideosListCall) PageToken(pageToken string) *VideosListCall {
 	c.opt_["pageToken"] = pageToken
 	return c
@@ -9933,7 +13363,7 @@ func (c *VideosListCall) Do() (*VideoListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10037,6 +13467,7 @@ func (c *VideosListCall) Do() (*VideoListResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.readonly",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
@@ -10066,16 +13497,15 @@ func (r *VideosService) Rate(id string, rating string) *VideosRateCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// CMS account that the user authenticates with must be linked to the
-// specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *VideosRateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosRateCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -10105,7 +13535,7 @@ func (c *VideosRateCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -10155,6 +13585,102 @@ func (c *VideosRateCall) Do() error {
 	//   "path": "videos/rate",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtubepartner"
+	//   ]
+	// }
+
+}
+
+// method id "youtube.videos.reportAbuse":
+
+type VideosReportAbuseCall struct {
+	s                *Service
+	videoabusereport *VideoAbuseReport
+	opt_             map[string]interface{}
+}
+
+// ReportAbuse: Report abuse for a video.
+func (r *VideosService) ReportAbuse(videoabusereport *VideoAbuseReport) *VideosReportAbuseCall {
+	c := &VideosReportAbuseCall{s: r.s, opt_: make(map[string]interface{})}
+	c.videoabusereport = videoabusereport
+	return c
+}
+
+// OnBehalfOfContentOwner sets the optional parameter
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
+func (c *VideosReportAbuseCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosReportAbuseCall {
+	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *VideosReportAbuseCall) Fields(s ...googleapi.Field) *VideosReportAbuseCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *VideosReportAbuseCall) Do() error {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.videoabusereport)
+	if err != nil {
+		return err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
+		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "videos/reportAbuse")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Report abuse for a video.",
+	//   "httpMethod": "POST",
+	//   "id": "youtube.videos.reportAbuse",
+	//   "parameters": {
+	//     "onBehalfOfContentOwner": {
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "videos/reportAbuse",
+	//   "request": {
+	//     "$ref": "VideoAbuseReport"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -10182,16 +13708,16 @@ func (r *VideosService) Update(part string, video *Video) *VideosUpdateCall {
 // "onBehalfOfContentOwner": Note: This parameter is intended
 // exclusively for YouTube content partners.
 //
-// The onBehalfOfContentOwner
-// parameter indicates that the request's authorization credentials
-// identify a YouTube CMS user who is acting on behalf of the content
-// owner specified in the parameter value. This parameter is intended
-// for YouTube content partners that own and manage many different
-// YouTube channels. It allows content owners to authenticate once and
-// get access to all their video and channel data, without having to
-// provide authentication credentials for each individual channel. The
-// actual CMS account that the user authenticates with must be linked to
-// the specified YouTube content owner.
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
 func (c *VideosUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosUpdateCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -10226,7 +13752,7 @@ func (c *VideosUpdateCall) Do() (*Video, error) {
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10269,6 +13795,7 @@ func (c *VideosUpdateCall) Do() (*Video, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
@@ -10392,13 +13919,10 @@ func (c *WatermarksSetCall) Do() error {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -10411,6 +13935,7 @@ func (c *WatermarksSetCall) Do() error {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -10468,6 +13993,7 @@ func (c *WatermarksSetCall) Do() error {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtube.upload",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
@@ -10529,7 +14055,7 @@ func (c *WatermarksUnsetCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -10562,6 +14088,7 @@ func (c *WatermarksUnsetCall) Do() error {
 	//   "path": "watermarks/unset",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/youtube",
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
 	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }

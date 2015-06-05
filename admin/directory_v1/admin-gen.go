@@ -122,8 +122,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Asps *AspsService
 
@@ -148,6 +149,13 @@ type Service struct {
 	Users *UsersService
 
 	VerificationCodes *VerificationCodesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAspsService(s *Service) *AspsService {
@@ -405,6 +413,10 @@ type Channel struct {
 type ChromeOsDevice struct {
 	// ActiveTimeRanges: List of active time ranges (Read-only)
 	ActiveTimeRanges []*ChromeOsDeviceActiveTimeRanges `json:"activeTimeRanges,omitempty"`
+
+	// AnnotatedAssetId: AssetId specified during enrollment or through
+	// later annotation
+	AnnotatedAssetId string `json:"annotatedAssetId,omitempty"`
 
 	// AnnotatedLocation: Address or location of the device as noted by the
 	// administrator
@@ -782,8 +794,14 @@ type OrgUnit struct {
 	// Name: Name of OrgUnit
 	Name string `json:"name,omitempty"`
 
+	// OrgUnitId: Id of OrgUnit
+	OrgUnitId string `json:"orgUnitId,omitempty"`
+
 	// OrgUnitPath: Path of OrgUnit
 	OrgUnitPath string `json:"orgUnitPath,omitempty"`
+
+	// ParentOrgUnitId: Id of parent OrgUnit
+	ParentOrgUnitId string `json:"parentOrgUnitId,omitempty"`
 
 	// ParentOrgUnitPath: Path of parent OrgUnit
 	ParentOrgUnitPath string `json:"parentOrgUnitPath,omitempty"`
@@ -831,7 +849,9 @@ type SchemaFieldSpec struct {
 	FieldType string `json:"fieldType,omitempty"`
 
 	// Indexed: Boolean specifying whether the field is indexed or not.
-	Indexed bool `json:"indexed,omitempty"`
+	//
+	// Default: true
+	Indexed *bool `json:"indexed,omitempty"`
 
 	// Kind: Kind of resource this is.
 	Kind string `json:"kind,omitempty"`
@@ -1073,8 +1093,7 @@ type UserAddress struct {
 	Type string `json:"type,omitempty"`
 }
 
-type UserCustomProperties struct {
-}
+type UserCustomProperties interface{}
 
 type UserEmail struct {
 	// Address: Email id of the user.
@@ -1278,9 +1297,9 @@ type Users struct {
 	// NextPageToken: Token used to access next page of this result.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// Trigger_event: Event that triggered this response (only used in case
+	// TriggerEvent: Event that triggered this response (only used in case
 	// of Push Response)
-	Trigger_event string `json:"trigger_event,omitempty"`
+	TriggerEvent string `json:"trigger_event,omitempty"`
 
 	// Users: List of user objects.
 	Users []*User `json:"users,omitempty"`
@@ -1354,7 +1373,7 @@ func (c *AspsDeleteCall) Do() error {
 		"userKey": c.userKey,
 		"codeId":  strconv.FormatInt(c.codeId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1434,7 +1453,7 @@ func (c *AspsGetCall) Do() (*Asp, error) {
 		"userKey": c.userKey,
 		"codeId":  strconv.FormatInt(c.codeId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1518,7 +1537,7 @@ func (c *AspsListCall) Do() (*Asps, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1598,7 +1617,7 @@ func (c *ChannelsStopCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1646,6 +1665,11 @@ func (r *ChromeosdevicesService) Get(customerId string, deviceId string) *Chrome
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "BASIC" - Includes only the basic metadata fields (e.g., deviceId,
+// serialNumber, status, and user)
+//   "FULL" - Includes all metadata fields
 func (c *ChromeosdevicesGetCall) Projection(projection string) *ChromeosdevicesGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1676,7 +1700,7 @@ func (c *ChromeosdevicesGetCall) Do() (*ChromeOsDevice, error) {
 		"customerId": c.customerId,
 		"deviceId":   c.deviceId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1761,6 +1785,16 @@ func (c *ChromeosdevicesListCall) MaxResults(maxResults int64) *ChromeosdevicesL
 
 // OrderBy sets the optional parameter "orderBy": Column to use for
 // sorting results
+//
+// Possible values:
+//   "annotatedLocation" - Chromebook location as annotated by the
+// administrator.
+//   "annotatedUser" - Chromebook user as annotated by administrator.
+//   "lastSync" - Chromebook last sync.
+//   "notes" - Chromebook notes as annotated by the administrator.
+//   "serialNumber" - Chromebook Serial Number.
+//   "status" - Chromebook status.
+//   "supportEndDate" - Chromebook support end date.
 func (c *ChromeosdevicesListCall) OrderBy(orderBy string) *ChromeosdevicesListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -1775,6 +1809,11 @@ func (c *ChromeosdevicesListCall) PageToken(pageToken string) *ChromeosdevicesLi
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "BASIC" - Includes only the basic metadata fields (e.g., deviceId,
+// serialNumber, status, and user)
+//   "FULL" - Includes all metadata fields
 func (c *ChromeosdevicesListCall) Projection(projection string) *ChromeosdevicesListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1792,6 +1831,10 @@ func (c *ChromeosdevicesListCall) Query(query string) *ChromeosdevicesListCall {
 // SortOrder sets the optional parameter "sortOrder": Whether to return
 // results in ascending or descending order. Only of use when orderBy is
 // also used
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" - Descending order.
 func (c *ChromeosdevicesListCall) SortOrder(sortOrder string) *ChromeosdevicesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -1836,7 +1879,7 @@ func (c *ChromeosdevicesListCall) Do() (*ChromeOsDevices, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"customerId": c.customerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1964,6 +2007,11 @@ func (r *ChromeosdevicesService) Patch(customerId string, deviceId string, chrom
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "BASIC" - Includes only the basic metadata fields (e.g., deviceId,
+// serialNumber, status, and user)
+//   "FULL" - Includes all metadata fields
 func (c *ChromeosdevicesPatchCall) Projection(projection string) *ChromeosdevicesPatchCall {
 	c.opt_["projection"] = projection
 	return c
@@ -2000,7 +2048,7 @@ func (c *ChromeosdevicesPatchCall) Do() (*ChromeOsDevice, error) {
 		"deviceId":   c.deviceId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2084,6 +2132,11 @@ func (r *ChromeosdevicesService) Update(customerId string, deviceId string, chro
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "BASIC" - Includes only the basic metadata fields (e.g., deviceId,
+// serialNumber, status, and user)
+//   "FULL" - Includes all metadata fields
 func (c *ChromeosdevicesUpdateCall) Projection(projection string) *ChromeosdevicesUpdateCall {
 	c.opt_["projection"] = projection
 	return c
@@ -2120,7 +2173,7 @@ func (c *ChromeosdevicesUpdateCall) Do() (*ChromeOsDevice, error) {
 		"deviceId":   c.deviceId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2219,7 +2272,7 @@ func (c *GroupsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"groupKey": c.groupKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2288,7 +2341,7 @@ func (c *GroupsGetCall) Do() (*Group, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"groupKey": c.groupKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2369,7 +2422,7 @@ func (c *GroupsInsertCall) Do() (*Group, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2486,7 +2539,7 @@ func (c *GroupsListCall) Do() (*Groups, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2589,7 +2642,7 @@ func (c *GroupsPatchCall) Do() (*Group, error) {
 		"groupKey": c.groupKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2676,7 +2729,7 @@ func (c *GroupsUpdateCall) Do() (*Group, error) {
 		"groupKey": c.groupKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2758,7 +2811,7 @@ func (c *GroupsAliasesDeleteCall) Do() error {
 		"groupKey": c.groupKey,
 		"alias":    c.alias,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2842,7 +2895,7 @@ func (c *GroupsAliasesInsertCall) Do() (*Alias, error) {
 		"groupKey": c.groupKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2921,7 +2974,7 @@ func (c *GroupsAliasesListCall) Do() (*Aliases, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"groupKey": c.groupKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3002,7 +3055,7 @@ func (c *MembersDeleteCall) Do() error {
 		"groupKey":  c.groupKey,
 		"memberKey": c.memberKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3082,7 +3135,7 @@ func (c *MembersGetCall) Do() (*Member, error) {
 		"groupKey":  c.groupKey,
 		"memberKey": c.memberKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3176,7 +3229,7 @@ func (c *MembersInsertCall) Do() (*Member, error) {
 		"groupKey": c.groupKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3286,7 +3339,7 @@ func (c *MembersListCall) Do() (*Members, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"groupKey": c.groupKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3394,7 +3447,7 @@ func (c *MembersPatchCall) Do() (*Member, error) {
 		"memberKey": c.memberKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3492,7 +3545,7 @@ func (c *MembersUpdateCall) Do() (*Member, error) {
 		"memberKey": c.memberKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3590,7 +3643,7 @@ func (c *MobiledevicesActionCall) Do() error {
 		"resourceId": c.resourceId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3673,7 +3726,7 @@ func (c *MobiledevicesDeleteCall) Do() error {
 		"customerId": c.customerId,
 		"resourceId": c.resourceId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3732,6 +3785,11 @@ func (r *MobiledevicesService) Get(customerId string, resourceId string) *Mobile
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "BASIC" - Includes only the basic metadata fields (e.g., deviceId,
+// model, status, type, and status)
+//   "FULL" - Includes all metadata fields
 func (c *MobiledevicesGetCall) Projection(projection string) *MobiledevicesGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -3762,7 +3820,7 @@ func (c *MobiledevicesGetCall) Do() (*MobileDevice, error) {
 		"customerId": c.customerId,
 		"resourceId": c.resourceId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3848,6 +3906,16 @@ func (c *MobiledevicesListCall) MaxResults(maxResults int64) *MobiledevicesListC
 
 // OrderBy sets the optional parameter "orderBy": Column to use for
 // sorting results
+//
+// Possible values:
+//   "deviceId" - Mobile Device serial number.
+//   "email" - Owner user email.
+//   "lastSync" - Last policy settings sync date time of the device.
+//   "model" - Mobile Device model.
+//   "name" - Owner user name.
+//   "os" - Mobile operating system.
+//   "status" - Status of the device.
+//   "type" - Type of the device.
 func (c *MobiledevicesListCall) OrderBy(orderBy string) *MobiledevicesListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -3862,6 +3930,11 @@ func (c *MobiledevicesListCall) PageToken(pageToken string) *MobiledevicesListCa
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "BASIC" - Includes only the basic metadata fields (e.g., deviceId,
+// model, status, type, and status)
+//   "FULL" - Includes all metadata fields
 func (c *MobiledevicesListCall) Projection(projection string) *MobiledevicesListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -3878,6 +3951,10 @@ func (c *MobiledevicesListCall) Query(query string) *MobiledevicesListCall {
 // SortOrder sets the optional parameter "sortOrder": Whether to return
 // results in ascending or descending order. Only of use when orderBy is
 // also used
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" - Descending order.
 func (c *MobiledevicesListCall) SortOrder(sortOrder string) *MobiledevicesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -3922,7 +3999,7 @@ func (c *MobiledevicesListCall) Do() (*MobileDevices, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"customerId": c.customerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4071,7 +4148,7 @@ func (c *NotificationsDeleteCall) Do() error {
 		"customer":       c.customer,
 		"notificationId": c.notificationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4150,7 +4227,7 @@ func (c *NotificationsGetCall) Do() (*Notification, error) {
 		"customer":       c.customer,
 		"notificationId": c.notificationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4264,7 +4341,7 @@ func (c *NotificationsListCall) Do() (*Notifications, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"customer": c.customer,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4367,7 +4444,7 @@ func (c *NotificationsPatchCall) Do() (*Notification, error) {
 		"notificationId": c.notificationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4464,7 +4541,7 @@ func (c *NotificationsUpdateCall) Do() (*Notification, error) {
 		"notificationId": c.notificationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4553,7 +4630,7 @@ func (c *OrgunitsDeleteCall) Do() error {
 		"customerId":  c.customerId,
 		"orgUnitPath": c.orgUnitPath[0],
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4579,7 +4656,7 @@ func (c *OrgunitsDeleteCall) Do() error {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -4633,7 +4710,7 @@ func (c *OrgunitsGetCall) Do() (*OrgUnit, error) {
 		"customerId":  c.customerId,
 		"orgUnitPath": c.orgUnitPath[0],
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4663,7 +4740,7 @@ func (c *OrgunitsGetCall) Do() (*OrgUnit, error) {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -4726,7 +4803,7 @@ func (c *OrgunitsInsertCall) Do() (*OrgUnit, error) {
 		"customerId": c.customerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4785,7 +4862,7 @@ func (r *OrgunitsService) List(customerId string) *OrgunitsListCall {
 }
 
 // OrgUnitPath sets the optional parameter "orgUnitPath": the
-// URL-encoded organization unit
+// URL-encoded organization unit's path or its Id
 func (c *OrgunitsListCall) OrgUnitPath(orgUnitPath string) *OrgunitsListCall {
 	c.opt_["orgUnitPath"] = orgUnitPath
 	return c
@@ -4793,6 +4870,10 @@ func (c *OrgunitsListCall) OrgUnitPath(orgUnitPath string) *OrgunitsListCall {
 
 // Type sets the optional parameter "type": Whether to return all
 // sub-organizations or just immediate children
+//
+// Possible values:
+//   "all" - All sub-organization units.
+//   "children" - Immediate children only (default).
 func (c *OrgunitsListCall) Type(type_ string) *OrgunitsListCall {
 	c.opt_["type"] = type_
 	return c
@@ -4825,7 +4906,7 @@ func (c *OrgunitsListCall) Do() (*OrgUnits, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"customerId": c.customerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4855,7 +4936,7 @@ func (c *OrgunitsListCall) Do() (*OrgUnits, error) {
 	//     },
 	//     "orgUnitPath": {
 	//       "default": "",
-	//       "description": "the URL-encoded organization unit",
+	//       "description": "the URL-encoded organization unit's path or its Id",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -4933,7 +5014,7 @@ func (c *OrgunitsPatchCall) Do() (*OrgUnit, error) {
 		"orgUnitPath": c.orgUnitPath[0],
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4963,7 +5044,7 @@ func (c *OrgunitsPatchCall) Do() (*OrgUnit, error) {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -5031,7 +5112,7 @@ func (c *OrgunitsUpdateCall) Do() (*OrgUnit, error) {
 		"orgUnitPath": c.orgUnitPath[0],
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5061,7 +5142,7 @@ func (c *OrgunitsUpdateCall) Do() (*OrgUnit, error) {
 	//       "type": "string"
 	//     },
 	//     "orgUnitPath": {
-	//       "description": "Full path of the organization unit",
+	//       "description": "Full path of the organization unit or its Id",
 	//       "location": "path",
 	//       "repeated": true,
 	//       "required": true,
@@ -5121,7 +5202,7 @@ func (c *SchemasDeleteCall) Do() error {
 		"customerId": c.customerId,
 		"schemaKey":  c.schemaKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5200,7 +5281,7 @@ func (c *SchemasGetCall) Do() (*Schema, error) {
 		"customerId": c.customerId,
 		"schemaKey":  c.schemaKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5292,7 +5373,7 @@ func (c *SchemasInsertCall) Do() (*Schema, error) {
 		"customerId": c.customerId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5371,7 +5452,7 @@ func (c *SchemasListCall) Do() (*Schemas, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"customerId": c.customerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5459,7 +5540,7 @@ func (c *SchemasPatchCall) Do() (*Schema, error) {
 		"schemaKey":  c.schemaKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5556,7 +5637,7 @@ func (c *SchemasUpdateCall) Do() (*Schema, error) {
 		"schemaKey":  c.schemaKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5645,7 +5726,7 @@ func (c *TokensDeleteCall) Do() error {
 		"userKey":  c.userKey,
 		"clientId": c.clientId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5724,7 +5805,7 @@ func (c *TokensGetCall) Do() (*Token, error) {
 		"userKey":  c.userKey,
 		"clientId": c.clientId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5808,7 +5889,7 @@ func (c *TokensListCall) Do() (*Tokens, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5884,7 +5965,7 @@ func (c *UsersDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5942,6 +6023,12 @@ func (c *UsersGetCall) CustomFieldMask(customFieldMask string) *UsersGetCall {
 
 // Projection sets the optional parameter "projection": What subset of
 // fields to fetch for this user.
+//
+// Possible values:
+//   "basic" (default) - Do not include any custom fields for the user.
+//   "custom" - Include custom fields from schemas mentioned in
+// customFieldMask.
+//   "full" - Include all fields associated with this user.
 func (c *UsersGetCall) Projection(projection string) *UsersGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -5949,6 +6036,10 @@ func (c *UsersGetCall) Projection(projection string) *UsersGetCall {
 
 // ViewType sets the optional parameter "viewType": Whether to fetch the
 // ADMIN_VIEW or DOMAIN_PUBLIC view of the user.
+//
+// Possible values:
+//   "admin_view" (default) - Fetches the ADMIN_VIEW of the user.
+//   "domain_public" - Fetches the DOMAIN_PUBLIC view of the user.
 func (c *UsersGetCall) ViewType(viewType string) *UsersGetCall {
 	c.opt_["viewType"] = viewType
 	return c
@@ -5984,7 +6075,7 @@ func (c *UsersGetCall) Do() (*User, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6100,7 +6191,7 @@ func (c *UsersInsertCall) Do() (*User, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6172,6 +6263,13 @@ func (c *UsersListCall) Domain(domain string) *UsersListCall {
 
 // Event sets the optional parameter "event": Event on which
 // subscription is intended (if subscribing)
+//
+// Possible values:
+//   "add" - User Created Event
+//   "delete" - User Deleted Event
+//   "makeAdmin" - User Admin Status Change Event
+//   "undelete" - User Undeleted Event
+//   "update" - User Updated Event
 func (c *UsersListCall) Event(event string) *UsersListCall {
 	c.opt_["event"] = event
 	return c
@@ -6186,6 +6284,11 @@ func (c *UsersListCall) MaxResults(maxResults int64) *UsersListCall {
 
 // OrderBy sets the optional parameter "orderBy": Column to use for
 // sorting results
+//
+// Possible values:
+//   "email" - Primary email of the user.
+//   "familyName" - User's family name.
+//   "givenName" - User's given name.
 func (c *UsersListCall) OrderBy(orderBy string) *UsersListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -6200,6 +6303,12 @@ func (c *UsersListCall) PageToken(pageToken string) *UsersListCall {
 
 // Projection sets the optional parameter "projection": What subset of
 // fields to fetch for this user.
+//
+// Possible values:
+//   "basic" (default) - Do not include any custom fields for the user.
+//   "custom" - Include custom fields from schemas mentioned in
+// customFieldMask.
+//   "full" - Include all fields associated with this user.
 func (c *UsersListCall) Projection(projection string) *UsersListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -6223,6 +6332,10 @@ func (c *UsersListCall) ShowDeleted(showDeleted string) *UsersListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Whether to return
 // results in ascending or descending order.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" - Descending order.
 func (c *UsersListCall) SortOrder(sortOrder string) *UsersListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -6230,6 +6343,10 @@ func (c *UsersListCall) SortOrder(sortOrder string) *UsersListCall {
 
 // ViewType sets the optional parameter "viewType": Whether to fetch the
 // ADMIN_VIEW or DOMAIN_PUBLIC view of the user.
+//
+// Possible values:
+//   "admin_view" (default) - Fetches the ADMIN_VIEW of the user.
+//   "domain_public" - Fetches the DOMAIN_PUBLIC view of the user.
 func (c *UsersListCall) ViewType(viewType string) *UsersListCall {
 	c.opt_["viewType"] = viewType
 	return c
@@ -6290,7 +6407,7 @@ func (c *UsersListCall) Do() (*Users, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6482,7 +6599,7 @@ func (c *UsersMakeAdminCall) Do() error {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6562,7 +6679,7 @@ func (c *UsersPatchCall) Do() (*User, error) {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6649,7 +6766,7 @@ func (c *UsersUndeleteCall) Do() error {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6729,7 +6846,7 @@ func (c *UsersUpdateCall) Do() (*User, error) {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6813,6 +6930,13 @@ func (c *UsersWatchCall) Domain(domain string) *UsersWatchCall {
 
 // Event sets the optional parameter "event": Event on which
 // subscription is intended (if subscribing)
+//
+// Possible values:
+//   "add" - User Created Event
+//   "delete" - User Deleted Event
+//   "makeAdmin" - User Admin Status Change Event
+//   "undelete" - User Undeleted Event
+//   "update" - User Updated Event
 func (c *UsersWatchCall) Event(event string) *UsersWatchCall {
 	c.opt_["event"] = event
 	return c
@@ -6827,6 +6951,11 @@ func (c *UsersWatchCall) MaxResults(maxResults int64) *UsersWatchCall {
 
 // OrderBy sets the optional parameter "orderBy": Column to use for
 // sorting results
+//
+// Possible values:
+//   "email" - Primary email of the user.
+//   "familyName" - User's family name.
+//   "givenName" - User's given name.
 func (c *UsersWatchCall) OrderBy(orderBy string) *UsersWatchCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -6841,6 +6970,12 @@ func (c *UsersWatchCall) PageToken(pageToken string) *UsersWatchCall {
 
 // Projection sets the optional parameter "projection": What subset of
 // fields to fetch for this user.
+//
+// Possible values:
+//   "basic" (default) - Do not include any custom fields for the user.
+//   "custom" - Include custom fields from schemas mentioned in
+// customFieldMask.
+//   "full" - Include all fields associated with this user.
 func (c *UsersWatchCall) Projection(projection string) *UsersWatchCall {
 	c.opt_["projection"] = projection
 	return c
@@ -6864,6 +6999,10 @@ func (c *UsersWatchCall) ShowDeleted(showDeleted string) *UsersWatchCall {
 
 // SortOrder sets the optional parameter "sortOrder": Whether to return
 // results in ascending or descending order.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" - Descending order.
 func (c *UsersWatchCall) SortOrder(sortOrder string) *UsersWatchCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -6871,6 +7010,10 @@ func (c *UsersWatchCall) SortOrder(sortOrder string) *UsersWatchCall {
 
 // ViewType sets the optional parameter "viewType": Whether to fetch the
 // ADMIN_VIEW or DOMAIN_PUBLIC view of the user.
+//
+// Possible values:
+//   "admin_view" (default) - Fetches the ADMIN_VIEW of the user.
+//   "domain_public" - Fetches the DOMAIN_PUBLIC view of the user.
 func (c *UsersWatchCall) ViewType(viewType string) *UsersWatchCall {
 	c.opt_["viewType"] = viewType
 	return c
@@ -6937,7 +7080,7 @@ func (c *UsersWatchCall) Do() (*Channel, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7128,7 +7271,7 @@ func (c *UsersAliasesDeleteCall) Do() error {
 		"userKey": c.userKey,
 		"alias":   c.alias,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -7213,7 +7356,7 @@ func (c *UsersAliasesInsertCall) Do() (*Alias, error) {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7274,6 +7417,10 @@ func (r *UsersAliasesService) List(userKey string) *UsersAliasesListCall {
 
 // Event sets the optional parameter "event": Event on which
 // subscription is intended (if subscribing)
+//
+// Possible values:
+//   "add" - Alias Created Event
+//   "delete" - Alias Deleted Event
 func (c *UsersAliasesListCall) Event(event string) *UsersAliasesListCall {
 	c.opt_["event"] = event
 	return c
@@ -7303,7 +7450,7 @@ func (c *UsersAliasesListCall) Do() (*Aliases, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7379,6 +7526,10 @@ func (r *UsersAliasesService) Watch(userKey string, channel *Channel) *UsersAlia
 
 // Event sets the optional parameter "event": Event on which
 // subscription is intended (if subscribing)
+//
+// Possible values:
+//   "add" - Alias Created Event
+//   "delete" - Alias Deleted Event
 func (c *UsersAliasesWatchCall) Event(event string) *UsersAliasesWatchCall {
 	c.opt_["event"] = event
 	return c
@@ -7414,7 +7565,7 @@ func (c *UsersAliasesWatchCall) Do() (*Channel, error) {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7511,7 +7662,7 @@ func (c *UsersPhotosDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -7580,7 +7731,7 @@ func (c *UsersPhotosGetCall) Do() (*UserPhoto, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7666,7 +7817,7 @@ func (c *UsersPhotosPatchCall) Do() (*UserPhoto, error) {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7753,7 +7904,7 @@ func (c *UsersPhotosUpdateCall) Do() (*UserPhoto, error) {
 		"userKey": c.userKey,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7832,7 +7983,7 @@ func (c *VerificationCodesGenerateCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -7902,7 +8053,7 @@ func (c *VerificationCodesInvalidateCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -7972,7 +8123,7 @@ func (c *VerificationCodesListCall) Do() (*VerificationCodes, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userKey": c.userKey,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

@@ -65,8 +65,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Accounts *AccountsService
 
@@ -79,6 +80,13 @@ type Service struct {
 	Subscriptions *SubscriptionsService
 
 	Timeline *TimelineService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAccountsService(s *Service) *AccountsService {
@@ -190,12 +198,10 @@ type AuthToken struct {
 type Command struct {
 	// Type: The type of operation this command corresponds to. Allowed
 	// values are:
-	// - TAKE_A_NOTE - Shares a timeline item with the
-	// transcription of user speech from the "Take a note" voice menu
-	// command.
-	// - POST_AN_UPDATE - Shares a timeline item with the
-	// transcription of user speech from the "Post an update" voice menu
-	// command.
+	// - TAKE_A_NOTE - Shares a timeline item with the transcription of user
+	// speech from the "Take a note" voice menu command.
+	// - POST_AN_UPDATE - Shares a timeline item with the transcription of
+	// user speech from the "Post an update" voice menu command.
 	Type string `json:"type,omitempty"`
 }
 
@@ -256,8 +262,7 @@ type Contact struct {
 
 	// Type: The type for this contact. This is used for sorting in UIs.
 	// Allowed values are:
-	// - INDIVIDUAL - Represents a single person. This
-	// is the default.
+	// - INDIVIDUAL - Represents a single person. This is the default.
 	// - GROUP - Represents more than a single person.
 	Type string `json:"type,omitempty"`
 }
@@ -309,57 +314,47 @@ type LocationsListResponse struct {
 type MenuItem struct {
 	// Action: Controls the behavior when the user picks the menu option.
 	// Allowed values are:
-	// - CUSTOM - Custom action set by the service.
-	// When the user selects this menuItem, the API triggers a notification
-	// to your callbackUrl with the userActions.type set to CUSTOM and the
-	// userActions.payload set to the ID of this menu item. This is the
-	// default value.
+	// - CUSTOM - Custom action set by the service. When the user selects
+	// this menuItem, the API triggers a notification to your callbackUrl
+	// with the userActions.type set to CUSTOM and the userActions.payload
+	// set to the ID of this menu item. This is the default value.
 	// - Built-in actions:
-	// - REPLY - Initiate a reply to
-	// the timeline item using the voice recording UI. The creator attribute
-	// must be set in the timeline item for this menu to be available.
-	// -
-	// REPLY_ALL - Same behavior as REPLY. The original timeline item's
+	// - REPLY - Initiate a reply to the timeline item using the voice
+	// recording UI. The creator attribute must be set in the timeline item
+	// for this menu to be available.
+	// - REPLY_ALL - Same behavior as REPLY. The original timeline item's
 	// recipients will be added to the reply item.
-	// - DELETE - Delete the
-	// timeline item.
-	// - SHARE - Share the timeline item with the available
-	// contacts.
-	// - READ_ALOUD - Read the timeline item's speakableText
-	// aloud; if this field is not set, read the text field; if none of
-	// those fields are set, this menu item is ignored.
-	// - GET_MEDIA_INPUT -
-	// Allow users to provide media payloads to Glassware from a menu item
-	// (currently, only transcribed text from voice input is supported).
-	// Subscribe to notifications when users invoke this menu item to
-	// receive the timeline item ID. Retrieve the media from the timeline
-	// item in the payload property.
-	// - VOICE_CALL - Initiate a phone call
-	// using the timeline item's creator.phoneNumber attribute as recipient.
-	//
+	// - DELETE - Delete the timeline item.
+	// - SHARE - Share the timeline item with the available contacts.
+	// - READ_ALOUD - Read the timeline item's speakableText aloud; if this
+	// field is not set, read the text field; if none of those fields are
+	// set, this menu item is ignored.
+	// - GET_MEDIA_INPUT - Allow users to provide media payloads to
+	// Glassware from a menu item (currently, only transcribed text from
+	// voice input is supported). Subscribe to notifications when users
+	// invoke this menu item to receive the timeline item ID. Retrieve the
+	// media from the timeline item in the payload property.
+	// - VOICE_CALL - Initiate a phone call using the timeline item's
+	// creator.phoneNumber attribute as recipient.
 	// - NAVIGATE - Navigate to the timeline item's location.
-	// -
-	// TOGGLE_PINNED - Toggle the isPinned state of the timeline item.
-	// -
-	// OPEN_URI - Open the payload of the menu item in the browser.
-	// -
-	// PLAY_VIDEO - Open the payload of the menu item in the Glass video
+	// - TOGGLE_PINNED - Toggle the isPinned state of the timeline item.
+	// - OPEN_URI - Open the payload of the menu item in the browser.
+	// - PLAY_VIDEO - Open the payload of the menu item in the Glass video
 	// player.
-	// - SEND_MESSAGE - Initiate sending a message to the timeline
-	// item's creator:
-	// - If the creator.phoneNumber is set and Glass is
-	// connected to an Android phone, the message is an SMS.
-	// - Otherwise,
-	// if the creator.email is set, the message is an email.
+	// - SEND_MESSAGE - Initiate sending a message to the timeline item's
+	// creator:
+	// - If the creator.phoneNumber is set and Glass is connected to an
+	// Android phone, the message is an SMS.
+	// - Otherwise, if the creator.email is set, the message is an email.
 	Action string `json:"action,omitempty"`
 
-	// Contextual_command: The ContextualMenus.Command associated with this
+	// ContextualCommand: The ContextualMenus.Command associated with this
 	// MenuItem (e.g. READ_ALOUD). The voice label for this command will be
 	// displayed in the voice menu and the touch label will be displayed in
 	// the touch menu. Note that the default menu value's display name will
 	// be overriden if you specify this property. Values that do not
 	// correspond to a ContextualMenus.Command name will be ignored.
-	Contextual_command string `json:"contextual_command,omitempty"`
+	ContextualCommand string `json:"contextual_command,omitempty"`
 
 	// Id: The ID for this menu item. This is generated by the application
 	// and is treated as an opaque token.
@@ -367,13 +362,12 @@ type MenuItem struct {
 
 	// Payload: A generic payload whose meaning changes depending on this
 	// MenuItem's action.
-	// - When the action is OPEN_URI, the payload is
-	// the URL of the website to view.
-	// - When the action is PLAY_VIDEO, the
-	// payload is the streaming URL of the video
-	// - When the action is
-	// GET_MEDIA_INPUT, the payload is the text transcription of a user's
-	// speech input
+	// - When the action is OPEN_URI, the payload is the URL of the website
+	// to view.
+	// - When the action is PLAY_VIDEO, the payload is the streaming URL of
+	// the video
+	// - When the action is GET_MEDIA_INPUT, the payload is the text
+	// transcription of a user's speech input
 	Payload string `json:"payload,omitempty"`
 
 	// RemoveWhenSelected: If set to true on a CUSTOM menu item, that item
@@ -397,14 +391,12 @@ type MenuValue struct {
 	IconUrl string `json:"iconUrl,omitempty"`
 
 	// State: The state that this value applies to. Allowed values are:
-	// -
-	// DEFAULT - Default value shown when displayed in the menuItems list.
+	// - DEFAULT - Default value shown when displayed in the menuItems list.
 	//
 	// - PENDING - Value shown when the menuItem has been selected by the
 	// user but can still be cancelled.
-	// - CONFIRMED - Value shown when the
-	// menuItem has been selected by the user and can no longer be
-	// cancelled.
+	// - CONFIRMED - Value shown when the menuItem has been selected by the
+	// user and can no longer be cancelled.
 	State string `json:"state,omitempty"`
 }
 
@@ -437,19 +429,18 @@ type NotificationConfig struct {
 
 	// Level: Describes how important the notification is. Allowed values
 	// are:
-	// - DEFAULT - Notifications of default importance. A chime will
-	// be played to alert users.
+	// - DEFAULT - Notifications of default importance. A chime will be
+	// played to alert users.
 	Level string `json:"level,omitempty"`
 }
 
 type Setting struct {
 	// Id: The setting's ID. The following IDs are valid:
-	// - locale - The
-	// key to the user’s language/locale (BCP 47 identifier) that
-	// Glassware should use to render localized content.
-	// - timezone - The
-	// key to the user’s current time zone region as defined in the tz
-	// database. Example: America/Los_Angeles.
+	// - locale - The key to the user’s language/locale (BCP 47
+	// identifier) that Glassware should use to render localized content.
+	//
+	// - timezone - The key to the user’s current time zone region as
+	// defined in the tz database. Example: America/Los_Angeles.
 	Id string `json:"id,omitempty"`
 
 	// Kind: The type of resource. This is always mirror#setting.
@@ -465,12 +456,10 @@ type Subscription struct {
 	CallbackUrl string `json:"callbackUrl,omitempty"`
 
 	// Collection: The collection to subscribe to. Allowed values are:
-	// -
-	// timeline - Changes in the timeline including insertion, deletion, and
-	// updates.
+	// - timeline - Changes in the timeline including insertion, deletion,
+	// and updates.
 	// - locations - Location updates.
-	// - settings - Settings
-	// updates.
+	// - settings - Settings updates.
 	Collection string `json:"collection,omitempty"`
 
 	// Id: The ID of the subscription.
@@ -486,13 +475,10 @@ type Subscription struct {
 	// Operation: A list of operations that should be subscribed to. An
 	// empty list indicates that all operations on the collection should be
 	// subscribed to. Allowed values are:
-	// - UPDATE - The item has been
-	// updated.
+	// - UPDATE - The item has been updated.
 	// - INSERT - A new item has been inserted.
-	// - DELETE - The
-	// item has been deleted.
-	// - MENU_ACTION - A custom menu item has been
-	// triggered by the user.
+	// - DELETE - The item has been deleted.
+	// - MENU_ACTION - A custom menu item has been triggered by the user.
 	Operation []string `json:"operation,omitempty"`
 
 	// Updated: The time at which this subscription was last modified,
@@ -520,11 +506,10 @@ type TimelineItem struct {
 	// Attachments: A list of media attachments associated with this item.
 	// As a convenience, you can refer to attachments in your HTML payloads
 	// with the attachment or cid scheme. For example:
-	// - attachment: <img
-	// src="attachment:attachment_index"> where attachment_index is the
-	// 0-based index of this array.
-	// - cid: <img src="cid:attachment_id">
-	// where attachment_id is the ID of the attachment.
+	// - attachment: <img src="attachment:attachment_index"> where
+	// attachment_index is the 0-based index of this array.
+	// - cid: <img src="cid:attachment_id"> where attachment_id is the ID of
+	// the attachment.
 	Attachments []*Attachment `json:"attachments,omitempty"`
 
 	// BundleId: The bundle ID for this item. Services can specify a
@@ -555,34 +540,27 @@ type TimelineItem struct {
 
 	// Html: HTML content for this item. If both text and html are provided
 	// for an item, the html will be rendered in the timeline.
-	// Allowed HTML
-	// elements - You can use these elements in your timeline cards.
+	// Allowed HTML elements - You can use these elements in your timeline
+	// cards.
 	//
-	// -
-	// Headers: h1, h2, h3, h4, h5, h6
+	// - Headers: h1, h2, h3, h4, h5, h6
 	// - Images: img
 	// - Lists: li, ol, ul
-	//
 	// - HTML5 semantics: article, aside, details, figure, figcaption,
 	// footer, header, nav, section, summary, time
-	// - Structural:
-	// blockquote, br, div, hr, p, span
-	// - Style: b, big, center, em, i, u,
-	// s, small, strike, strong, style, sub, sup
-	// - Tables: table, tbody,
-	// td, tfoot, th, thead, tr
-	// Blocked HTML elements: These elements and
-	// their contents are removed from HTML payloads.
+	// - Structural: blockquote, br, div, hr, p, span
+	// - Style: b, big, center, em, i, u, s, small, strike, strong, style,
+	// sub, sup
+	// - Tables: table, tbody, td, tfoot, th, thead, tr
+	// Blocked HTML elements: These elements and their contents are removed
+	// from HTML payloads.
 	//
-	// - Document headers:
-	// head, title
+	// - Document headers: head, title
 	// - Embeds: audio, embed, object, source, video
-	// - Frames:
-	// frame, frameset
+	// - Frames: frame, frameset
 	// - Scripting: applet, script
-	// Other elements: Any
-	// elements that aren't listed are removed, but their contents are
-	// preserved.
+	// Other elements: Any elements that aren't listed are removed, but
+	// their contents are preserved.
 	Html string `json:"html,omitempty"`
 
 	// Id: The ID of the timeline item. This is unique within a user's
@@ -597,19 +575,17 @@ type TimelineItem struct {
 
 	// IsBundleCover: Whether this item is a bundle cover.
 	//
-	// If an item is
-	// marked as a bundle cover, it will be the entry point to the bundle of
-	// items that have the same bundleId as that item. It will be shown only
-	// on the main timeline — not within the opened bundle.
+	// If an item is marked as a bundle cover, it will be the entry point to
+	// the bundle of items that have the same bundleId as that item. It will
+	// be shown only on the main timeline — not within the opened
+	// bundle.
 	//
-	// On the main
-	// timeline, items that are shown are:
-	// - Items that have isBundleCover
-	// set to true
-	// - Items that do not have a bundleId  In a bundle
-	// sub-timeline, items that are shown are:
-	// - Items that have the
-	// bundleId in question AND isBundleCover set to false
+	// On the main timeline, items that are shown are:
+	// - Items that have isBundleCover set to true
+	// - Items that do not have a bundleId  In a bundle sub-timeline, items
+	// that are shown are:
+	// - Items that have the bundleId in question AND isBundleCover set to
+	// false
 	IsBundleCover bool `json:"isBundleCover,omitempty"`
 
 	// IsDeleted: When true, indicates this item is deleted, and only the ID
@@ -659,11 +635,10 @@ type TimelineItem struct {
 	// that would be clearer when read aloud, or to provide extended
 	// information to what is displayed visually on Glass.
 	//
-	// Glassware should
-	// also specify the speakableType field, which will be spoken before
-	// this text in cases where the additional context is useful, for
-	// example when the user requests that the item be read aloud following
-	// a notification.
+	// Glassware should also specify the speakableType field, which will be
+	// spoken before this text in cases where the additional context is
+	// useful, for example when the user requests that the item be read
+	// aloud following a notification.
 	SpeakableText string `json:"speakableText,omitempty"`
 
 	// SpeakableType: A speakable description of the type of this item. This
@@ -672,13 +647,13 @@ type TimelineItem struct {
 	// when the user requests that the item be read aloud following a
 	// notification.
 	//
-	// This should be a short, simple noun phrase such as
-	// "Email", "Text message", or "Daily Planet News Update".
+	// This should be a short, simple noun phrase such as "Email", "Text
+	// message", or "Daily Planet News Update".
 	//
-	// Glassware
-	// are encouraged to populate this field for every timeline item, even
-	// if the item does not contain speakableText or text so that the user
-	// can learn the type of the item without looking at the screen.
+	// Glassware are encouraged to populate this field for every timeline
+	// item, even if the item does not contain speakableText or text so that
+	// the user can learn the type of the item without looking at the
+	// screen.
 	SpeakableType string `json:"speakableType,omitempty"`
 
 	// Text: Text content of this item.
@@ -707,26 +682,22 @@ type TimelineListResponse struct {
 type UserAction struct {
 	// Payload: An optional payload for the action.
 	//
-	// For actions of type
-	// CUSTOM, this is the ID of the custom menu item that was selected.
+	// For actions of type CUSTOM, this is the ID of the custom menu item
+	// that was selected.
 	Payload string `json:"payload,omitempty"`
 
 	// Type: The type of action. The value of this can be:
-	// - SHARE - the
-	// user shared an item.
+	// - SHARE - the user shared an item.
 	// - REPLY - the user replied to an item.
-	// -
-	// REPLY_ALL - the user replied to all recipients of an item.
-	// - CUSTOM
-	// - the user selected a custom menu item on the timeline item.
-	// -
-	// DELETE - the user deleted the item.
-	// - PIN - the user pinned the
-	// item.
+	// - REPLY_ALL - the user replied to all recipients of an item.
+	// - CUSTOM - the user selected a custom menu item on the timeline item.
+	//
+	// - DELETE - the user deleted the item.
+	// - PIN - the user pinned the item.
 	// - UNPIN - the user unpinned the item.
-	// - LAUNCH - the user
-	// initiated a voice command.  In the future, additional types may be
-	// added. UserActions with unrecognized types should be ignored.
+	// - LAUNCH - the user initiated a voice command.  In the future,
+	// additional types may be added. UserActions with unrecognized types
+	// should be ignored.
 	Type string `json:"type,omitempty"`
 }
 
@@ -786,7 +757,7 @@ func (c *AccountsInsertCall) Do() (*Account, error) {
 		"accountName": c.accountName,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -876,7 +847,7 @@ func (c *ContactsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -945,7 +916,7 @@ func (c *ContactsGetCall) Do() (*Contact, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1025,7 +996,7 @@ func (c *ContactsInsertCall) Do() (*Contact, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1089,7 +1060,7 @@ func (c *ContactsListCall) Do() (*ContactsListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1163,7 +1134,7 @@ func (c *ContactsPatchCall) Do() (*Contact, error) {
 		"id": c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1250,7 +1221,7 @@ func (c *ContactsUpdateCall) Do() (*Contact, error) {
 		"id": c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1329,7 +1300,7 @@ func (c *LocationsGetCall) Do() (*Location, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1402,7 +1373,7 @@ func (c *LocationsListCall) Do() (*LocationsListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1468,7 +1439,7 @@ func (c *SettingsGetCall) Do() (*Setting, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1544,7 +1515,7 @@ func (c *SubscriptionsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1617,7 +1588,7 @@ func (c *SubscriptionsInsertCall) Do() (*Subscription, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1682,7 +1653,7 @@ func (c *SubscriptionsListCall) Do() (*SubscriptionsListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1755,7 +1726,7 @@ func (c *SubscriptionsUpdateCall) Do() (*Subscription, error) {
 		"id": c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1834,7 +1805,7 @@ func (c *TimelineDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1904,7 +1875,7 @@ func (c *TimelineGetCall) Do() (*TimelineItem, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": c.id,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2041,13 +2012,10 @@ func (c *TimelineInsertCall) Do() (*TimelineItem, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2060,6 +2028,7 @@ func (c *TimelineInsertCall) Do() (*TimelineItem, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2151,6 +2120,12 @@ func (c *TimelineListCall) MaxResults(maxResults int64) *TimelineListCall {
 
 // OrderBy sets the optional parameter "orderBy": Controls the order in
 // which timeline items are returned.
+//
+// Possible values:
+//   "displayTime" - Results will be ordered by displayTime (default).
+// This is the same ordering as is used in the timeline on the device.
+//   "writeTime" - Results will be ordered by the time at which they
+// were last written to the data store.
 func (c *TimelineListCall) OrderBy(orderBy string) *TimelineListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -2217,7 +2192,7 @@ func (c *TimelineListCall) Do() (*TimelineListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2338,7 +2313,7 @@ func (c *TimelinePatchCall) Do() (*TimelineItem, error) {
 		"id": c.id,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2482,13 +2457,10 @@ func (c *TimelineUpdateCall) Do() (*TimelineItem, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2501,6 +2473,7 @@ func (c *TimelineUpdateCall) Do() (*TimelineItem, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2606,7 +2579,7 @@ func (c *TimelineAttachmentsDeleteCall) Do() error {
 		"itemId":       c.itemId,
 		"attachmentId": c.attachmentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2686,7 +2659,7 @@ func (c *TimelineAttachmentsGetCall) Do() (*Attachment, error) {
 		"itemId":       c.itemId,
 		"attachmentId": c.attachmentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2829,13 +2802,10 @@ func (c *TimelineAttachmentsInsertCall) Do() (*Attachment, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2848,6 +2818,7 @@ func (c *TimelineAttachmentsInsertCall) Do() (*Attachment, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2946,7 +2917,7 @@ func (c *TimelineAttachmentsListCall) Do() (*AttachmentsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"itemId": c.itemId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

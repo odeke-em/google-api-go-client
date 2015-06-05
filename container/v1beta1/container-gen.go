@@ -57,10 +57,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Projects *ProjectsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewProjectsService(s *Service) *ProjectsService {
@@ -141,8 +149,10 @@ type Cluster struct {
 	// error listing the currently supported versions.
 	ClusterApiVersion string `json:"clusterApiVersion,omitempty"`
 
-	// ContainerIpv4Cidr: [Output only] The IP addresses of the container
-	// pods in this cluster, in  CIDR notation (e.g. 1.2.3.4/29).
+	// ContainerIpv4Cidr: The IP address range of the container pods in this
+	// cluster, in  CIDR notation (e.g. 10.96.0.0/14). Leave blank to have
+	// one automatically chosen or specify a /14 block in 10.0.0.0/8 or
+	// 172.16.0.0/12.
 	ContainerIpv4Cidr string `json:"containerIpv4Cidr,omitempty"`
 
 	// CreationTimestamp: [Output only] The time the cluster was created, in
@@ -152,25 +162,28 @@ type Cluster struct {
 	// Description: An optional description of this cluster.
 	Description string `json:"description,omitempty"`
 
+	// EnableCloudLogging: Whether logs from the cluster should be made
+	// available via the Google Cloud Logging service. This includes both
+	// logs from your applications running in the cluster as well as logs
+	// from the Kubernetes components themselves.
+	EnableCloudLogging bool `json:"enableCloudLogging,omitempty"`
+
 	// Endpoint: [Output only] The IP address of this cluster's Kubernetes
 	// master. The endpoint can be accessed from the internet at
 	// https://username:password@endpoint/.
 	//
-	// See the masterAuth property of
-	// this resource for username and password information.
+	// See the masterAuth property of this resource for username and
+	// password information.
 	Endpoint string `json:"endpoint,omitempty"`
 
-	// MasterAuth: The HTTP basic authentication information for accessing
-	// the master. Because the master endpoint is open to the internet, you
-	// should create a strong password.
+	// MasterAuth: The authentication information for accessing the master.
 	MasterAuth *MasterAuth `json:"masterAuth,omitempty"`
 
 	// Name: The name of this cluster. The name must be unique within this
 	// project and zone, and can be up to 40 characters with the following
 	// restrictions:
 	// - Lowercase letters, numbers, and hyphens only.
-	// -
-	// Must start with a letter.
+	// - Must start with a letter.
 	// - Must end with a number or a letter.
 	Name string `json:"name,omitempty"`
 
@@ -195,12 +208,19 @@ type Cluster struct {
 	// SelfLink: [Output only] Server-defined URL for the resource.
 	SelfLink string `json:"selfLink,omitempty"`
 
-	// ServicesIpv4Cidr: [Output only] The IP addresses of the Kubernetes
-	// services in this cluster, in  CIDR notation (e.g. 1.2.3.4/29).
-	// Service addresses are always in the 10.0.0.0/16 range.
+	// ServicesIpv4Cidr: [Output only] The IP address range of the
+	// Kubernetes services in this cluster, in  CIDR notation (e.g.
+	// 1.2.3.4/29). Service addresses are typically put in the last /16 from
+	// the container CIDR.
 	ServicesIpv4Cidr string `json:"servicesIpv4Cidr,omitempty"`
 
 	// Status: [Output only] The current status of this cluster.
+	//
+	// Possible values:
+	//   "error"
+	//   "provisioning"
+	//   "running"
+	//   "stopping"
 	Status string `json:"status,omitempty"`
 
 	// StatusMessage: [Output only] Additional information about the current
@@ -239,12 +259,19 @@ type ListOperationsResponse struct {
 }
 
 type MasterAuth struct {
-	// Password: The password to use when accessing the Kubernetes master
-	// endpoint.
+	// BearerToken: The token used to authenticate API requests to the
+	// master. The token is to be included in an HTTP Authorization Header
+	// in all requests to the master endpoint. The format of the header is:
+	// "Authorization: Bearer ".
+	BearerToken string `json:"bearerToken,omitempty"`
+
+	// Password: The password to use for HTTP basic authentication when
+	// accessing the Kubernetes master endpoint. Because the master endpoint
+	// is open to the internet, you should create a strong password.
 	Password string `json:"password,omitempty"`
 
-	// User: The username to use when accessing the Kubernetes master
-	// endpoint.
+	// User: The username to use for HTTP basic authentication when
+	// accessing the Kubernetes master endpoint.
 	User string `json:"user,omitempty"`
 }
 
@@ -252,8 +279,7 @@ type NodeConfig struct {
 	// MachineType: The name of a Google Compute Engine machine type (e.g.
 	// n1-standard-1).
 	//
-	// If unspecified, the default machine type is
-	// n1-standard-1.
+	// If unspecified, the default machine type is n1-standard-1.
 	MachineType string `json:"machineType,omitempty"`
 
 	// ServiceAccounts: The optional list of ServiceAccounts, each with
@@ -261,10 +287,8 @@ type NodeConfig struct {
 	// In addition to the service accounts and scopes specified, the
 	// "default" account will always be created with the following scopes to
 	// ensure the correct functioning of the cluster:
-	// -
-	// https://www.googleapis.com/auth/compute,
-	// -
-	// https://www.googleapis.com/auth/devstorage.read_only
+	// - https://www.googleapis.com/auth/compute,
+	// - https://www.googleapis.com/auth/devstorage.read_only
 	ServiceAccounts []*ServiceAccount `json:"serviceAccounts,omitempty"`
 
 	// SourceImage: The fully-specified name of a Google Compute Engine
@@ -285,17 +309,25 @@ type Operation struct {
 	// error.
 	ErrorMessage string `json:"errorMessage,omitempty"`
 
-	// Name: The server-assigned ID for this operation. If the operation is
-	// fulfilled upfront, it may not have a resource name.
+	// Name: The server-assigned ID for the operation.
 	Name string `json:"name,omitempty"`
 
 	// OperationType: The operation type.
+	//
+	// Possible values:
+	//   "createCluster"
+	//   "deleteCluster"
 	OperationType string `json:"operationType,omitempty"`
 
 	// SelfLink: Server-defined URL for the resource.
 	SelfLink string `json:"selfLink,omitempty"`
 
 	// Status: The current status of the operation.
+	//
+	// Possible values:
+	//   "done"
+	//   "pending"
+	//   "running"
 	Status string `json:"status,omitempty"`
 
 	// Target: [Optional] The URL of the cluster resource that this
@@ -355,7 +387,7 @@ func (c *ProjectsClustersListCall) Do() (*ListAggregatedClustersResponse, error)
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -431,7 +463,7 @@ func (c *ProjectsOperationsListCall) Do() (*ListAggregatedOperationsResponse, er
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -485,17 +517,15 @@ type ProjectsZonesClustersCreateCall struct {
 // type of Google Compute Engine instances, plus a Kubernetes master
 // instance.
 //
-// The cluster is created in the project's default
-// network.
+// The cluster is created in the project's default network.
 //
-// A firewall is added that allows traffic into port 443 on
-// the master, which enables HTTPS. A firewall and a route is added for
-// each node to allow the containers on that node to communicate with
-// all other instances in the cluster.
+// A firewall is added that allows traffic into port 443 on the master,
+// which enables HTTPS. A firewall and a route is added for each node to
+// allow the containers on that node to communicate with all other
+// instances in the cluster.
 //
-// Finally, a route named
-// k8s-iproute-10-xx-0-0 is created to track that the cluster's
-// 10.xx.0.0/16 CIDR has been assigned.
+// Finally, an entry is added to the project's global metadata
+// indicating which CIDR range is being used by the cluster.
 func (r *ProjectsZonesClustersService) Create(projectId string, zoneId string, createclusterrequest *CreateClusterRequest) *ProjectsZonesClustersCreateCall {
 	c := &ProjectsZonesClustersCreateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -532,7 +562,7 @@ func (c *ProjectsZonesClustersCreateCall) Do() (*Operation, error) {
 		"zoneId":    c.zoneId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -547,7 +577,7 @@ func (c *ProjectsZonesClustersCreateCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Creates a cluster, consisting of the specified number and type of Google Compute Engine instances, plus a Kubernetes master instance.\n\nThe cluster is created in the project's default network.\n\nA firewall is added that allows traffic into port 443 on the master, which enables HTTPS. A firewall and a route is added for each node to allow the containers on that node to communicate with all other instances in the cluster.\n\nFinally, a route named k8s-iproute-10-xx-0-0 is created to track that the cluster's 10.xx.0.0/16 CIDR has been assigned.",
+	//   "description": "Creates a cluster, consisting of the specified number and type of Google Compute Engine instances, plus a Kubernetes master instance.\n\nThe cluster is created in the project's default network.\n\nA firewall is added that allows traffic into port 443 on the master, which enables HTTPS. A firewall and a route is added for each node to allow the containers on that node to communicate with all other instances in the cluster.\n\nFinally, an entry is added to the project's global metadata indicating which CIDR range is being used by the cluster.",
 	//   "httpMethod": "POST",
 	//   "id": "container.projects.zones.clusters.create",
 	//   "parameterOrder": [
@@ -595,8 +625,8 @@ type ProjectsZonesClustersDeleteCall struct {
 // Delete: Deletes the cluster, including the Kubernetes master and all
 // worker nodes.
 //
-// Firewalls and routes that were configured at cluster
-// creation are also deleted.
+// Firewalls and routes that were configured at cluster creation are
+// also deleted.
 func (r *ProjectsZonesClustersService) Delete(projectId string, zoneId string, clusterId string) *ProjectsZonesClustersDeleteCall {
 	c := &ProjectsZonesClustersDeleteCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -628,7 +658,7 @@ func (c *ProjectsZonesClustersDeleteCall) Do() (*Operation, error) {
 		"zoneId":    c.zoneId,
 		"clusterId": c.clusterId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -724,7 +754,7 @@ func (c *ProjectsZonesClustersGetCall) Do() (*Cluster, error) {
 		"zoneId":    c.zoneId,
 		"clusterId": c.clusterId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -817,7 +847,7 @@ func (c *ProjectsZonesClustersListCall) Do() (*ListClustersResponse, error) {
 		"projectId": c.projectId,
 		"zoneId":    c.zoneId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -906,7 +936,7 @@ func (c *ProjectsZonesOperationsGetCall) Do() (*Operation, error) {
 		"zoneId":      c.zoneId,
 		"operationId": c.operationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -999,7 +1029,7 @@ func (c *ProjectsZonesOperationsListCall) Do() (*ListOperationsResponse, error) 
 		"projectId": c.projectId,
 		"zoneId":    c.zoneId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

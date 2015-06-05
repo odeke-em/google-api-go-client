@@ -66,10 +66,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Userinfo *UserinfoService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewUserinfoService(s *Service) *UserinfoService {
@@ -124,9 +132,9 @@ type JwkKeys struct {
 }
 
 type Tokeninfo struct {
-	// Access_type: The access type granted with this token. It can be
+	// AccessType: The access type granted with this token. It can be
 	// offline or online.
-	Access_type string `json:"access_type,omitempty"`
+	AccessType string `json:"access_type,omitempty"`
 
 	// Audience: Who is the intended audience for this token. In general the
 	// same as issued_to.
@@ -136,43 +144,46 @@ type Tokeninfo struct {
 	// is present in the request.
 	Email string `json:"email,omitempty"`
 
-	// Expires_in: The expiry time of the token, as number of seconds left
+	// ExpiresIn: The expiry time of the token, as number of seconds left
 	// until expiry.
-	Expires_in int64 `json:"expires_in,omitempty"`
+	ExpiresIn int64 `json:"expires_in,omitempty"`
 
-	// Issued_to: To whom was the token issued to. In general the same as
+	// IssuedTo: To whom was the token issued to. In general the same as
 	// audience.
-	Issued_to string `json:"issued_to,omitempty"`
+	IssuedTo string `json:"issued_to,omitempty"`
 
 	// Scope: The space separated list of scopes granted to this token.
 	Scope string `json:"scope,omitempty"`
 
-	// User_id: The Gaia obfuscated user id.
-	User_id string `json:"user_id,omitempty"`
+	// TokenHandle: The token handle associated with this token.
+	TokenHandle string `json:"token_handle,omitempty"`
 
-	// Verified_email: Boolean flag which is true if the email address is
+	// UserId: The obfuscated user id.
+	UserId string `json:"user_id,omitempty"`
+
+	// VerifiedEmail: Boolean flag which is true if the email address is
 	// verified. Present only if the email scope is present in the request.
-	Verified_email bool `json:"verified_email,omitempty"`
+	VerifiedEmail bool `json:"verified_email,omitempty"`
 }
 
 type Userinfoplus struct {
 	// Email: The user's email address.
 	Email string `json:"email,omitempty"`
 
-	// Family_name: The user's last name.
-	Family_name string `json:"family_name,omitempty"`
+	// FamilyName: The user's last name.
+	FamilyName string `json:"family_name,omitempty"`
 
 	// Gender: The user's gender.
 	Gender string `json:"gender,omitempty"`
 
-	// Given_name: The user's first name.
-	Given_name string `json:"given_name,omitempty"`
+	// GivenName: The user's first name.
+	GivenName string `json:"given_name,omitempty"`
 
 	// Hd: The hosted domain e.g. example.com if the user is Google apps
 	// user.
 	Hd string `json:"hd,omitempty"`
 
-	// Id: The focus obfuscated gaia id of the user.
+	// Id: The obfuscated ID of the user.
 	Id string `json:"id,omitempty"`
 
 	// Link: URL of the profile page.
@@ -187,10 +198,12 @@ type Userinfoplus struct {
 	// Picture: URL of the user's picture image.
 	Picture string `json:"picture,omitempty"`
 
-	// Verified_email: Boolean flag which is true if the email address is
+	// VerifiedEmail: Boolean flag which is true if the email address is
 	// verified. Always verified because we only return the user's primary
 	// email address.
-	Verified_email bool `json:"verified_email,omitempty"`
+	//
+	// Default: true
+	VerifiedEmail *bool `json:"verified_email,omitempty"`
 }
 
 // method id "oauth2.getCertForOpenIdConnect":
@@ -225,7 +238,7 @@ func (c *GetCertForOpenIdConnectCall) Do() (*Jwk, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -263,15 +276,21 @@ func (s *Service) Tokeninfo() *TokeninfoCall {
 	return c
 }
 
-// Access_token sets the optional parameter "access_token":
-func (c *TokeninfoCall) Access_token(access_token string) *TokeninfoCall {
-	c.opt_["access_token"] = access_token
+// AccessToken sets the optional parameter "access_token":
+func (c *TokeninfoCall) AccessToken(accessToken string) *TokeninfoCall {
+	c.opt_["access_token"] = accessToken
 	return c
 }
 
-// Id_token sets the optional parameter "id_token":
-func (c *TokeninfoCall) Id_token(id_token string) *TokeninfoCall {
-	c.opt_["id_token"] = id_token
+// IdToken sets the optional parameter "id_token":
+func (c *TokeninfoCall) IdToken(idToken string) *TokeninfoCall {
+	c.opt_["id_token"] = idToken
+	return c
+}
+
+// TokenHandle sets the optional parameter "token_handle":
+func (c *TokeninfoCall) TokenHandle(tokenHandle string) *TokeninfoCall {
+	c.opt_["token_handle"] = tokenHandle
 	return c
 }
 
@@ -293,6 +312,9 @@ func (c *TokeninfoCall) Do() (*Tokeninfo, error) {
 	if v, ok := c.opt_["id_token"]; ok {
 		params.Set("id_token", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["token_handle"]; ok {
+		params.Set("token_handle", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -300,7 +322,7 @@ func (c *TokeninfoCall) Do() (*Tokeninfo, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -323,6 +345,10 @@ func (c *TokeninfoCall) Do() (*Tokeninfo, error) {
 	//       "type": "string"
 	//     },
 	//     "id_token": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "token_handle": {
 	//       "location": "query",
 	//       "type": "string"
 	//     }
@@ -367,7 +393,7 @@ func (c *UserinfoGetCall) Do() (*Userinfoplus, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -430,7 +456,7 @@ func (c *UserinfoV2MeGetCall) Do() (*Userinfoplus, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

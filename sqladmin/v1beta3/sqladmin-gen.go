@@ -65,8 +65,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	BackupRuns *BackupRunsService
 
@@ -79,6 +80,13 @@ type Service struct {
 	SslCerts *SslCertsService
 
 	Tiers *TiersService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewBackupRunsService(s *Service) *BackupRunsService {
@@ -236,24 +244,13 @@ type DatabaseFlags struct {
 	// Name: The name of the flag. These flags are passed at instance
 	// startup, so include both MySQL server options and MySQL system
 	// variables. Flags should be specified with underscores, not hyphens.
-	// Refer to the official MySQL documentation on server options and
-	// system variables for descriptions of what these flags do. Acceptable
-	// values are:  character_set_server utf8 or utf8mb4 event_scheduler on
-	// or off (Note: The event scheduler will only work reliably if the
-	// instance activationPolicy is set to ALWAYS) general_log on or off
-	// group_concat_max_len 4..17179869184 innodb_flush_log_at_trx_commit
-	// 0..2 innodb_lock_wait_timeout 1..1073741824
-	// log_bin_trust_function_creators on or off log_output Can be either
-	// TABLE or NONE, FILE is not supported log_queries_not_using_indexes on
-	// or off long_query_time 0..30000000 lower_case_table_names 0..2
-	// max_allowed_packet 16384..1073741824 read_only on or off
-	// skip_show_database on or off slow_query_log on or off. If set to on,
-	// you must also set the log_output flag to TABLE to receive logs.
-	// wait_timeout 1..31536000
+	// For more information, see Configuring MySQL Flags in the Google Cloud
+	// SQL documentation, as well as the official MySQL documentation for
+	// server options and system variables.
 	Name string `json:"name,omitempty"`
 
-	// Value: The value of the flag. Booleans should be set using 1 for
-	// true, and 0 for false. This field must be omitted if the flag doesn't
+	// Value: The value of the flag. Booleans should be set to on for true
+	// and off for false. This field must be omitted if the flag doesn't
 	// take a value.
 	Value string `json:"value,omitempty"`
 }
@@ -278,8 +275,7 @@ type DatabaseInstance struct {
 	// following.
 	// CLOUD_SQL_INSTANCE: Regular Cloud SQL
 	// instance.
-	// READ_REPLICA_INSTANCE: Cloud SQL instance acting as a
-	// read-replica.
+	// READ_REPLICA_INSTANCE: Cloud SQL instance acting as a read-replica.
 	InstanceType string `json:"instanceType,omitempty"`
 
 	// IpAddresses: The assigned IP addresses for the instance.
@@ -322,14 +318,12 @@ type DatabaseInstance struct {
 
 	// State: The current serving state of the Cloud SQL instance. This can
 	// be one of the following.
-	// RUNNABLE: The instance is running, or is
-	// ready to run when accessed.
-	// SUSPENDED: The instance is not available,
-	// for example due to problems with billing.
-	// PENDING_CREATE: The
-	// instance is being created.
-	// MAINTENANCE: The instance is down for
-	// maintenance.
+	// RUNNABLE: The instance is running, or is ready to run when
+	// accessed.
+	// SUSPENDED: The instance is not available, for example due to problems
+	// with billing.
+	// PENDING_CREATE: The instance is being created.
+	// MAINTENANCE: The instance is down for maintenance.
 	// UNKNOWN_STATE: The state of the instance is unknown.
 	State string `json:"state,omitempty"`
 }
@@ -673,10 +667,8 @@ type Settings struct {
 	// only when the instance state is RUNNABLE. This can be one of the
 	// following.
 	// ALWAYS: The instance should always be active.
-	// NEVER: The
-	// instance should never be activated.
-	// ON_DEMAND: The instance is
-	// activated upon receiving requests.
+	// NEVER: The instance should never be activated.
+	// ON_DEMAND: The instance is activated upon receiving requests.
 	ActivationPolicy string `json:"activationPolicy,omitempty"`
 
 	// AuthorizedGaeApplications: The App Engine app IDs that can access
@@ -872,7 +864,7 @@ func (c *BackupRunsGetCall) Do() (*BackupRun, error) {
 		"instance":            c.instance,
 		"backupConfiguration": c.backupConfiguration,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -997,7 +989,7 @@ func (c *BackupRunsListCall) Do() (*BackupRunsListResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1096,7 +1088,7 @@ func (c *FlagsListCall) Do() (*FlagsListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1170,7 +1162,7 @@ func (c *InstancesCloneCall) Do() (*InstancesCloneResponse, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1253,7 +1245,7 @@ func (c *InstancesDeleteCall) Do() (*InstancesDeleteResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1349,7 +1341,7 @@ func (c *InstancesExportCall) Do() (*InstancesExportResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1438,7 +1430,7 @@ func (c *InstancesGetCall) Do() (*DatabaseInstance, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1534,7 +1526,7 @@ func (c *InstancesImportCall) Do() (*InstancesImportResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1628,7 +1620,7 @@ func (c *InstancesInsertCall) Do() (*InstancesInsertResponse, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1730,7 +1722,7 @@ func (c *InstancesListCall) Do() (*InstancesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1830,7 +1822,7 @@ func (c *InstancesPatchCall) Do() (*InstancesUpdateResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1921,7 +1913,7 @@ func (c *InstancesPromoteReplicaCall) Do() (*InstancesPromoteReplicaResponse, er
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2009,7 +2001,7 @@ func (c *InstancesResetSslConfigCall) Do() (*InstancesResetSslConfigResponse, er
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2096,7 +2088,7 @@ func (c *InstancesRestartCall) Do() (*InstancesRestartResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2189,7 +2181,7 @@ func (c *InstancesRestoreBackupCall) Do() (*InstancesRestoreBackupResponse, erro
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2299,7 +2291,7 @@ func (c *InstancesSetRootPasswordCall) Do() (*InstancesSetRootPasswordResponse, 
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2397,7 +2389,7 @@ func (c *InstancesUpdateCall) Do() (*InstancesUpdateResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2492,7 +2484,7 @@ func (c *OperationsGetCall) Do() (*InstanceOperation, error) {
 		"instance":  c.instance,
 		"operation": c.operation,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2608,7 +2600,7 @@ func (c *OperationsListCall) Do() (*OperationsListResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2709,7 +2701,7 @@ func (c *SslCertsDeleteCall) Do() (*SslCertsDeleteResponse, error) {
 		"instance":        c.instance,
 		"sha1Fingerprint": c.sha1Fingerprint,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2807,7 +2799,7 @@ func (c *SslCertsGetCall) Do() (*SslCert, error) {
 		"instance":        c.instance,
 		"sha1Fingerprint": c.sha1Fingerprint,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2910,7 +2902,7 @@ func (c *SslCertsInsertCall) Do() (*SslCertsInsertResponse, error) {
 		"instance": c.instance,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3001,7 +2993,7 @@ func (c *SslCertsListCall) Do() (*SslCertsListResponse, error) {
 		"project":  c.project,
 		"instance": c.instance,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3086,7 +3078,7 @@ func (c *TiersListCall) Do() (*TiersListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

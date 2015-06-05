@@ -1,11 +1,11 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/_8UNzCrzIAVY6np4hy3mmnmxBm8\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/5UMRPQM2lE_tfb1BMv9TTmTYYF8\"",
  "discoveryVersion": "v1",
  "id": "books:v1",
  "name": "books",
  "version": "v1",
- "revision": "20150109",
+ "revision": "20150318",
  "title": "Books API",
  "description": "Lets you search for books and manage your Google Books library.",
  "ownerDomain": "google.com",
@@ -1619,6 +1619,10 @@
      "type": "object",
      "description": "General volume information.",
      "properties": {
+      "allowAnonLogging": {
+       "type": "boolean",
+       "description": "Whether anonymous logging should be allowed."
+      },
       "authors": {
        "type": "array",
        "description": "The names of the authors and/or editors for this volume. (In LITE projection)",
@@ -1726,6 +1730,9 @@
       "mainCategory": {
        "type": "string",
        "description": "The main category to which this volume belongs. It will be the category from the categories list returned below that has the highest weight."
+      },
+      "maturityRating": {
+       "type": "string"
       },
       "pageCount": {
        "type": "integer",
@@ -2775,7 +2782,7 @@
      "id": "books.myconfig.updateUserSettings",
      "path": "myconfig/updateUserSettings",
      "httpMethod": "POST",
-     "description": "Sets the settings for the user. Unspecified sub-objects will retain the existing value.",
+     "description": "Sets the settings for the user. If a sub-object is specified, it will overwrite the existing sub-object stored in the server. Unspecified sub-objects will retain the existing value.",
      "request": {
       "$ref": "Usersettings"
      },
@@ -2813,34 +2820,6 @@
        "parameterOrder": [
         "annotationId"
        ],
-       "scopes": [
-        "https://www.googleapis.com/auth/books"
-       ]
-      },
-      "get": {
-       "id": "books.mylibrary.annotations.get",
-       "path": "mylibrary/annotations/{annotationId}",
-       "httpMethod": "GET",
-       "description": "Gets an annotation by its ID.",
-       "parameters": {
-        "annotationId": {
-         "type": "string",
-         "description": "The ID for the annotation to retrieve.",
-         "required": true,
-         "location": "path"
-        },
-        "source": {
-         "type": "string",
-         "description": "String to identify the originator of this request.",
-         "location": "query"
-        }
-       },
-       "parameterOrder": [
-        "annotationId"
-       ],
-       "response": {
-        "$ref": "Annotation"
-       },
        "scopes": [
         "https://www.googleapis.com/auth/books"
        ]
@@ -2905,12 +2884,6 @@
          "format": "uint32",
          "minimum": "0",
          "maximum": "40",
-         "location": "query"
-        },
-        "pageIds": {
-         "type": "string",
-         "description": "The page ID(s) for the volume that is being queried.",
-         "repeated": true,
          "location": "query"
         },
         "pageToken": {
@@ -3444,6 +3417,19 @@
        "description": "ISO-639-1 language and ISO-3166-1 country code. Default is en-US if unset.",
        "location": "query"
       },
+      "maxAllowedMaturityRating": {
+       "type": "string",
+       "description": "The maximum allowed maturity rating of returned volumes. Books with a higher maturity rating are filtered out.",
+       "enum": [
+        "mature",
+        "not-mature"
+       ],
+       "enumDescriptions": [
+        "Show books which are rated mature or lower.",
+        "Show books which are rated not mature."
+       ],
+       "location": "query"
+      },
       "pageSize": {
        "type": "integer",
        "description": "Number of maximum results per page to be included in the response.",
@@ -3645,6 +3631,10 @@
        "description": "String to identify the originator of this request.",
        "location": "query"
       },
+      "user_library_consistent_read": {
+       "type": "boolean",
+       "location": "query"
+      },
       "volumeId": {
        "type": "string",
        "description": "ID of volume to retrieve.",
@@ -3834,6 +3824,19 @@
          "description": "ISO-639-1 language and ISO-3166-1 country code. Ex: 'en_US'. Used for generating recommendations.",
          "location": "query"
         },
+        "maxAllowedMaturityRating": {
+         "type": "string",
+         "description": "The maximum allowed maturity rating of returned recommendations. Books with a higher maturity rating are filtered out.",
+         "enum": [
+          "mature",
+          "not-mature"
+         ],
+         "enumDescriptions": [
+          "Show books which are rated mature or lower.",
+          "Show books which are rated not mature."
+         ],
+         "location": "query"
+        },
         "source": {
          "type": "string",
          "description": "String to identify the originator of this request.",
@@ -3952,6 +3955,19 @@
         "locale": {
          "type": "string",
          "description": "ISO-639-1 language and ISO-3166-1 country code. Ex: 'en_US'. Used for generating recommendations.",
+         "location": "query"
+        },
+        "maxAllowedMaturityRating": {
+         "type": "string",
+         "description": "The maximum allowed maturity rating of returned recommendations. Books with a higher maturity rating are filtered out.",
+         "enum": [
+          "mature",
+          "not-mature"
+         ],
+         "enumDescriptions": [
+          "Show books which are rated mature or lower.",
+          "Show books which are rated not mature."
+         ],
          "location": "query"
         },
         "source": {

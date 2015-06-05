@@ -1,4 +1,4 @@
-// Package resourceviews provides access to the Resource Views API.
+// Package resourceviews provides access to the Google Compute Engine Instance Groups API.
 //
 // See https://developers.google.com/compute/
 //
@@ -72,12 +72,20 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	ZoneOperations *ZoneOperationsService
 
 	ZoneViews *ZoneViewsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewZoneOperationsService(s *Service) *ZoneOperationsService {
@@ -413,7 +421,7 @@ func (c *ZoneOperationsGetCall) Do() (*Operation, error) {
 		"zone":      c.zone,
 		"operation": c.operation,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -546,7 +554,7 @@ func (c *ZoneOperationsListCall) Do() (*OperationList, error) {
 		"project": c.project,
 		"zone":    c.zone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -668,7 +676,7 @@ func (c *ZoneViewsAddResourcesCall) Do() (*Operation, error) {
 		"resourceView": c.resourceView,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -769,7 +777,7 @@ func (c *ZoneViewsDeleteCall) Do() (*Operation, error) {
 		"zone":         c.zone,
 		"resourceView": c.resourceView,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -867,7 +875,7 @@ func (c *ZoneViewsGetCall) Do() (*ResourceView, error) {
 		"zone":         c.zone,
 		"resourceView": c.resourceView,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -979,7 +987,7 @@ func (c *ZoneViewsGetServiceCall) Do() (*ZoneViewsGetServiceResponse, error) {
 		"zone":         c.zone,
 		"resourceView": c.resourceView,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1087,7 +1095,7 @@ func (c *ZoneViewsInsertCall) Do() (*Operation, error) {
 		"zone":    c.zone,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1201,7 +1209,7 @@ func (c *ZoneViewsListCall) Do() (*ZoneViewsList, error) {
 		"project": c.project,
 		"zone":    c.zone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1289,6 +1297,11 @@ func (r *ZoneViewsService) ListResources(project string, zone string, resourceVi
 // the return value. It can be URL or URL_PORT. A JSON object will be
 // included in the response based on the format. The default format is
 // NONE, which results in no JSON in the response.
+//
+// Possible values:
+//   "NONE"
+//   "URL"
+//   "URL_PORT"
 func (c *ZoneViewsListResourcesCall) Format(format string) *ZoneViewsListResourcesCall {
 	c.opt_["format"] = format
 	return c
@@ -1296,6 +1309,10 @@ func (c *ZoneViewsListResourcesCall) Format(format string) *ZoneViewsListResourc
 
 // ListState sets the optional parameter "listState": The state of the
 // instance to list. By default, it lists all instances.
+//
+// Possible values:
+//   "ALL" (default)
+//   "RUNNING"
 func (c *ZoneViewsListResourcesCall) ListState(listState string) *ZoneViewsListResourcesCall {
 	c.opt_["listState"] = listState
 	return c
@@ -1364,7 +1381,7 @@ func (c *ZoneViewsListResourcesCall) Do() (*ZoneViewsListResourcesResponse, erro
 		"zone":         c.zone,
 		"resourceView": c.resourceView,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1520,7 +1537,7 @@ func (c *ZoneViewsRemoveResourcesCall) Do() (*Operation, error) {
 		"resourceView": c.resourceView,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1630,7 +1647,7 @@ func (c *ZoneViewsSetServiceCall) Do() (*Operation, error) {
 		"resourceView": c.resourceView,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

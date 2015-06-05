@@ -1,11 +1,11 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/nj3_AYxHy8D9l1M7W6ygroaKSl8\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/AbaKKjd2hzeukyFGD8tU5GkLMd0\"",
  "discoveryVersion": "v1",
  "id": "genomics:v1beta2",
  "name": "genomics",
  "version": "v1beta2",
- "revision": "20150208",
+ "revision": "20150509",
  "title": "Genomics API",
  "description": "Provides access to Genomics data.",
  "ownerDomain": "google.com",
@@ -72,6 +72,9 @@
     "https://www.googleapis.com/auth/bigquery": {
      "description": "View and manage your data in Google BigQuery"
     },
+    "https://www.googleapis.com/auth/cloud-platform": {
+     "description": "View and manage your data across Google Cloud Platform services"
+    },
     "https://www.googleapis.com/auth/devstorage.read_write": {
      "description": "Manage your data in Google Cloud Storage"
     },
@@ -129,7 +132,7 @@
   "Annotation": {
    "id": "Annotation",
    "type": "object",
-   "description": "An annotation describes a region of reference genome. The value of an annotation may be one of several canonical types, supplemented by arbitrary info tags. A variant annotation is represented by one or more of these canonical types. An annotation is not inherently associated with a specific sample/individual (though a client could choose to use annotations in this way). Example canonical annotation types are 'Gene' and 'Variant'.",
+   "description": "An annotation describes a region of reference genome. The value of an annotation may be one of several canonical types, supplemented by arbitrary info tags. A variant annotation is represented by one or more of these canonical types. An annotation is not inherently associated with a specific sample or individual (though a client could choose to use annotations in this way). Example canonical annotation types are 'Gene' and 'Variant'.",
    "properties": {
     "annotationSetId": {
      "type": "string",
@@ -160,7 +163,7 @@
     },
     "transcript": {
      "$ref": "Transcript",
-     "description": "A transcript value represents the assertion that a particular region of the reference genome may be transcribed as RNA. An alternate splicing pattern would be represented as separate transcript object. This field is only set for annotations of type TRANSCRIPT."
+     "description": "A transcript value represents the assertion that a particular region of the reference genome may be transcribed as RNA. An alternative splicing pattern would be represented as a separate transcript object. This field is only set for annotations of type TRANSCRIPT."
     },
     "type": {
      "type": "string",
@@ -180,14 +183,14 @@
     },
     "variant": {
      "$ref": "VariantAnnotation",
-     "description": "A variant annotation which describes the effect of a variant on the genome, the coding sequence, and/or higher level consequences at the organism level e.g. pathogenicity. This field is only set for annotations of type VARIANT."
+     "description": "A variant annotation, which describes the effect of a variant on the genome, the coding sequence, and/or higher level consequences at the organism level e.g. pathogenicity. This field is only set for annotations of type VARIANT."
     }
    }
   },
   "AnnotationSet": {
    "id": "AnnotationSet",
    "type": "object",
-   "description": "An annotation set is a logical grouping of annotations which share consistent type information and provenance. An example would be 'all genes from refseq', or 'all variant annotations from ClinVar'.",
+   "description": "An annotation set is a logical grouping of annotations that share consistent type information and provenance. Examples of annotation sets include 'all genes from refseq', and 'all variant annotations from ClinVar'.",
    "properties": {
     "datasetId": {
      "type": "string",
@@ -214,7 +217,7 @@
     },
     "referenceSetId": {
      "type": "string",
-     "description": "The ID of the reference set which defines the coordinate-space for this set's annotations."
+     "description": "The ID of the reference set that defines the coordinate space for this set's annotations."
     },
     "sourceUri": {
      "type": "string",
@@ -235,6 +238,62 @@
       "",
       ""
      ]
+    }
+   }
+  },
+  "BatchAnnotationsResponse": {
+   "id": "BatchAnnotationsResponse",
+   "type": "object",
+   "properties": {
+    "entries": {
+     "type": "array",
+     "description": "The resulting per-annotation entries, ordered consistently with the original request.",
+     "items": {
+      "$ref": "BatchAnnotationsResponseEntry"
+     }
+    }
+   }
+  },
+  "BatchAnnotationsResponseEntry": {
+   "id": "BatchAnnotationsResponseEntry",
+   "type": "object",
+   "properties": {
+    "annotation": {
+     "$ref": "Annotation",
+     "description": "The annotation, if any."
+    },
+    "status": {
+     "$ref": "BatchAnnotationsResponseEntryStatus",
+     "description": "The resulting status for this annotation operation."
+    }
+   }
+  },
+  "BatchAnnotationsResponseEntryStatus": {
+   "id": "BatchAnnotationsResponseEntryStatus",
+   "type": "object",
+   "description": "",
+   "properties": {
+    "code": {
+     "type": "integer",
+     "description": "The HTTP status code for this operation.",
+     "format": "int32"
+    },
+    "message": {
+     "type": "string",
+     "description": "Error message for this status, if any."
+    }
+   }
+  },
+  "BatchCreateAnnotationsRequest": {
+   "id": "BatchCreateAnnotationsRequest",
+   "type": "object",
+   "properties": {
+    "annotations": {
+     "type": "array",
+     "description": "The annotations to be created. At most 4096 can be specified in a single request.",
+     "items": {
+      "$ref": "Annotation"
+     }
     }
    }
   },
@@ -372,12 +431,14 @@
       "CLIP_SOFT",
       "DELETE",
       "INSERT",
+      "OPERATION_UNSPECIFIED",
       "PAD",
       "SEQUENCE_MATCH",
       "SEQUENCE_MISMATCH",
       "SKIP"
      ],
      "enumDescriptions": [
+      "",
       "",
       "",
       "",
@@ -496,7 +557,7 @@
    "properties": {
     "exportUri": {
      "type": "string",
-     "description": "A Google Cloud Storage URI where the exported BAM file will be created. The currently authenticated user must have write access to the new file location. An error will be returned if the URI already contains data."
+     "description": "A Google Cloud Storage URI for the exported BAM file. The currently authenticated user must have write access to the new file. An error will be returned if the URI already contains data."
     },
     "projectNumber": {
      "type": "string",
@@ -671,7 +732,7 @@
    "properties": {
     "format": {
      "type": "string",
-     "description": "The format of the variant data being imported.",
+     "description": "The format of the variant data being imported. If unspecified, defaults to to \"VCF\".",
      "enum": [
       "COMPLETE_GENOMICS",
       "VCF"
@@ -683,7 +744,7 @@
     },
     "sourceUris": {
      "type": "array",
-     "description": "A list of URIs pointing at VCF files in Google Cloud Storage. See the VCF Specification for more details on the input format.",
+     "description": "A list of URIs referencing variant files in Google Cloud Storage. URIs can include wildcards as described here. Note that recursive wildcards ('**') are not supported.",
      "items": {
       "type": "string"
      }
@@ -1140,7 +1201,7 @@
     },
     "alignment": {
      "$ref": "LinearAlignment",
-     "description": "The linear alignment for this alignment record. This field will be null if the read is unmapped."
+     "description": "The linear alignment for this alignment record. This field will be unset if the read is unmapped."
     },
     "duplicateFragment": {
      "type": "boolean",
@@ -1176,7 +1237,7 @@
     },
     "nextMatePosition": {
      "$ref": "Position",
-     "description": "The mapping of the primary alignment of the (readNumber+1)%numberReads read in the fragment. It replaces mate position and mate strand in SAM."
+     "description": "The position of the primary alignment of the (readNumber+1)%numberReads read in the fragment. It replaces mate position and mate strand in SAM. This field will be unset if that read is unmapped or if the fragment only has a single read."
     },
     "numberReads": {
      "type": "integer",
@@ -1428,7 +1489,7 @@
     },
     "description": {
      "type": "string",
-     "description": "Optional free text description of this reference set."
+     "description": "Free text description of this reference set."
     },
     "id": {
      "type": "string",
@@ -1493,7 +1554,7 @@
     },
     "types": {
      "type": "array",
-     "description": "If specified, only annotation sets which have any of these types are returned.",
+     "description": "If specified, only annotation sets that have any of these types are returned.",
      "items": {
       "type": "string",
       "enum": [
@@ -1551,7 +1612,7 @@
     },
     "range": {
      "$ref": "QueryRange",
-     "description": "If specified, this query matches only annotations which overlap this range."
+     "description": "If specified, this query matches only annotations that overlap this range."
     }
    }
   },
@@ -1583,7 +1644,7 @@
     },
     "pageSize": {
      "type": "integer",
-     "description": "The maximum number of call sets to return.",
+     "description": "The maximum number of call sets to return. If unspecified, defaults to 1000.",
      "format": "int32"
     },
     "pageToken": {
@@ -1709,7 +1770,7 @@
     },
     "pageSize": {
      "type": "integer",
-     "description": "Specifies number of results to return in a single page. If unspecified, it will default to 128. The maximum value is 1024.",
+     "description": "Specifies number of results to return in a single page. If unspecified, it will default to 256. The maximum value is 1024.",
      "format": "int32"
     },
     "pageToken": {
@@ -1955,17 +2016,17 @@
     },
     "end": {
      "type": "string",
-     "description": "Required. The end of the window (0-based, exclusive) for which overlapping variants should be returned.",
+     "description": "The end of the window, 0-based exclusive. If unspecified or 0, defaults to the length of the reference.",
      "format": "int64"
     },
     "maxCalls": {
      "type": "integer",
-     "description": "The maximum number of calls to return. However, at least one variant will always be returned, even if it has more calls than this limit.",
+     "description": "The maximum number of calls to return. However, at least one variant will always be returned, even if it has more calls than this limit. If unspecified, defaults to 5000.",
      "format": "int32"
     },
     "pageSize": {
      "type": "integer",
-     "description": "The maximum number of variants to return.",
+     "description": "The maximum number of variants to return. If unspecified, defaults to 5000.",
      "format": "int32"
     },
     "pageToken": {
@@ -1978,7 +2039,7 @@
     },
     "start": {
      "type": "string",
-     "description": "Required. The beginning of the window (0-based, inclusive) for which overlapping variants should be returned.",
+     "description": "The beginning of the window (0-based, inclusive) for which overlapping variants should be returned. If unspecified, defaults to 0.",
      "format": "int64"
     },
     "variantName": {
@@ -1987,7 +2048,7 @@
     },
     "variantSetIds": {
      "type": "array",
-     "description": "Exactly one variant set ID must be provided. Only variants from this variant set will be returned.",
+     "description": "At most one variant set ID must be provided. Only variants from this variant set will be returned. If omitted, a call set id must be included in the request.",
      "items": {
       "type": "string"
      }
@@ -2023,7 +2084,7 @@
     },
     "exons": {
      "type": "array",
-     "description": "The exons which compose this transcript. Exons are the pieces of the transcript which are spliced together, may be exported from a cell's nucleus, and may then be translated to protein. This field should be unset for genomes where transcript splicing does not occur, for example prokaryotes.\n\n\nIntrons are regions of the transcript which are not included in the spliced RNA product. Though not explicitly modeled here, intron ranges can be deduced; all regions of this transcript which are not exons are introns.\n\n\nExonic sequences do not necessarily code for a translational product (amino acids). Only the regions of exons bounded by the codingSequence correspond to coding DNA sequence.\n\n\nExons are ordered by start position and may not overlap.",
+     "description": "The exons that compose this transcript. This field should be unset for genomes where transcript splicing does not occur, for example prokaryotes.\n\n\nIntrons are regions of the transcript that are not included in the spliced RNA product. Though not explicitly modeled here, intron ranges can be deduced; all regions of this transcript that are not exons are introns.\n\n\nExonic sequences do not necessarily code for a translational product (amino acids). Only the regions of exons bounded by the codingSequence correspond to coding DNA sequence.\n\n\nExons are ordered by start position and may not overlap.",
      "items": {
       "$ref": "TranscriptExon"
      }
@@ -2061,7 +2122,7 @@
     },
     "frame": {
      "$ref": "Int32Value",
-     "description": "The frame of this exon. Contains a value of 0, 1, or 2 which indicates the offset of the first coding base of the exon within the reading frame of the coding DNA sequence, if any. This field is dependent on the strandedness of this annotation (see Annotation.position.reverseStrand). For forward stranded annotations, this offset is relative to the exon.start. For reverse strand annotations, this offset is relative to the exon.end-1.\n\nUnset if this exon does not intersect the coding sequence. Upon creation of a transcript, the frame must be populated for all or none of the coding exons."
+     "description": "The frame of this exon. Contains a value of 0, 1, or 2, which indicates the offset of the first coding base of the exon within the reading frame of the coding DNA sequence, if any. This field is dependent on the strandedness of this annotation (see Annotation.position.reverseStrand). For forward stranded annotations, this offset is relative to the exon.start. For reverse strand annotations, this offset is relative to the exon.end-1.\n\nUnset if this exon does not intersect the coding sequence. Upon creation of a transcript, the frame must be populated for all or none of the coding exons."
     },
     "start": {
      "type": "string",
@@ -2236,7 +2297,7 @@
     },
     "transcriptIds": {
      "type": "array",
-     "description": "Google annotation ID of the transcripts affected by this variant. These should be provided when the variant is created.",
+     "description": "Google annotation IDs of the transcripts affected by this variant. These should be provided when the variant is created.",
      "items": {
       "type": "string"
      }
@@ -2278,7 +2339,7 @@
     },
     "externalIds": {
      "type": "array",
-     "description": "The set of external ids for this condition.",
+     "description": "The set of external IDs for this condition.",
      "items": {
       "$ref": "ExternalId"
      }
@@ -2341,6 +2402,7 @@
       "$ref": "AnnotationSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2361,6 +2423,7 @@
       "annotationSetId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2384,6 +2447,7 @@
       "$ref": "AnnotationSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2411,6 +2475,7 @@
       "$ref": "AnnotationSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2418,7 +2483,7 @@
      "id": "genomics.annotationSets.search",
      "path": "annotationSets/search",
      "httpMethod": "POST",
-     "description": "Searches for annotation sets which match the given criteria. Results are returned in a deterministic order. Caller must have READ permission for the queried datasets.",
+     "description": "Searches for annotation sets that match the given criteria. Results are returned in a deterministic order. Caller must have READ permission for the queried datasets.",
      "request": {
       "$ref": "SearchAnnotationSetsRequest"
      },
@@ -2426,6 +2491,7 @@
       "$ref": "SearchAnnotationSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2453,6 +2519,7 @@
       "$ref": "AnnotationSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }
@@ -2460,6 +2527,22 @@
   },
   "annotations": {
    "methods": {
+    "batchCreate": {
+     "id": "genomics.annotations.batchCreate",
+     "path": "annotations:batchCreate",
+     "httpMethod": "POST",
+     "description": "Creates one or more new annotations atomically. All annotations must belong to the same annotation set. Caller must have WRITE permission for this annotation set. For optimal performance, batch positionally adjacent annotations together.\n\n\nIf the request has a systemic issue, such as an attempt to write to an inaccessible annotation set, the entire RPC will fail accordingly. For lesser data issues, when possible an error will be isolated to the corresponding batch entry in the response; the remaining well formed annotations will be created normally.",
+     "request": {
+      "$ref": "BatchCreateAnnotationsRequest"
+     },
+     "response": {
+      "$ref": "BatchAnnotationsResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/genomics"
+     ]
+    },
     "create": {
      "id": "genomics.annotations.create",
      "path": "annotations",
@@ -2472,6 +2555,7 @@
       "$ref": "Annotation"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2492,6 +2576,7 @@
       "annotationId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2515,6 +2600,7 @@
       "$ref": "Annotation"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2542,6 +2628,7 @@
       "$ref": "Annotation"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2549,7 +2636,7 @@
      "id": "genomics.annotations.search",
      "path": "annotations/search",
      "httpMethod": "POST",
-     "description": "Searches for annotations which match the given criteria. Results are returned ordered by start position. Annotations which have matching start positions are ordered deterministically. Caller must have READ permission for the queried annotation sets.",
+     "description": "Searches for annotations that match the given criteria. Results are returned ordered by start position. Annotations that have matching start positions are ordered deterministically. Caller must have READ permission for the queried annotation sets.",
      "request": {
       "$ref": "SearchAnnotationsRequest"
      },
@@ -2557,6 +2644,7 @@
       "$ref": "SearchAnnotationsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2584,6 +2672,7 @@
       "$ref": "Annotation"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }
@@ -2603,6 +2692,7 @@
       "$ref": "CallSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2623,6 +2713,7 @@
       "callSetId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2646,6 +2737,7 @@
       "$ref": "CallSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2673,6 +2765,7 @@
       "$ref": "CallSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2688,6 +2781,7 @@
       "$ref": "SearchCallSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2715,6 +2809,7 @@
       "$ref": "CallSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }
@@ -2734,6 +2829,7 @@
       "$ref": "Dataset"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2754,6 +2850,7 @@
       "datasetId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2777,6 +2874,7 @@
       "$ref": "Dataset"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2785,12 +2883,11 @@
      "id": "genomics.datasets.list",
      "path": "datasets",
      "httpMethod": "GET",
-     "description": "Lists all datasets.",
+     "description": "Lists datasets within a project.",
      "parameters": {
       "pageSize": {
        "type": "integer",
-       "description": "The maximum number of results returned by this request.",
-       "default": "50",
+       "description": "The maximum number of results returned by this request. If unspecified, defaults to 50.",
        "format": "int32",
        "location": "query"
       },
@@ -2801,7 +2898,7 @@
       },
       "projectNumber": {
        "type": "string",
-       "description": "Only return datasets which belong to this Google Developers Console project. Only accepts project numbers. Returns all public projects if no project number is specified.",
+       "description": "The project to list datasets for.",
        "format": "int64",
        "location": "query"
       }
@@ -2810,6 +2907,7 @@
       "$ref": "ListDatasetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2837,6 +2935,7 @@
       "$ref": "Dataset"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2860,6 +2959,7 @@
       "$ref": "Dataset"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2886,6 +2986,7 @@
       "$ref": "Dataset"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }
@@ -2907,6 +3008,7 @@
         "$ref": "ExperimentalCreateJobResponse"
        },
        "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform",
         "https://www.googleapis.com/auth/devstorage.read_write",
         "https://www.googleapis.com/auth/genomics"
        ]
@@ -2934,6 +3036,7 @@
       "jobId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -2957,6 +3060,7 @@
       "$ref": "Job"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2973,6 +3077,7 @@
       "$ref": "SearchJobsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -2993,6 +3098,7 @@
       "$ref": "AlignReadGroupSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_write",
       "https://www.googleapis.com/auth/genomics"
      ]
@@ -3009,6 +3115,7 @@
       "$ref": "CallReadGroupSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_write",
       "https://www.googleapis.com/auth/genomics"
      ]
@@ -3030,6 +3137,7 @@
       "readGroupSetId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3045,6 +3153,7 @@
       "$ref": "ExportReadGroupSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_write",
       "https://www.googleapis.com/auth/genomics"
      ]
@@ -3069,6 +3178,7 @@
       "$ref": "ReadGroupSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3085,6 +3195,7 @@
       "$ref": "ImportReadGroupSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_write",
       "https://www.googleapis.com/auth/genomics"
      ]
@@ -3112,6 +3223,7 @@
       "$ref": "ReadGroupSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3127,6 +3239,7 @@
       "$ref": "SearchReadGroupSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3154,6 +3267,7 @@
       "$ref": "ReadGroupSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }
@@ -3170,7 +3284,6 @@
         "pageSize": {
          "type": "integer",
          "description": "The maximum number of results to return in a single page. If unspecified, defaults to 1024. The maximum value is 2048.",
-         "default": "1024",
          "format": "int32",
          "location": "query"
         },
@@ -3216,6 +3329,7 @@
         "$ref": "ListCoverageBucketsResponse"
        },
        "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform",
         "https://www.googleapis.com/auth/genomics",
         "https://www.googleapis.com/auth/genomics.readonly"
        ]
@@ -3238,6 +3352,7 @@
       "$ref": "SearchReadsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3266,6 +3381,7 @@
       "$ref": "Reference"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3282,6 +3398,7 @@
       "$ref": "SearchReferencesResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3305,7 +3422,6 @@
         "pageSize": {
          "type": "integer",
          "description": "Specifies the maximum number of bases to return in a single page.",
-         "default": "200000",
          "format": "int32",
          "location": "query"
         },
@@ -3334,6 +3450,7 @@
         "$ref": "ListBasesResponse"
        },
        "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform",
         "https://www.googleapis.com/auth/genomics",
         "https://www.googleapis.com/auth/genomics.readonly"
        ]
@@ -3364,6 +3481,7 @@
       "$ref": "ReferenceSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3380,6 +3498,7 @@
       "$ref": "SearchReferenceSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3400,6 +3519,7 @@
       "$ref": "Variant"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3420,6 +3540,7 @@
       "variantId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3443,6 +3564,7 @@
       "$ref": "Variant"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3459,6 +3581,7 @@
       "$ref": "SearchVariantsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3486,6 +3609,7 @@
       "$ref": "Variant"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }
@@ -3510,6 +3634,7 @@
       "variantSetId"
      ],
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3537,6 +3662,7 @@
      },
      "scopes": [
       "https://www.googleapis.com/auth/bigquery",
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3560,6 +3686,7 @@
       "$ref": "VariantSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3587,6 +3714,7 @@
       "$ref": "ImportVariantsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_write",
       "https://www.googleapis.com/auth/genomics"
      ]
@@ -3609,7 +3737,11 @@
      ],
      "request": {
       "$ref": "MergeVariantsRequest"
-     }
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/genomics"
+     ]
     },
     "patch": {
      "id": "genomics.variantsets.patch",
@@ -3634,6 +3766,7 @@
       "$ref": "VariantSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     },
@@ -3649,6 +3782,7 @@
       "$ref": "SearchVariantSetsResponse"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics",
       "https://www.googleapis.com/auth/genomics.readonly"
      ]
@@ -3676,6 +3810,7 @@
       "$ref": "VariantSet"
      },
      "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/genomics"
      ]
     }

@@ -66,8 +66,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Changes *ChangesService
 
@@ -76,6 +77,13 @@ type Service struct {
 	Projects *ProjectsService
 
 	ResourceRecordSets *ResourceRecordSetsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewChangesService(s *Service) *ChangesService {
@@ -134,8 +142,7 @@ type Change struct {
 	// This is in RFC3339 text format.
 	StartTime string `json:"startTime,omitempty"`
 
-	// Status: Status of the operation. Can be one of the following:
-	// "PENDING" or "DONE" (output only).
+	// Status: Status of the operation (output only).
 	Status string `json:"status,omitempty"`
 }
 
@@ -151,12 +158,12 @@ type ChangesListResponse struct {
 	// To fetch them, make another list request using this value as your
 	// pagination token.
 	//
-	// In this way you can retrieve the complete contents
-	// of even very large collections one page at a time. However, if the
-	// contents of the collection change between the first and last
-	// paginated list request, the set of all elements returned will be an
-	// inconsistent view of the collection. There is no way to retrieve a
-	// "snapshot" of collections larger than the maximum page size.
+	// In this way you can retrieve the complete contents of even very large
+	// collections one page at a time. However, if the contents of the
+	// collection change between the first and last paginated list request,
+	// the set of all elements returned will be an inconsistent view of the
+	// collection. There is no way to retrieve a "snapshot" of collections
+	// larger than the maximum page size.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 }
 
@@ -165,8 +172,9 @@ type ManagedZone struct {
 	// This is in RFC3339 text format. Output only.
 	CreationTime string `json:"creationTime,omitempty"`
 
-	// Description: A string to associate with this resource for the user's
-	// convenience. Has no effect on the managed zone's function.
+	// Description: A mutable string of at most 1024 characters associated
+	// with this resource for the user's convenience. Has no effect on the
+	// managed zone's function.
 	Description string `json:"description,omitempty"`
 
 	// DnsName: The DNS name of this managed zone, for instance
@@ -209,13 +217,12 @@ type ManagedZonesListResponse struct {
 	// To fetch them, make another list request using this value as your
 	// page token.
 	//
-	// In this way you can retrieve the complete contents of
-	// even very large collections one page at a time. However, if the
-	// contents of the collection change between the first and last
-	// paginated list request, the set of all elements returned will be an
-	// inconsistent view of the collection. There is no way to retrieve a
-	// consistent snapshot of a collection larger than the maximum page
-	// size.
+	// In this way you can retrieve the complete contents of even very large
+	// collections one page at a time. However, if the contents of the
+	// collection change between the first and last paginated list request,
+	// the set of all elements returned will be an inconsistent view of the
+	// collection. There is no way to retrieve a consistent snapshot of a
+	// collection larger than the maximum page size.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 }
 
@@ -273,14 +280,15 @@ type ResourceRecordSet struct {
 	Name string `json:"name,omitempty"`
 
 	// Rrdatas: As defined in RFC 1035 (section 5) and RFC 1034 (section
-	// 3.6.1)
+	// 3.6.1).
 	Rrdatas []string `json:"rrdatas,omitempty"`
 
 	// Ttl: Number of seconds that this ResourceRecordSet can be cached by
 	// resolvers.
 	Ttl int64 `json:"ttl,omitempty"`
 
-	// Type: One of A, AAAA, SOA, MX, NS, TXT
+	// Type: The identifier of a supported record type, for example, A,
+	// AAAA, MX, TXT, and so on.
 	Type string `json:"type,omitempty"`
 }
 
@@ -293,13 +301,12 @@ type ResourceRecordSetsListResponse struct {
 	// To fetch them, make another list request using this value as your
 	// pagination token.
 	//
-	// In this way you can retrieve the complete contents
-	// of even very large collections one page at a time. However, if the
-	// contents of the collection change between the first and last
-	// paginated list request, the set of all elements returned will be an
-	// inconsistent view of the collection. There is no way to retrieve a
-	// consistent snapshot of a collection larger than the maximum page
-	// size.
+	// In this way you can retrieve the complete contents of even very large
+	// collections one page at a time. However, if the contents of the
+	// collection change between the first and last paginated list request,
+	// the set of all elements returned will be an inconsistent view of the
+	// collection. There is no way to retrieve a consistent snapshot of a
+	// collection larger than the maximum page size.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
 	// Rrsets: The resource record set resources.
@@ -353,7 +360,7 @@ func (c *ChangesCreateCall) Do() (*Change, error) {
 		"managedZone": c.managedZone,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -446,7 +453,7 @@ func (c *ChangesGetCall) Do() (*Change, error) {
 		"managedZone": c.managedZone,
 		"changeId":    c.changeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -537,6 +544,9 @@ func (c *ChangesListCall) PageToken(pageToken string) *ChangesListCall {
 
 // SortBy sets the optional parameter "sortBy": Sorting criterion. The
 // only supported value is change sequence.
+//
+// Possible values:
+//   "changeSequence" (default)
 func (c *ChangesListCall) SortBy(sortBy string) *ChangesListCall {
 	c.opt_["sortBy"] = sortBy
 	return c
@@ -583,7 +593,7 @@ func (c *ChangesListCall) Do() (*ChangesListResponse, error) {
 		"project":     c.project,
 		"managedZone": c.managedZone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -704,7 +714,7 @@ func (c *ManagedZonesCreateCall) Do() (*ManagedZone, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -787,7 +797,7 @@ func (c *ManagedZonesDeleteCall) Do() error {
 		"project":     c.project,
 		"managedZone": c.managedZone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -867,7 +877,7 @@ func (c *ManagedZonesGetCall) Do() (*ManagedZone, error) {
 		"project":     c.project,
 		"managedZone": c.managedZone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -975,7 +985,7 @@ func (c *ManagedZonesListCall) Do() (*ManagedZonesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1064,7 +1074,7 @@ func (c *ProjectsGetCall) Do() (*Project, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1189,7 +1199,7 @@ func (c *ResourceRecordSetsListCall) Do() (*ResourceRecordSetsListResponse, erro
 		"project":     c.project,
 		"managedZone": c.managedZone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

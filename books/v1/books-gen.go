@@ -65,8 +65,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Bookshelves *BookshelvesService
 
@@ -85,6 +86,13 @@ type Service struct {
 	Promooffer *PromoofferService
 
 	Volumes *VolumesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewBookshelvesService(s *Service) *BookshelvesService {
@@ -417,8 +425,8 @@ type Annotationdata struct {
 
 	Data interface{} `json:"data,omitempty"`
 
-	// Encoded_data: Base64 encoded data for this annotation data.
-	Encoded_data string `json:"encoded_data,omitempty"`
+	// EncodedData: Base64 encoded data for this annotation data.
+	EncodedData string `json:"encoded_data,omitempty"`
 
 	// Id: Unique id for this annotation data.
 	Id string `json:"id,omitempty"`
@@ -515,7 +523,7 @@ type BooksCloudloadingResource struct {
 }
 
 type BooksVolumesRecommendedRateResponse struct {
-	Consistency_token string `json:"consistency_token,omitempty"`
+	ConsistencyToken string `json:"consistency_token,omitempty"`
 }
 
 type Bookshelf struct {
@@ -952,9 +960,9 @@ type Metadata struct {
 }
 
 type MetadataItems struct {
-	Download_url string `json:"download_url,omitempty"`
+	DownloadUrl string `json:"download_url,omitempty"`
 
-	Encrypted_key string `json:"encrypted_key,omitempty"`
+	EncryptedKey string `json:"encrypted_key,omitempty"`
 
 	Language string `json:"language,omitempty"`
 
@@ -1403,6 +1411,9 @@ type VolumeUserInfoUserUploadedVolumeInfo struct {
 }
 
 type VolumeVolumeInfo struct {
+	// AllowAnonLogging: Whether anonymous logging should be allowed.
+	AllowAnonLogging bool `json:"allowAnonLogging,omitempty"`
+
 	// Authors: The names of the authors and/or editors for this volume. (In
 	// LITE projection)
 	Authors []string `json:"authors,omitempty"`
@@ -1450,6 +1461,8 @@ type VolumeVolumeInfo struct {
 	// be the category from the categories list returned below that has the
 	// highest weight.
 	MainCategory string `json:"mainCategory,omitempty"`
+
+	MaturityRating string `json:"maturityRating,omitempty"`
 
 	// PageCount: Total number of pages as per publisher metadata.
 	PageCount int64 `json:"pageCount,omitempty"`
@@ -1689,7 +1702,7 @@ func (c *BookshelvesGetCall) Do() (*Bookshelf, error) {
 		"userId": c.userId,
 		"shelf":  c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1787,7 +1800,7 @@ func (c *BookshelvesListCall) Do() (*Bookshelves, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1912,7 +1925,7 @@ func (c *BookshelvesVolumesListCall) Do() (*Volumes, error) {
 		"userId": c.userId,
 		"shelf":  c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1996,17 +2009,17 @@ func (r *CloudloadingService) AddBook() *CloudloadingAddBookCall {
 	return c
 }
 
-// Drive_document_id sets the optional parameter "drive_document_id": A
+// DriveDocumentId sets the optional parameter "drive_document_id": A
 // drive document id. The upload_client_token must not be set.
-func (c *CloudloadingAddBookCall) Drive_document_id(drive_document_id string) *CloudloadingAddBookCall {
-	c.opt_["drive_document_id"] = drive_document_id
+func (c *CloudloadingAddBookCall) DriveDocumentId(driveDocumentId string) *CloudloadingAddBookCall {
+	c.opt_["drive_document_id"] = driveDocumentId
 	return c
 }
 
-// Mime_type sets the optional parameter "mime_type": The document MIME
+// MimeType sets the optional parameter "mime_type": The document MIME
 // type. It can be set only if the drive_document_id is set.
-func (c *CloudloadingAddBookCall) Mime_type(mime_type string) *CloudloadingAddBookCall {
-	c.opt_["mime_type"] = mime_type
+func (c *CloudloadingAddBookCall) MimeType(mimeType string) *CloudloadingAddBookCall {
+	c.opt_["mime_type"] = mimeType
 	return c
 }
 
@@ -2017,10 +2030,9 @@ func (c *CloudloadingAddBookCall) Name(name string) *CloudloadingAddBookCall {
 	return c
 }
 
-// Upload_client_token sets the optional parameter
-// "upload_client_token":
-func (c *CloudloadingAddBookCall) Upload_client_token(upload_client_token string) *CloudloadingAddBookCall {
-	c.opt_["upload_client_token"] = upload_client_token
+// UploadClientToken sets the optional parameter "upload_client_token":
+func (c *CloudloadingAddBookCall) UploadClientToken(uploadClientToken string) *CloudloadingAddBookCall {
+	c.opt_["upload_client_token"] = uploadClientToken
 	return c
 }
 
@@ -2055,7 +2067,7 @@ func (c *CloudloadingAddBookCall) Do() (*BooksCloudloadingResource, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2140,7 +2152,7 @@ func (c *CloudloadingDeleteBookCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2213,7 +2225,7 @@ func (c *CloudloadingUpdateBookCall) Do() (*BooksCloudloadingResource, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2281,7 +2293,7 @@ func (c *DictionaryListOfflineMetadataCall) Do() (*Metadata, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2380,7 +2392,7 @@ func (c *LayersGetCall) Do() (*Layersummary, error) {
 		"volumeId":  c.volumeId,
 		"summaryId": c.summaryId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2513,7 +2525,7 @@ func (c *LayersListCall) Do() (*Layersummaries, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"volumeId": c.volumeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2683,7 +2695,7 @@ func (c *LayersAnnotationDataGetCall) Do() (*Annotationdata, error) {
 		"layerId":          c.layerId,
 		"annotationDataId": c.annotationDataId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2924,7 +2936,7 @@ func (c *LayersAnnotationDataListCall) Do() (*Annotationsdata, error) {
 		"volumeId": c.volumeId,
 		"layerId":  c.layerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3099,7 +3111,7 @@ func (c *LayersVolumeAnnotationsGetCall) Do() (*Volumeannotation, error) {
 		"layerId":      c.layerId,
 		"annotationId": c.annotationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3330,7 +3342,7 @@ func (c *LayersVolumeAnnotationsListCall) Do() (*Volumeannotations, error) {
 		"volumeId": c.volumeId,
 		"layerId":  c.layerId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3479,7 +3491,7 @@ func (c *MyconfigGetUserSettingsCall) Do() (*Usersettings, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3568,7 +3580,7 @@ func (c *MyconfigReleaseDownloadAccessCall) Do() (*DownloadAccesses, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3649,6 +3661,11 @@ func (r *MyconfigService) RequestAccess(source string, volumeId string, nonce st
 
 // LicenseTypes sets the optional parameter "licenseTypes": The type of
 // access license to request. If not specified, the default is BOTH.
+//
+// Possible values:
+//   "BOTH" - Both concurrent and download licenses.
+//   "CONCURRENT" - Concurrent access license.
+//   "DOWNLOAD" - Offline download access license.
 func (c *MyconfigRequestAccessCall) LicenseTypes(licenseTypes string) *MyconfigRequestAccessCall {
 	c.opt_["licenseTypes"] = licenseTypes
 	return c
@@ -3690,7 +3707,7 @@ func (c *MyconfigRequestAccessCall) Do() (*RequestAccess, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3793,6 +3810,9 @@ func (r *MyconfigService) SyncVolumeLicenses(source string, nonce string, cpksve
 
 // Features sets the optional parameter "features": List of features
 // supported by the client, i.e., 'RENTALS'
+//
+// Possible values:
+//   "RENTALS" - Client supports rentals.
 func (c *MyconfigSyncVolumeLicensesCall) Features(features string) *MyconfigSyncVolumeLicensesCall {
 	c.opt_["features"] = features
 	return c
@@ -3853,7 +3873,7 @@ func (c *MyconfigSyncVolumeLicensesCall) Do() (*Volumes, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3943,8 +3963,9 @@ type MyconfigUpdateUserSettingsCall struct {
 	opt_         map[string]interface{}
 }
 
-// UpdateUserSettings: Sets the settings for the user. Unspecified
-// sub-objects will retain the existing value.
+// UpdateUserSettings: Sets the settings for the user. If a sub-object
+// is specified, it will overwrite the existing sub-object stored in the
+// server. Unspecified sub-objects will retain the existing value.
 func (r *MyconfigService) UpdateUserSettings(usersettings *Usersettings) *MyconfigUpdateUserSettingsCall {
 	c := &MyconfigUpdateUserSettingsCall{s: r.s, opt_: make(map[string]interface{})}
 	c.usersettings = usersettings
@@ -3976,7 +3997,7 @@ func (c *MyconfigUpdateUserSettingsCall) Do() (*Usersettings, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3991,7 +4012,7 @@ func (c *MyconfigUpdateUserSettingsCall) Do() (*Usersettings, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Sets the settings for the user. Unspecified sub-objects will retain the existing value.",
+	//   "description": "Sets the settings for the user. If a sub-object is specified, it will overwrite the existing sub-object stored in the server. Unspecified sub-objects will retain the existing value.",
 	//   "httpMethod": "POST",
 	//   "id": "books.myconfig.updateUserSettings",
 	//   "path": "myconfig/updateUserSettings",
@@ -4054,7 +4075,7 @@ func (c *MylibraryAnnotationsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"annotationId": c.annotationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4085,97 +4106,6 @@ func (c *MylibraryAnnotationsDeleteCall) Do() error {
 	//     }
 	//   },
 	//   "path": "mylibrary/annotations/{annotationId}",
-	//   "scopes": [
-	//     "https://www.googleapis.com/auth/books"
-	//   ]
-	// }
-
-}
-
-// method id "books.mylibrary.annotations.get":
-
-type MylibraryAnnotationsGetCall struct {
-	s            *Service
-	annotationId string
-	opt_         map[string]interface{}
-}
-
-// Get: Gets an annotation by its ID.
-func (r *MylibraryAnnotationsService) Get(annotationId string) *MylibraryAnnotationsGetCall {
-	c := &MylibraryAnnotationsGetCall{s: r.s, opt_: make(map[string]interface{})}
-	c.annotationId = annotationId
-	return c
-}
-
-// Source sets the optional parameter "source": String to identify the
-// originator of this request.
-func (c *MylibraryAnnotationsGetCall) Source(source string) *MylibraryAnnotationsGetCall {
-	c.opt_["source"] = source
-	return c
-}
-
-// Fields allows partial responses to be retrieved.
-// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
-// for more information.
-func (c *MylibraryAnnotationsGetCall) Fields(s ...googleapi.Field) *MylibraryAnnotationsGetCall {
-	c.opt_["fields"] = googleapi.CombineFields(s)
-	return c
-}
-
-func (c *MylibraryAnnotationsGetCall) Do() (*Annotation, error) {
-	var body io.Reader = nil
-	params := make(url.Values)
-	params.Set("alt", "json")
-	if v, ok := c.opt_["source"]; ok {
-		params.Set("source", fmt.Sprintf("%v", v))
-	}
-	if v, ok := c.opt_["fields"]; ok {
-		params.Set("fields", fmt.Sprintf("%v", v))
-	}
-	urls := googleapi.ResolveRelative(c.s.BasePath, "mylibrary/annotations/{annotationId}")
-	urls += "?" + params.Encode()
-	req, _ := http.NewRequest("GET", urls, body)
-	googleapi.Expand(req.URL, map[string]string{
-		"annotationId": c.annotationId,
-	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
-	res, err := c.s.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer googleapi.CloseBody(res)
-	if err := googleapi.CheckResponse(res); err != nil {
-		return nil, err
-	}
-	var ret *Annotation
-	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
-		return nil, err
-	}
-	return ret, nil
-	// {
-	//   "description": "Gets an annotation by its ID.",
-	//   "httpMethod": "GET",
-	//   "id": "books.mylibrary.annotations.get",
-	//   "parameterOrder": [
-	//     "annotationId"
-	//   ],
-	//   "parameters": {
-	//     "annotationId": {
-	//       "description": "The ID for the annotation to retrieve.",
-	//       "location": "path",
-	//       "required": true,
-	//       "type": "string"
-	//     },
-	//     "source": {
-	//       "description": "String to identify the originator of this request.",
-	//       "location": "query",
-	//       "type": "string"
-	//     }
-	//   },
-	//   "path": "mylibrary/annotations/{annotationId}",
-	//   "response": {
-	//     "$ref": "Annotation"
-	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/books"
 	//   ]
@@ -4254,7 +4184,7 @@ func (c *MylibraryAnnotationsInsertCall) Do() (*Annotation, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4344,13 +4274,6 @@ func (c *MylibraryAnnotationsListCall) MaxResults(maxResults int64) *MylibraryAn
 	return c
 }
 
-// PageIds sets the optional parameter "pageIds": The page ID(s) for the
-// volume that is being queried.
-func (c *MylibraryAnnotationsListCall) PageIds(pageIds string) *MylibraryAnnotationsListCall {
-	c.opt_["pageIds"] = pageIds
-	return c
-}
-
 // PageToken sets the optional parameter "pageToken": The value of the
 // nextToken from the previous page.
 func (c *MylibraryAnnotationsListCall) PageToken(pageToken string) *MylibraryAnnotationsListCall {
@@ -4420,9 +4343,6 @@ func (c *MylibraryAnnotationsListCall) Do() (*Annotations, error) {
 	if v, ok := c.opt_["maxResults"]; ok {
 		params.Set("maxResults", fmt.Sprintf("%v", v))
 	}
-	if v, ok := c.opt_["pageIds"]; ok {
-		params.Set("pageIds", fmt.Sprintf("%v", v))
-	}
 	if v, ok := c.opt_["pageToken"]; ok {
 		params.Set("pageToken", fmt.Sprintf("%v", v))
 	}
@@ -4448,7 +4368,7 @@ func (c *MylibraryAnnotationsListCall) Do() (*Annotations, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4490,12 +4410,6 @@ func (c *MylibraryAnnotationsListCall) Do() (*Annotations, error) {
 	//       "maximum": "40",
 	//       "minimum": "0",
 	//       "type": "integer"
-	//     },
-	//     "pageIds": {
-	//       "description": "The page ID(s) for the volume that is being queried.",
-	//       "location": "query",
-	//       "repeated": true,
-	//       "type": "string"
 	//     },
 	//     "pageToken": {
 	//       "description": "The value of the nextToken from the previous page.",
@@ -4579,7 +4493,7 @@ func (c *MylibraryAnnotationsSummaryCall) Do() (*AnnotationsSummary, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4681,7 +4595,7 @@ func (c *MylibraryAnnotationsUpdateCall) Do() (*Annotation, error) {
 		"annotationId": c.annotationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4748,6 +4662,11 @@ func (r *MylibraryBookshelvesService) AddVolume(shelf string, volumeId string) *
 
 // Reason sets the optional parameter "reason": The reason for which the
 // book is added to the library.
+//
+// Possible values:
+//   "IOS_PREX" - Volumes added from the PREX flow on iOS.
+//   "IOS_SEARCH" - Volumes added from the Search flow on iOS.
+//   "ONBOARDING" - Volumes added from the Onboarding flow.
 func (c *MylibraryBookshelvesAddVolumeCall) Reason(reason string) *MylibraryBookshelvesAddVolumeCall {
 	c.opt_["reason"] = reason
 	return c
@@ -4788,7 +4707,7 @@ func (c *MylibraryBookshelvesAddVolumeCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"shelf": c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4894,7 +4813,7 @@ func (c *MylibraryBookshelvesClearVolumesCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"shelf": c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4979,7 +4898,7 @@ func (c *MylibraryBookshelvesGetCall) Do() (*Bookshelf, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"shelf": c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5067,7 +4986,7 @@ func (c *MylibraryBookshelvesListCall) Do() (*Bookshelves, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5155,7 +5074,7 @@ func (c *MylibraryBookshelvesMoveVolumeCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"shelf": c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5227,6 +5146,9 @@ func (r *MylibraryBookshelvesService) RemoveVolume(shelf string, volumeId string
 
 // Reason sets the optional parameter "reason": The reason for which the
 // book is removed from the library.
+//
+// Possible values:
+//   "ONBOARDING" - Samples removed from the Onboarding flow.
 func (c *MylibraryBookshelvesRemoveVolumeCall) Reason(reason string) *MylibraryBookshelvesRemoveVolumeCall {
 	c.opt_["reason"] = reason
 	return c
@@ -5267,7 +5189,7 @@ func (c *MylibraryBookshelvesRemoveVolumeCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"shelf": c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5354,6 +5276,10 @@ func (c *MylibraryBookshelvesVolumesListCall) MaxResults(maxResults int64) *Myli
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "full" - Includes all volume data.
+//   "lite" - Includes a subset of fields in volumeInfo and accessInfo.
 func (c *MylibraryBookshelvesVolumesListCall) Projection(projection string) *MylibraryBookshelvesVolumesListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -5429,7 +5355,7 @@ func (c *MylibraryBookshelvesVolumesListCall) Do() (*Volumes, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"shelf": c.shelf,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5572,7 +5498,7 @@ func (c *MylibraryReadingpositionsGetCall) Do() (*ReadingPosition, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"volumeId": c.volumeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5643,6 +5569,14 @@ func (r *MylibraryReadingpositionsService) SetPosition(volumeId string, timestam
 
 // Action sets the optional parameter "action": Action that caused this
 // reading position to be set.
+//
+// Possible values:
+//   "bookmark" - User chose bookmark within volume.
+//   "chapter" - User selected chapter from list.
+//   "next-page" - Next page event.
+//   "prev-page" - Previous page event.
+//   "scroll" - User navigated to page.
+//   "search" - User chose search results within volume.
 func (c *MylibraryReadingpositionsSetPositionCall) Action(action string) *MylibraryReadingpositionsSetPositionCall {
 	c.opt_["action"] = action
 	return c
@@ -5704,7 +5638,7 @@ func (c *MylibraryReadingpositionsSetPositionCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"volumeId": c.volumeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5829,7 +5763,7 @@ func (c *OnboardingListCategoriesCall) Do() (*Category, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5893,6 +5827,19 @@ func (c *OnboardingListCategoryVolumesCall) Locale(locale string) *OnboardingLis
 	return c
 }
 
+// MaxAllowedMaturityRating sets the optional parameter
+// "maxAllowedMaturityRating": The maximum allowed maturity rating of
+// returned volumes. Books with a higher maturity rating are filtered
+// out.
+//
+// Possible values:
+//   "mature" - Show books which are rated mature or lower.
+//   "not-mature" - Show books which are rated not mature.
+func (c *OnboardingListCategoryVolumesCall) MaxAllowedMaturityRating(maxAllowedMaturityRating string) *OnboardingListCategoryVolumesCall {
+	c.opt_["maxAllowedMaturityRating"] = maxAllowedMaturityRating
+	return c
+}
+
 // PageSize sets the optional parameter "pageSize": Number of maximum
 // results per page to be included in the response.
 func (c *OnboardingListCategoryVolumesCall) PageSize(pageSize int64) *OnboardingListCategoryVolumesCall {
@@ -5925,6 +5872,9 @@ func (c *OnboardingListCategoryVolumesCall) Do() (*Volume2, error) {
 	if v, ok := c.opt_["locale"]; ok {
 		params.Set("locale", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["maxAllowedMaturityRating"]; ok {
+		params.Set("maxAllowedMaturityRating", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["pageSize"]; ok {
 		params.Set("pageSize", fmt.Sprintf("%v", v))
 	}
@@ -5938,7 +5888,7 @@ func (c *OnboardingListCategoryVolumesCall) Do() (*Volume2, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5965,6 +5915,19 @@ func (c *OnboardingListCategoryVolumesCall) Do() (*Volume2, error) {
 	//     },
 	//     "locale": {
 	//       "description": "ISO-639-1 language and ISO-3166-1 country code. Default is en-US if unset.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxAllowedMaturityRating": {
+	//       "description": "The maximum allowed maturity rating of returned volumes. Books with a higher maturity rating are filtered out.",
+	//       "enum": [
+	//         "mature",
+	//         "not-mature"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Show books which are rated mature or lower.",
+	//         "Show books which are rated not mature."
+	//       ],
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -6097,7 +6060,7 @@ func (c *PromoofferAcceptCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6256,7 +6219,7 @@ func (c *PromoofferDismissCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6402,7 +6365,7 @@ func (c *PromoofferGetCall) Do() (*Offers, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6494,6 +6457,10 @@ func (c *VolumesGetCall) Partner(partner string) *VolumesGetCall {
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "full" - Includes all volume data.
+//   "lite" - Includes a subset of fields in volumeInfo and accessInfo.
 func (c *VolumesGetCall) Projection(projection string) *VolumesGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -6503,6 +6470,13 @@ func (c *VolumesGetCall) Projection(projection string) *VolumesGetCall {
 // originator of this request.
 func (c *VolumesGetCall) Source(source string) *VolumesGetCall {
 	c.opt_["source"] = source
+	return c
+}
+
+// UserLibraryConsistentRead sets the optional parameter
+// "user_library_consistent_read":
+func (c *VolumesGetCall) UserLibraryConsistentRead(userLibraryConsistentRead bool) *VolumesGetCall {
+	c.opt_["user_library_consistent_read"] = userLibraryConsistentRead
 	return c
 }
 
@@ -6530,6 +6504,9 @@ func (c *VolumesGetCall) Do() (*Volume, error) {
 	if v, ok := c.opt_["source"]; ok {
 		params.Set("source", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["user_library_consistent_read"]; ok {
+		params.Set("user_library_consistent_read", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -6539,7 +6516,7 @@ func (c *VolumesGetCall) Do() (*Volume, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"volumeId": c.volumeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6589,6 +6566,10 @@ func (c *VolumesGetCall) Do() (*Volume, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "user_library_consistent_read": {
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
 	//     "volumeId": {
 	//       "description": "ID of volume to retrieve.",
 	//       "location": "path",
@@ -6624,12 +6605,22 @@ func (r *VolumesService) List(q string) *VolumesListCall {
 
 // Download sets the optional parameter "download": Restrict to volumes
 // by download availability.
+//
+// Possible values:
+//   "epub" - All volumes with epub.
 func (c *VolumesListCall) Download(download string) *VolumesListCall {
 	c.opt_["download"] = download
 	return c
 }
 
 // Filter sets the optional parameter "filter": Filter search results.
+//
+// Possible values:
+//   "ebooks" - All Google eBooks.
+//   "free-ebooks" - Google eBook with full volume text viewability.
+//   "full" - Public can view entire volume text.
+//   "paid-ebooks" - Google eBook with a price.
+//   "partial" - Public able to see parts of text.
 func (c *VolumesListCall) Filter(filter string) *VolumesListCall {
 	c.opt_["filter"] = filter
 	return c
@@ -6644,6 +6635,10 @@ func (c *VolumesListCall) LangRestrict(langRestrict string) *VolumesListCall {
 
 // LibraryRestrict sets the optional parameter "libraryRestrict":
 // Restrict search to this user's library.
+//
+// Possible values:
+//   "my-library" - Restrict to the user's library, any shelf.
+//   "no-restrict" - Do not restrict based on user's library.
 func (c *VolumesListCall) LibraryRestrict(libraryRestrict string) *VolumesListCall {
 	c.opt_["libraryRestrict"] = libraryRestrict
 	return c
@@ -6657,6 +6652,10 @@ func (c *VolumesListCall) MaxResults(maxResults int64) *VolumesListCall {
 }
 
 // OrderBy sets the optional parameter "orderBy": Sort search results.
+//
+// Possible values:
+//   "newest" - Most recently published.
+//   "relevance" - Relevance to search terms.
 func (c *VolumesListCall) OrderBy(orderBy string) *VolumesListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -6671,6 +6670,11 @@ func (c *VolumesListCall) Partner(partner string) *VolumesListCall {
 
 // PrintType sets the optional parameter "printType": Restrict to books
 // or magazines.
+//
+// Possible values:
+//   "all" - All volume content types.
+//   "books" - Just books.
+//   "magazines" - Just magazines.
 func (c *VolumesListCall) PrintType(printType string) *VolumesListCall {
 	c.opt_["printType"] = printType
 	return c
@@ -6678,6 +6682,10 @@ func (c *VolumesListCall) PrintType(printType string) *VolumesListCall {
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields.
+//
+// Possible values:
+//   "full" - Includes all volume data.
+//   "lite" - Includes a subset of fields in volumeInfo and accessInfo.
 func (c *VolumesListCall) Projection(projection string) *VolumesListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -6760,7 +6768,7 @@ func (c *VolumesListCall) Do() (*Volumes, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6936,6 +6944,11 @@ func (r *VolumesAssociatedService) List(volumeId string) *VolumesAssociatedListC
 
 // Association sets the optional parameter "association": Association
 // type.
+//
+// Possible values:
+//   "end-of-sample" - Recommendations for display end-of-sample.
+//   "end-of-volume" - Recommendations for display end-of-volume.
+//   "related-for-play" - Related volumes for Play Store.
 func (c *VolumesAssociatedListCall) Association(association string) *VolumesAssociatedListCall {
 	c.opt_["association"] = association
 	return c
@@ -6946,6 +6959,19 @@ func (c *VolumesAssociatedListCall) Association(association string) *VolumesAsso
 // recommendations.
 func (c *VolumesAssociatedListCall) Locale(locale string) *VolumesAssociatedListCall {
 	c.opt_["locale"] = locale
+	return c
+}
+
+// MaxAllowedMaturityRating sets the optional parameter
+// "maxAllowedMaturityRating": The maximum allowed maturity rating of
+// returned recommendations. Books with a higher maturity rating are
+// filtered out.
+//
+// Possible values:
+//   "mature" - Show books which are rated mature or lower.
+//   "not-mature" - Show books which are rated not mature.
+func (c *VolumesAssociatedListCall) MaxAllowedMaturityRating(maxAllowedMaturityRating string) *VolumesAssociatedListCall {
+	c.opt_["maxAllowedMaturityRating"] = maxAllowedMaturityRating
 	return c
 }
 
@@ -6974,6 +7000,9 @@ func (c *VolumesAssociatedListCall) Do() (*Volumes, error) {
 	if v, ok := c.opt_["locale"]; ok {
 		params.Set("locale", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["maxAllowedMaturityRating"]; ok {
+		params.Set("maxAllowedMaturityRating", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["source"]; ok {
 		params.Set("source", fmt.Sprintf("%v", v))
 	}
@@ -6986,7 +7015,7 @@ func (c *VolumesAssociatedListCall) Do() (*Volumes, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"volumeId": c.volumeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7028,6 +7057,19 @@ func (c *VolumesAssociatedListCall) Do() (*Volumes, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "maxAllowedMaturityRating": {
+	//       "description": "The maximum allowed maturity rating of returned recommendations. Books with a higher maturity rating are filtered out.",
+	//       "enum": [
+	//         "mature",
+	//         "not-mature"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Show books which are rated mature or lower.",
+	//         "Show books which are rated not mature."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "source": {
 	//       "description": "String to identify the originator of this request.",
 	//       "location": "query",
@@ -7066,6 +7108,15 @@ func (r *VolumesMybooksService) List() *VolumesMybooksListCall {
 
 // AcquireMethod sets the optional parameter "acquireMethod": How the
 // book was aquired
+//
+// Possible values:
+//   "PREORDERED" - Preordered books (not yet available)
+//   "PREVIOUSLY_RENTED" - User-rented books past their expiration time
+//   "PUBLIC_DOMAIN" - Public domain books
+//   "PURCHASED" - Purchased books
+//   "RENTED" - User-rented books
+//   "SAMPLE" - Sample books
+//   "UPLOADED" - User uploaded books
 func (c *VolumesMybooksListCall) AcquireMethod(acquireMethod string) *VolumesMybooksListCall {
 	c.opt_["acquireMethod"] = acquireMethod
 	return c
@@ -7089,6 +7140,11 @@ func (c *VolumesMybooksListCall) MaxResults(maxResults int64) *VolumesMybooksLis
 // ProcessingState sets the optional parameter "processingState": The
 // processing state of the user uploaded volumes to be returned.
 // Applicable only if the UPLOADED is specified in the acquireMethod.
+//
+// Possible values:
+//   "COMPLETED_FAILED" - The volume processing hase failed.
+//   "COMPLETED_SUCCESS" - The volume processing was completed.
+//   "RUNNING" - The volume processing is not completed.
 func (c *VolumesMybooksListCall) ProcessingState(processingState string) *VolumesMybooksListCall {
 	c.opt_["processingState"] = processingState
 	return c
@@ -7145,7 +7201,7 @@ func (c *VolumesMybooksListCall) Do() (*Volumes, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7262,6 +7318,19 @@ func (c *VolumesRecommendedListCall) Locale(locale string) *VolumesRecommendedLi
 	return c
 }
 
+// MaxAllowedMaturityRating sets the optional parameter
+// "maxAllowedMaturityRating": The maximum allowed maturity rating of
+// returned recommendations. Books with a higher maturity rating are
+// filtered out.
+//
+// Possible values:
+//   "mature" - Show books which are rated mature or lower.
+//   "not-mature" - Show books which are rated not mature.
+func (c *VolumesRecommendedListCall) MaxAllowedMaturityRating(maxAllowedMaturityRating string) *VolumesRecommendedListCall {
+	c.opt_["maxAllowedMaturityRating"] = maxAllowedMaturityRating
+	return c
+}
+
 // Source sets the optional parameter "source": String to identify the
 // originator of this request.
 func (c *VolumesRecommendedListCall) Source(source string) *VolumesRecommendedListCall {
@@ -7284,6 +7353,9 @@ func (c *VolumesRecommendedListCall) Do() (*Volumes, error) {
 	if v, ok := c.opt_["locale"]; ok {
 		params.Set("locale", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["maxAllowedMaturityRating"]; ok {
+		params.Set("maxAllowedMaturityRating", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["source"]; ok {
 		params.Set("source", fmt.Sprintf("%v", v))
 	}
@@ -7294,7 +7366,7 @@ func (c *VolumesRecommendedListCall) Do() (*Volumes, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7315,6 +7387,19 @@ func (c *VolumesRecommendedListCall) Do() (*Volumes, error) {
 	//   "parameters": {
 	//     "locale": {
 	//       "description": "ISO-639-1 language and ISO-3166-1 country code. Ex: 'en_US'. Used for generating recommendations.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxAllowedMaturityRating": {
+	//       "description": "The maximum allowed maturity rating of returned recommendations. Books with a higher maturity rating are filtered out.",
+	//       "enum": [
+	//         "mature",
+	//         "not-mature"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Show books which are rated mature or lower.",
+	//         "Show books which are rated not mature."
+	//       ],
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7394,7 +7479,7 @@ func (c *VolumesRecommendedRateCall) Do() (*BooksVolumesRecommendedRateResponse,
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7489,6 +7574,11 @@ func (c *VolumesUseruploadedListCall) MaxResults(maxResults int64) *VolumesUseru
 
 // ProcessingState sets the optional parameter "processingState": The
 // processing state of the user uploaded volumes to be returned.
+//
+// Possible values:
+//   "COMPLETED_FAILED" - The volume processing hase failed.
+//   "COMPLETED_SUCCESS" - The volume processing was completed.
+//   "RUNNING" - The volume processing is not completed.
 func (c *VolumesUseruploadedListCall) ProcessingState(processingState string) *VolumesUseruploadedListCall {
 	c.opt_["processingState"] = processingState
 	return c
@@ -7553,7 +7643,7 @@ func (c *VolumesUseruploadedListCall) Do() (*Volumes, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

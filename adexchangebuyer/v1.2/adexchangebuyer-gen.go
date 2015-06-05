@@ -58,12 +58,20 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Accounts *AccountsService
 
 	Creatives *CreativesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAccountsService(s *Service) *AccountsService {
@@ -128,8 +136,7 @@ type AccountBidderLocation struct {
 	// - ASIA
 	// - EUROPE
 	// - US_EAST
-	// -
-	// US_WEST
+	// - US_WEST
 	Region string `json:"region,omitempty"`
 
 	// Url: The URL to which the Ad Exchange will send bid requests.
@@ -186,6 +193,10 @@ type Creative struct {
 	// requests.
 	DisapprovalReasons []*CreativeDisapprovalReasons `json:"disapprovalReasons,omitempty"`
 
+	// FilteringReasons: The filtering reasons for the creative. Read-only.
+	// This field should not be set in requests.
+	FilteringReasons *CreativeFilteringReasons `json:"filteringReasons,omitempty"`
+
 	// Height: Ad height.
 	Height int64 `json:"height,omitempty"`
 
@@ -234,6 +245,26 @@ type CreativeDisapprovalReasons struct {
 
 	// Reason: The categorized reason for disapproval.
 	Reason string `json:"reason,omitempty"`
+}
+
+type CreativeFilteringReasons struct {
+	// Date: The date in ISO 8601 format for the data. The data is collected
+	// from 00:00:00 to 23:59:59 in PST.
+	Date string `json:"date,omitempty"`
+
+	// Reasons: The filtering reasons.
+	Reasons []*CreativeFilteringReasonsReasons `json:"reasons,omitempty"`
+}
+
+type CreativeFilteringReasonsReasons struct {
+	// FilteringCount: The number of times the creative was filtered for the
+	// status. The count is aggregated across all publishers on the
+	// exchange.
+	FilteringCount int64 `json:"filteringCount,omitempty,string"`
+
+	// FilteringStatus: The filtering status code. Please refer to the
+	// creative-status-codes.txt file for different statuses.
+	FilteringStatus int64 `json:"filteringStatus,omitempty"`
 }
 
 type CreativesList struct {
@@ -285,7 +316,7 @@ func (c *AccountsGetCall) Do() (*Account, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"id": strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -358,7 +389,7 @@ func (c *AccountsListCall) Do() (*AccountsList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -432,7 +463,7 @@ func (c *AccountsPatchCall) Do() (*Account, error) {
 		"id": strconv.FormatInt(c.id, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -520,7 +551,7 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 		"id": strconv.FormatInt(c.id, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -604,7 +635,7 @@ func (c *CreativesGetCall) Do() (*Creative, error) {
 		"accountId":       strconv.FormatInt(c.accountId, 10),
 		"buyerCreativeId": c.buyerCreativeId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -692,7 +723,7 @@ func (c *CreativesInsertCall) Do() (*Creative, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -757,6 +788,11 @@ func (c *CreativesListCall) PageToken(pageToken string) *CreativesListCall {
 
 // StatusFilter sets the optional parameter "statusFilter": When
 // specified, only creatives having the given status are returned.
+//
+// Possible values:
+//   "approved" - Creatives which have been approved.
+//   "disapproved" - Creatives which have been disapproved.
+//   "not_checked" - Creatives whose status is not yet checked.
 func (c *CreativesListCall) StatusFilter(statusFilter string) *CreativesListCall {
 	c.opt_["statusFilter"] = statusFilter
 	return c
@@ -790,7 +826,7 @@ func (c *CreativesListCall) Do() (*CreativesList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

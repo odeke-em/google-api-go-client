@@ -1,6 +1,6 @@
 // Package pagespeedonline provides access to the PageSpeed Insights API.
 //
-// See https://developers.google.com/speed/docs/insights/v1/getting_started
+// See https://developers.google.com/speed/docs/insights/v2/getting-started
 //
 // Usage example:
 //
@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Pagespeedapi *PagespeedapiService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewPagespeedapiService(s *Service) *PagespeedapiService {
@@ -87,10 +95,10 @@ type PagespeedApiFormatStringV2Args struct {
 	// that that argument refers to the entire snapshot.
 	Rects []*PagespeedApiFormatStringV2ArgsRects `json:"rects,omitempty"`
 
-	// Secondary_rects: Secondary screen rectangles being referred to, with
+	// SecondaryRects: Secondary screen rectangles being referred to, with
 	// dimensions measured in CSS pixels. This is only ever used for
 	// SNAPSHOT_RECT arguments.
-	Secondary_rects []*PagespeedApiFormatStringV2ArgsSecondary_rects `json:"secondary_rects,omitempty"`
+	SecondaryRects []*PagespeedApiFormatStringV2ArgsSecondaryRects `json:"secondary_rects,omitempty"`
 
 	// Type: Type of argument. One of URL, STRING_LITERAL, INT_LITERAL,
 	// BYTES, DURATION, VERBATIM_STRING, PERCENTAGE, HYPERLINK, or
@@ -115,7 +123,7 @@ type PagespeedApiFormatStringV2ArgsRects struct {
 	Width int64 `json:"width,omitempty"`
 }
 
-type PagespeedApiFormatStringV2ArgsSecondary_rects struct {
+type PagespeedApiFormatStringV2ArgsSecondaryRects struct {
 	// Height: The height of the rect.
 	Height int64 `json:"height,omitempty"`
 
@@ -139,18 +147,18 @@ type PagespeedApiImageV2 struct {
 	// Key: Unique string key, if any, identifying this image.
 	Key string `json:"key,omitempty"`
 
-	// Mime_type: Mime type of image data (e.g. "image/jpeg").
-	Mime_type string `json:"mime_type,omitempty"`
+	// MimeType: Mime type of image data (e.g. "image/jpeg").
+	MimeType string `json:"mime_type,omitempty"`
 
-	// Page_rect: The region of the page that is captured by this image,
-	// with dimensions measured in CSS pixels.
-	Page_rect *PagespeedApiImageV2Page_rect `json:"page_rect,omitempty"`
+	// PageRect: The region of the page that is captured by this image, with
+	// dimensions measured in CSS pixels.
+	PageRect *PagespeedApiImageV2PageRect `json:"page_rect,omitempty"`
 
 	// Width: Width of screenshot in pixels.
 	Width int64 `json:"width,omitempty"`
 }
 
-type PagespeedApiImageV2Page_rect struct {
+type PagespeedApiImageV2PageRect struct {
 	// Height: The height of the rect.
 	Height int64 `json:"height,omitempty"`
 
@@ -295,11 +303,11 @@ func (r *PagespeedapiService) Runpagespeed(url string) *PagespeedapiRunpagespeed
 	return c
 }
 
-// Filter_third_party_resources sets the optional parameter
+// FilterThirdPartyResources sets the optional parameter
 // "filter_third_party_resources": Indicates if third party resources
 // should be filtered out before PageSpeed analysis.
-func (c *PagespeedapiRunpagespeedCall) Filter_third_party_resources(filter_third_party_resources bool) *PagespeedapiRunpagespeedCall {
-	c.opt_["filter_third_party_resources"] = filter_third_party_resources
+func (c *PagespeedapiRunpagespeedCall) FilterThirdPartyResources(filterThirdPartyResources bool) *PagespeedapiRunpagespeedCall {
+	c.opt_["filter_third_party_resources"] = filterThirdPartyResources
 	return c
 }
 
@@ -326,6 +334,10 @@ func (c *PagespeedapiRunpagespeedCall) Screenshot(screenshot bool) *Pagespeedapi
 
 // Strategy sets the optional parameter "strategy": The analysis
 // strategy to use
+//
+// Possible values:
+//   "desktop" - Fetch and analyze the URL for desktop browsers
+//   "mobile" - Fetch and analyze the URL for mobile devices
 func (c *PagespeedapiRunpagespeedCall) Strategy(strategy string) *PagespeedapiRunpagespeedCall {
 	c.opt_["strategy"] = strategy
 	return c
@@ -366,7 +378,7 @@ func (c *PagespeedapiRunpagespeedCall) Do() (*Result, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

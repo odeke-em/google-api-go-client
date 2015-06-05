@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Webfonts *WebfontsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewWebfontsService(s *Service) *WebfontsService {
@@ -118,6 +126,13 @@ func (r *WebfontsService) List() *WebfontsListCall {
 }
 
 // Sort sets the optional parameter "sort": Enables sorting of the list
+//
+// Possible values:
+//   "alpha" - Sort alphabetically
+//   "date" - Sort by date added
+//   "popularity" - Sort by popularity
+//   "style" - Sort by number of styles
+//   "trending" - Sort by trending
 func (c *WebfontsListCall) Sort(sort string) *WebfontsListCall {
 	c.opt_["sort"] = sort
 	return c
@@ -145,7 +160,7 @@ func (c *WebfontsListCall) Do() (*WebfontList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

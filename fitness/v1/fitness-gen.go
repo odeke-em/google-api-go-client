@@ -72,10 +72,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Users *UsersService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewUsersService(s *Service) *UsersService {
@@ -135,7 +143,7 @@ type Application struct {
 	Name string `json:"name,omitempty"`
 
 	// PackageName: Package name for this application. This is used as a
-	// unique identifier when creaed by Android applications, but cannot be
+	// unique identifier when created by Android applications, but cannot be
 	// specified by REST clients. REST clients will have their developer
 	// project number reflected into the Data Source data stream IDs,
 	// instead of the packageName.
@@ -183,9 +191,8 @@ type DataPoint struct {
 	// occur in the same order that the field is listed with in the data
 	// type specified in a data source.
 	//
-	// Only one of integer and floating
-	// point fields will be populated, depending on the format enum value
-	// within data source's type field.
+	// Only one of integer and floating point fields will be populated,
+	// depending on the format enum value within data source's type field.
 	Value []*Value `json:"value,omitempty"`
 }
 
@@ -198,29 +205,27 @@ type DataSource struct {
 	// this data source. The identifier includes:
 	//
 	//
-	// - The physical device's
-	// manufacturer, model, and serial number (UID).
-	// - The application's
-	// package name or name. Package name is used when the data source was
-	// created by an Android application. The developer project number is
-	// used when the data source was created by a REST client.
-	// - The data
-	// source's type.
-	// - The data source's stream name.  Note that not all
-	// attributes of the data source are used as part of the stream
-	// identifier. In particular, the version of the hardware/the
-	// application isn't used. This allows us to preserve the same stream
-	// through version updates. This also means that two DataSource objects
-	// may represent the same data stream even if they're not equal.
+	// - The physical device's manufacturer, model, and serial number (UID).
 	//
-	// The
-	// exact format of the data stream ID created by an Android application
-	// is:
+	// - The application's package name or name. Package name is used when
+	// the data source was created by an Android application. The developer
+	// project number is used when the data source was created by a REST
+	// client.
+	// - The data source's type.
+	// - The data source's stream name.  Note that not all attributes of the
+	// data source are used as part of the stream identifier. In particular,
+	// the version of the hardware/the application isn't used. This allows
+	// us to preserve the same stream through version updates. This also
+	// means that two DataSource objects may represent the same data stream
+	// even if they're not equal.
+	//
+	// The exact format of the data stream ID created by an Android
+	// application is:
 	// type:dataType.name:application.packageName:device.manufacturer:device.
 	// model:device.uid:dataStreamName
 	//
-	// The exact format of the data stream
-	// ID created by a REST client is: type:dataType.name:developer project
+	// The exact format of the data stream ID created by a REST client is:
+	// type:dataType.name:developer project
 	// number:device.manufacturer:device.model:device.uid:dataStreamName
 	//
 	//
@@ -229,10 +234,10 @@ type DataSource struct {
 	// viable data stream ID would be: type:dataType.name:developer project
 	// number
 	//
-	// Finally, the developer project number is obfuscated when read
-	// by any REST or Android client that did not create the data source.
-	// Only the data source creator will see the developer project number in
-	// clear and normal form.
+	// Finally, the developer project number is obfuscated when read by any
+	// REST or Android client that did not create the data source. Only the
+	// data source creator will see the developer project number in clear
+	// and normal form.
 	DataStreamId string `json:"dataStreamId,omitempty"`
 
 	// DataStreamName: The stream name uniquely identifies this particular
@@ -255,6 +260,10 @@ type DataSource struct {
 
 	// Type: A constant describing the type of this data source. Indicates
 	// whether this data source produces raw or derived data.
+	//
+	// Possible values:
+	//   "derived"
+	//   "raw"
 	Type string `json:"type,omitempty"`
 }
 
@@ -270,12 +279,22 @@ type DataType struct {
 type DataTypeField struct {
 	// Format: The different supported formats for each field in a data
 	// type.
+	//
+	// Possible values:
+	//   "floatList"
+	//   "floatPoint"
+	//   "integer"
+	//   "integerList"
+	//   "map"
+	//   "string"
 	Format string `json:"format,omitempty"`
 
 	// Name: Defines the name and format of data. Unlike data type names,
 	// field names are not namespaced, and only need to be unique within the
 	// data type.
 	Name string `json:"name,omitempty"`
+
+	Optional bool `json:"optional,omitempty"`
 }
 
 type Dataset struct {
@@ -317,6 +336,14 @@ type Device struct {
 	Model string `json:"model,omitempty"`
 
 	// Type: A constant representing the type of the device.
+	//
+	// Possible values:
+	//   "chestStrap"
+	//   "phone"
+	//   "scale"
+	//   "tablet"
+	//   "unknown"
+	//   "watch"
 	Type string `json:"type,omitempty"`
 
 	// Uid: The serial number or other unique ID for the hardware. This
@@ -351,6 +378,13 @@ type ListSessionsResponse struct {
 }
 
 type Session struct {
+	// ActiveTimeMillis: Session active time. While start_time_millis and
+	// end_time_millis define the full session time, the active time can be
+	// shorter and specified by active_time_millis. If the inactive time
+	// during the session is known, it should also be inserted via a
+	// com.google.activity.segment data point with a STILL activity value
+	ActiveTimeMillis int64 `json:"activeTimeMillis,omitempty,string"`
+
 	// ActivityType: The type of activity this session represents.
 	ActivityType int64 `json:"activityType,omitempty"`
 
@@ -440,7 +474,7 @@ func (c *UsersDataSourcesCreateCall) Do() (*DataSource, error) {
 		"userId": c.userId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -473,6 +507,95 @@ func (c *UsersDataSourcesCreateCall) Do() (*DataSource, error) {
 	//   "request": {
 	//     "$ref": "DataSource"
 	//   },
+	//   "response": {
+	//     "$ref": "DataSource"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/fitness.activity.write",
+	//     "https://www.googleapis.com/auth/fitness.body.write",
+	//     "https://www.googleapis.com/auth/fitness.location.write"
+	//   ]
+	// }
+
+}
+
+// method id "fitness.users.dataSources.delete":
+
+type UsersDataSourcesDeleteCall struct {
+	s            *Service
+	userId       string
+	dataSourceId string
+	opt_         map[string]interface{}
+}
+
+// Delete: Delete the data source if there are no datapoints associated
+// with it
+func (r *UsersDataSourcesService) Delete(userId string, dataSourceId string) *UsersDataSourcesDeleteCall {
+	c := &UsersDataSourcesDeleteCall{s: r.s, opt_: make(map[string]interface{})}
+	c.userId = userId
+	c.dataSourceId = dataSourceId
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *UsersDataSourcesDeleteCall) Fields(s ...googleapi.Field) *UsersDataSourcesDeleteCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *UsersDataSourcesDeleteCall) Do() (*DataSource, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{userId}/dataSources/{dataSourceId}")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"userId":       c.userId,
+		"dataSourceId": c.dataSourceId,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *DataSource
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Delete the data source if there are no datapoints associated with it",
+	//   "httpMethod": "DELETE",
+	//   "id": "fitness.users.dataSources.delete",
+	//   "parameterOrder": [
+	//     "userId",
+	//     "dataSourceId"
+	//   ],
+	//   "parameters": {
+	//     "dataSourceId": {
+	//       "description": "The data stream ID of the data source to delete.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "userId": {
+	//       "description": "Retrieve a data source for the person identified. Use me to indicate the authenticated user. Only me is supported at this time.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{userId}/dataSources/{dataSourceId}",
 	//   "response": {
 	//     "$ref": "DataSource"
 	//   },
@@ -524,7 +647,7 @@ func (c *UsersDataSourcesGetCall) Do() (*DataSource, error) {
 		"userId":       c.userId,
 		"dataSourceId": c.dataSourceId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -626,7 +749,7 @@ func (c *UsersDataSourcesListCall) Do() (*ListDataSourcesResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -693,8 +816,8 @@ type UsersDataSourcesPatchCall struct {
 // would require a new unique data stream ID and separate data
 // source.
 //
-// Data sources are identified by their data stream ID. This
-// method supports patch semantics.
+// Data sources are identified by their data stream ID. This method
+// supports patch semantics.
 func (r *UsersDataSourcesService) Patch(userId string, dataSourceId string, datasource *DataSource) *UsersDataSourcesPatchCall {
 	c := &UsersDataSourcesPatchCall{s: r.s, opt_: make(map[string]interface{})}
 	c.userId = userId
@@ -731,7 +854,7 @@ func (c *UsersDataSourcesPatchCall) Do() (*DataSource, error) {
 		"dataSourceId": c.dataSourceId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -836,7 +959,7 @@ func (c *UsersDataSourcesUpdateCall) Do() (*DataSource, error) {
 		"dataSourceId": c.dataSourceId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -956,7 +1079,7 @@ func (c *UsersDataSourcesDatasetsDeleteCall) Do() error {
 		"dataSourceId": c.dataSourceId,
 		"datasetId":    c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1089,7 +1212,7 @@ func (c *UsersDataSourcesDatasetsGetCall) Do() (*Dataset, error) {
 		"dataSourceId": c.dataSourceId,
 		"datasetId":    c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1225,7 +1348,7 @@ func (c *UsersDataSourcesDatasetsPatchCall) Do() (*Dataset, error) {
 		"datasetId":    c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1339,7 +1462,7 @@ func (c *UsersSessionsDeleteCall) Do() error {
 		"userId":    c.userId,
 		"sessionId": c.sessionId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1467,7 +1590,7 @@ func (c *UsersSessionsListCall) Do() (*ListSessionsResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1589,7 +1712,7 @@ func (c *UsersSessionsUpdateCall) Do() (*Session, error) {
 		"sessionId": c.sessionId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

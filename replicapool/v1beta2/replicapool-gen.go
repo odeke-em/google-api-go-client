@@ -64,12 +64,20 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	InstanceGroupManagers *InstanceGroupManagersService
 
 	ZoneOperations *ZoneOperationsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewInstanceGroupManagersService(s *Service) *InstanceGroupManagersService {
@@ -183,8 +191,7 @@ type InstanceGroupManagersAbandonInstancesRequest struct {
 type InstanceGroupManagersDeleteInstancesRequest struct {
 	// Instances: Names of instances to delete.
 	//
-	// Example: 'instance-foo',
-	// 'instance-bar'
+	// Example: 'instance-foo', 'instance-bar'
 	Instances []string `json:"instances,omitempty"`
 }
 
@@ -277,6 +284,11 @@ type Operation struct {
 	StartTime string `json:"startTime,omitempty"`
 
 	// Status: [Output Only] Status of the operation.
+	//
+	// Possible values:
+	//   "DONE"
+	//   "PENDING"
+	//   "RUNNING"
 	Status string `json:"status,omitempty"`
 
 	// StatusMessage: [Output Only] An optional textual description of the
@@ -324,6 +336,21 @@ type OperationErrorErrors struct {
 
 type OperationWarnings struct {
 	// Code: [Output only] The warning type identifier for this warning.
+	//
+	// Possible values:
+	//   "DEPRECATED_RESOURCE_USED"
+	//   "DISK_SIZE_LARGER_THAN_IMAGE_SIZE"
+	//   "INJECTED_KERNELS_DEPRECATED"
+	//   "NEXT_HOP_ADDRESS_NOT_ASSIGNED"
+	//   "NEXT_HOP_CANNOT_IP_FORWARD"
+	//   "NEXT_HOP_INSTANCE_NOT_FOUND"
+	//   "NEXT_HOP_INSTANCE_NOT_ON_NETWORK"
+	//   "NEXT_HOP_NOT_RUNNING"
+	//   "NO_RESULTS_ON_PAGE"
+	//   "REQUIRED_TOS_AGREEMENT"
+	//   "RESOURCE_NOT_DELETED"
+	//   "SINGLE_INSTANCE_PROPERTY_TEMPLATE"
+	//   "UNREACHABLE"
 	Code string `json:"code,omitempty"`
 
 	// Data: [Output only] Metadata for this warning in key:value format.
@@ -413,7 +440,7 @@ func (c *InstanceGroupManagersAbandonInstancesCall) Do() (*Operation, error) {
 		"instanceGroupManager": c.instanceGroupManager,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -519,7 +546,7 @@ func (c *InstanceGroupManagersDeleteCall) Do() (*Operation, error) {
 		"zone":                 c.zone,
 		"instanceGroupManager": c.instanceGroupManager,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -589,8 +616,8 @@ type InstanceGroupManagersDeleteInstancesCall struct {
 }
 
 // DeleteInstances: Deletes the specified instances. The instances are
-// removed from the instance group and any target pools of which they
-// are a member, then deleted. The targetSize of the instance group
+// deleted, then removed from the instance group and any target pools of
+// which they were a member. The targetSize of the instance group
 // manager is reduced by the number of instances deleted.
 func (r *InstanceGroupManagersService) DeleteInstances(project string, zone string, instanceGroupManager string, instancegroupmanagersdeleteinstancesrequest *InstanceGroupManagersDeleteInstancesRequest) *InstanceGroupManagersDeleteInstancesCall {
 	c := &InstanceGroupManagersDeleteInstancesCall{s: r.s, opt_: make(map[string]interface{})}
@@ -630,7 +657,7 @@ func (c *InstanceGroupManagersDeleteInstancesCall) Do() (*Operation, error) {
 		"instanceGroupManager": c.instanceGroupManager,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -645,7 +672,7 @@ func (c *InstanceGroupManagersDeleteInstancesCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Deletes the specified instances. The instances are removed from the instance group and any target pools of which they are a member, then deleted. The targetSize of the instance group manager is reduced by the number of instances deleted.",
+	//   "description": "Deletes the specified instances. The instances are deleted, then removed from the instance group and any target pools of which they were a member. The targetSize of the instance group manager is reduced by the number of instances deleted.",
 	//   "httpMethod": "POST",
 	//   "id": "replicapool.instanceGroupManagers.deleteInstances",
 	//   "parameterOrder": [
@@ -733,7 +760,7 @@ func (c *InstanceGroupManagersGetCall) Do() (*InstanceGroupManager, error) {
 		"zone":                 c.zone,
 		"instanceGroupManager": c.instanceGroupManager,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -843,7 +870,7 @@ func (c *InstanceGroupManagersInsertCall) Do() (*Operation, error) {
 		"zone":    c.zone,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -977,7 +1004,7 @@ func (c *InstanceGroupManagersListCall) Do() (*InstanceGroupManagerList, error) 
 		"project": c.project,
 		"zone":    c.zone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1099,7 +1126,7 @@ func (c *InstanceGroupManagersRecreateInstancesCall) Do() (*Operation, error) {
 		"instanceGroupManager": c.instanceGroupManager,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1208,7 +1235,7 @@ func (c *InstanceGroupManagersResizeCall) Do() (*Operation, error) {
 		"zone":                 c.zone,
 		"instanceGroupManager": c.instanceGroupManager,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1326,7 +1353,7 @@ func (c *InstanceGroupManagersSetInstanceTemplateCall) Do() (*Operation, error) 
 		"instanceGroupManager": c.instanceGroupManager,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1439,7 +1466,7 @@ func (c *InstanceGroupManagersSetTargetPoolsCall) Do() (*Operation, error) {
 		"instanceGroupManager": c.instanceGroupManager,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1542,7 +1569,7 @@ func (c *ZoneOperationsGetCall) Do() (*Operation, error) {
 		"zone":      c.zone,
 		"operation": c.operation,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1672,7 +1699,7 @@ func (c *ZoneOperationsListCall) Do() (*OperationList, error) {
 		"project": c.project,
 		"zone":    c.zone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Pagespeedapi *PagespeedapiService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewPagespeedapiService(s *Service) *PagespeedapiService {
@@ -67,9 +75,8 @@ type PagespeedapiService struct {
 }
 
 type Result struct {
-	// FormattedResults: Localized Page Speed results. Contains a
-	// ruleResults entry for each Page Speed rule instantiated and run by
-	// the server.
+	// FormattedResults: Localized PageSpeed results. Contains a ruleResults
+	// entry for each PageSpeed rule instantiated and run by the server.
 	FormattedResults *ResultFormattedResults `json:"formattedResults,omitempty"`
 
 	// Id: Canonicalized and final URL for the document, after following
@@ -91,19 +98,18 @@ type Result struct {
 	// page load. 4xx/5xx indicates an error.
 	ResponseCode int64 `json:"responseCode,omitempty"`
 
-	// Score: The Page Speed Score (0-100), which indicates how much faster
-	// a page could be. A high score indicates little room for improvement,
+	// Score: The PageSpeed Score (0-100), which indicates how much faster a
+	// page could be. A high score indicates little room for improvement,
 	// while a lower score indicates more room for improvement.
 	Score int64 `json:"score,omitempty"`
 
-	// Screenshot: Base64 encoded screenshot of the page that was analyzed.
+	// Screenshot: Base64-encoded screenshot of the page that was analyzed.
 	Screenshot *ResultScreenshot `json:"screenshot,omitempty"`
 
 	// Title: Title of the page, as displayed in the browser's title bar.
 	Title string `json:"title,omitempty"`
 
-	// Version: The version of the Page Speed SDK used to generate these
-	// results.
+	// Version: The version of PageSpeed used to generate these results.
 	Version *ResultVersion `json:"version,omitempty"`
 }
 
@@ -112,7 +118,7 @@ type ResultFormattedResults struct {
 	Locale string `json:"locale,omitempty"`
 
 	// RuleResults: Dictionary of formatted rule results, with one entry for
-	// each Page Speed rule instantiated and run by the server.
+	// each PageSpeed rule instantiated and run by the server.
 	RuleResults *ResultFormattedResultsRuleResults `json:"ruleResults,omitempty"`
 }
 
@@ -177,20 +183,20 @@ type ResultScreenshot struct {
 	// Height: Height of screenshot in pixels.
 	Height int64 `json:"height,omitempty"`
 
-	// Mime_type: Mime type of image data. E.g. "image/jpeg".
-	Mime_type string `json:"mime_type,omitempty"`
+	// MimeType: Mime type of image data. E.g. "image/jpeg".
+	MimeType string `json:"mime_type,omitempty"`
 
 	// Width: Width of screenshot in pixels.
 	Width int64 `json:"width,omitempty"`
 }
 
 type ResultVersion struct {
-	// Major: The major version number of the Page Speed SDK used to
-	// generate these results.
+	// Major: The major version number of PageSpeed used to generate these
+	// results.
 	Major int64 `json:"major,omitempty"`
 
-	// Minor: The minor version number of the Page Speed SDK used to
-	// generate these results.
+	// Minor: The minor version number of PageSpeed used to generate these
+	// results.
 	Minor int64 `json:"minor,omitempty"`
 }
 
@@ -202,8 +208,8 @@ type PagespeedapiRunpagespeedCall struct {
 	opt_ map[string]interface{}
 }
 
-// Runpagespeed: Runs Page Speed analysis on the page at the specified
-// URL, and returns a Page Speed score, a list of suggestions to make
+// Runpagespeed: Runs PageSpeed analysis on the page at the specified
+// URL, and returns a PageSpeed score, a list of suggestions to make
 // that page faster, and other information.
 func (r *PagespeedapiService) Runpagespeed(url string) *PagespeedapiRunpagespeedCall {
 	c := &PagespeedapiRunpagespeedCall{s: r.s, opt_: make(map[string]interface{})}
@@ -211,11 +217,11 @@ func (r *PagespeedapiService) Runpagespeed(url string) *PagespeedapiRunpagespeed
 	return c
 }
 
-// Filter_third_party_resources sets the optional parameter
+// FilterThirdPartyResources sets the optional parameter
 // "filter_third_party_resources": Indicates if third party resources
 // should be filtered out before PageSpeed analysis.
-func (c *PagespeedapiRunpagespeedCall) Filter_third_party_resources(filter_third_party_resources bool) *PagespeedapiRunpagespeedCall {
-	c.opt_["filter_third_party_resources"] = filter_third_party_resources
+func (c *PagespeedapiRunpagespeedCall) FilterThirdPartyResources(filterThirdPartyResources bool) *PagespeedapiRunpagespeedCall {
+	c.opt_["filter_third_party_resources"] = filterThirdPartyResources
 	return c
 }
 
@@ -226,7 +232,7 @@ func (c *PagespeedapiRunpagespeedCall) Locale(locale string) *PagespeedapiRunpag
 	return c
 }
 
-// Rule sets the optional parameter "rule": A Page Speed rule to run; if
+// Rule sets the optional parameter "rule": A PageSpeed rule to run; if
 // none are given, all rules are run
 func (c *PagespeedapiRunpagespeedCall) Rule(rule string) *PagespeedapiRunpagespeedCall {
 	c.opt_["rule"] = rule
@@ -242,6 +248,10 @@ func (c *PagespeedapiRunpagespeedCall) Screenshot(screenshot bool) *Pagespeedapi
 
 // Strategy sets the optional parameter "strategy": The analysis
 // strategy to use
+//
+// Possible values:
+//   "desktop" - Fetch and analyze the URL for desktop browsers
+//   "mobile" - Fetch and analyze the URL for mobile devices
 func (c *PagespeedapiRunpagespeedCall) Strategy(strategy string) *PagespeedapiRunpagespeedCall {
 	c.opt_["strategy"] = strategy
 	return c
@@ -282,7 +292,7 @@ func (c *PagespeedapiRunpagespeedCall) Do() (*Result, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -297,7 +307,7 @@ func (c *PagespeedapiRunpagespeedCall) Do() (*Result, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Runs Page Speed analysis on the page at the specified URL, and returns a Page Speed score, a list of suggestions to make that page faster, and other information.",
+	//   "description": "Runs PageSpeed analysis on the page at the specified URL, and returns a PageSpeed score, a list of suggestions to make that page faster, and other information.",
 	//   "httpMethod": "GET",
 	//   "id": "pagespeedonline.pagespeedapi.runpagespeed",
 	//   "parameterOrder": [
@@ -317,7 +327,7 @@ func (c *PagespeedapiRunpagespeedCall) Do() (*Result, error) {
 	//       "type": "string"
 	//     },
 	//     "rule": {
-	//       "description": "A Page Speed rule to run; if none are given, all rules are run",
+	//       "description": "A PageSpeed rule to run; if none are given, all rules are run",
 	//       "location": "query",
 	//       "pattern": "[a-zA-Z]+",
 	//       "repeated": true,

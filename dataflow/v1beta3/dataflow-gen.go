@@ -58,10 +58,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	V1b3 *V1b3Service
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewV1b3Service(s *Service) *V1b3Service {
@@ -130,6 +138,10 @@ type ApproximateProgress struct {
 }
 
 type AutoscalingSettings struct {
+	// Possible values:
+	//   "AUTOSCALING_ALGORITHM_BASIC"
+	//   "AUTOSCALING_ALGORITHM_NONE"
+	//   "AUTOSCALING_ALGORITHM_UNKNOWN"
 	Algorithm string `json:"algorithm,omitempty"`
 
 	MaxNumWorkers int64 `json:"maxNumWorkers,omitempty"`
@@ -151,12 +163,29 @@ type DataDiskAssignment struct {
 	VmInstance string `json:"vmInstance,omitempty"`
 }
 
+type DerivedSource struct {
+	// Possible values:
+	//   "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_INDEPENDENT"
+	//   "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_UNKNOWN"
+	DerivationMode string `json:"derivationMode,omitempty"`
+
+	Source *Source `json:"source,omitempty"`
+}
+
 type Disk struct {
 	DiskType string `json:"diskType,omitempty"`
 
 	MountPoint string `json:"mountPoint,omitempty"`
 
 	SizeGb int64 `json:"sizeGb,omitempty"`
+}
+
+type DynamicSourceSplit struct {
+	Primary *DerivedSource `json:"primary,omitempty"`
+
+	Residual *DerivedSource `json:"residual,omitempty"`
 }
 
 type Environment struct {
@@ -166,20 +195,22 @@ type Environment struct {
 
 	Experiments []string `json:"experiments,omitempty"`
 
+	SdkPipelineOptions EnvironmentSdkPipelineOptions `json:"sdkPipelineOptions,omitempty"`
+
 	TempStoragePrefix string `json:"tempStoragePrefix,omitempty"`
 
-	UserAgent *EnvironmentUserAgent `json:"userAgent,omitempty"`
+	UserAgent EnvironmentUserAgent `json:"userAgent,omitempty"`
 
-	Version *EnvironmentVersion `json:"version,omitempty"`
+	Version EnvironmentVersion `json:"version,omitempty"`
 
 	WorkerPools []*WorkerPool `json:"workerPools,omitempty"`
 }
 
-type EnvironmentUserAgent struct {
-}
+type EnvironmentSdkPipelineOptions interface{}
 
-type EnvironmentVersion struct {
-}
+type EnvironmentUserAgent interface{}
+
+type EnvironmentVersion interface{}
 
 type FlattenInstruction struct {
 	Inputs []*InstructionInput `json:"inputs,omitempty"`
@@ -194,17 +225,23 @@ type InstructionInput struct {
 }
 
 type InstructionOutput struct {
-	Codec *InstructionOutputCodec `json:"codec,omitempty"`
+	Codec InstructionOutputCodec `json:"codec,omitempty"`
 
 	Name string `json:"name,omitempty"`
 }
 
-type InstructionOutputCodec struct {
-}
+type InstructionOutputCodec interface{}
 
 type Job struct {
 	CreateTime string `json:"createTime,omitempty"`
 
+	// Possible values:
+	//   "JOB_STATE_CANCELLED"
+	//   "JOB_STATE_DONE"
+	//   "JOB_STATE_FAILED"
+	//   "JOB_STATE_RUNNING"
+	//   "JOB_STATE_STOPPED"
+	//   "JOB_STATE_UNKNOWN"
 	CurrentState string `json:"currentState,omitempty"`
 
 	CurrentStateTime string `json:"currentStateTime,omitempty"`
@@ -219,10 +256,21 @@ type Job struct {
 
 	ProjectId string `json:"projectId,omitempty"`
 
+	// Possible values:
+	//   "JOB_STATE_CANCELLED"
+	//   "JOB_STATE_DONE"
+	//   "JOB_STATE_FAILED"
+	//   "JOB_STATE_RUNNING"
+	//   "JOB_STATE_STOPPED"
+	//   "JOB_STATE_UNKNOWN"
 	RequestedState string `json:"requestedState,omitempty"`
 
 	Steps []*Step `json:"steps,omitempty"`
 
+	// Possible values:
+	//   "JOB_TYPE_BATCH"
+	//   "JOB_TYPE_STREAMING"
+	//   "JOB_TYPE_UNKNOWN"
 	Type string `json:"type,omitempty"`
 }
 
@@ -237,6 +285,12 @@ type JobExecutionStageInfo struct {
 type JobMessage struct {
 	Id string `json:"id,omitempty"`
 
+	// Possible values:
+	//   "JOB_MESSAGE_DEBUG"
+	//   "JOB_MESSAGE_DETAILED"
+	//   "JOB_MESSAGE_ERROR"
+	//   "JOB_MESSAGE_IMPORTANCE_UNKNOWN"
+	//   "JOB_MESSAGE_WARNING"
 	MessageImportance string `json:"messageImportance,omitempty"`
 
 	MessageText string `json:"messageText,omitempty"`
@@ -248,6 +302,14 @@ type JobMetrics struct {
 	MetricTime string `json:"metricTime,omitempty"`
 
 	Metrics []*MetricUpdate `json:"metrics,omitempty"`
+}
+
+type KeyRangeDataDiskAssignment struct {
+	DataDisk string `json:"dataDisk,omitempty"`
+
+	End string `json:"end,omitempty"`
+
+	Start string `json:"start,omitempty"`
 }
 
 type KeyRangeLocation struct {
@@ -326,6 +388,10 @@ type MetricUpdate struct {
 	UpdateTime string `json:"updateTime,omitempty"`
 }
 
+type MountedDataDisk struct {
+	DataDisk string `json:"dataDisk,omitempty"`
+}
+
 type MultiOutputInfo struct {
 	Tag string `json:"tag,omitempty"`
 }
@@ -345,11 +411,10 @@ type ParDoInstruction struct {
 
 	SideInputs []*SideInputInfo `json:"sideInputs,omitempty"`
 
-	UserFn *ParDoInstructionUserFn `json:"userFn,omitempty"`
+	UserFn ParDoInstructionUserFn `json:"userFn,omitempty"`
 }
 
-type ParDoInstructionUserFn struct {
-}
+type ParDoInstructionUserFn interface{}
 
 type ParallelInstruction struct {
 	Flatten *FlattenInstruction `json:"flatten,omitempty"`
@@ -372,11 +437,14 @@ type ParallelInstruction struct {
 type PartialGroupByKeyInstruction struct {
 	Input *InstructionInput `json:"input,omitempty"`
 
-	InputElementCodec *PartialGroupByKeyInstructionInputElementCodec `json:"inputElementCodec,omitempty"`
+	InputElementCodec PartialGroupByKeyInstructionInputElementCodec `json:"inputElementCodec,omitempty"`
+
+	ValueCombiningFn PartialGroupByKeyInstructionValueCombiningFn `json:"valueCombiningFn,omitempty"`
 }
 
-type PartialGroupByKeyInstructionInputElementCodec struct {
-}
+type PartialGroupByKeyInstructionInputElementCodec interface{}
+
+type PartialGroupByKeyInstructionValueCombiningFn interface{}
 
 type Position struct {
 	ByteOffset int64 `json:"byteOffset,omitempty,string"`
@@ -391,9 +459,17 @@ type Position struct {
 }
 
 type PubsubLocation struct {
+	DropLateData bool `json:"dropLateData,omitempty"`
+
+	IdLabel string `json:"idLabel,omitempty"`
+
 	Subscription string `json:"subscription,omitempty"`
 
+	TimestampLabel string `json:"timestampLabel,omitempty"`
+
 	Topic string `json:"topic,omitempty"`
+
+	TrackingSubscription string `json:"trackingSubscription,omitempty"`
 }
 
 type ReadInstruction struct {
@@ -423,11 +499,10 @@ type SeqMapTask struct {
 
 	SystemName string `json:"systemName,omitempty"`
 
-	UserFn *SeqMapTaskUserFn `json:"userFn,omitempty"`
+	UserFn SeqMapTaskUserFn `json:"userFn,omitempty"`
 }
 
-type SeqMapTaskUserFn struct {
-}
+type SeqMapTaskUserFn interface{}
 
 type SeqMapTaskOutputInfo struct {
 	Sink *Sink `json:"sink,omitempty"`
@@ -442,47 +517,51 @@ type ShellTask struct {
 }
 
 type SideInputInfo struct {
-	Kind *SideInputInfoKind `json:"kind,omitempty"`
+	Kind SideInputInfoKind `json:"kind,omitempty"`
 
 	Sources []*Source `json:"sources,omitempty"`
 
 	Tag string `json:"tag,omitempty"`
 }
 
-type SideInputInfoKind struct {
-}
+type SideInputInfoKind interface{}
 
 type Sink struct {
-	Codec *SinkCodec `json:"codec,omitempty"`
+	Codec SinkCodec `json:"codec,omitempty"`
 
-	Spec *SinkSpec `json:"spec,omitempty"`
+	Spec SinkSpec `json:"spec,omitempty"`
 }
 
-type SinkCodec struct {
-}
+type SinkCodec interface{}
 
-type SinkSpec struct {
-}
+type SinkSpec interface{}
 
 type Source struct {
-	BaseSpecs []*SourceBaseSpecs `json:"baseSpecs,omitempty"`
+	BaseSpecs []SourceBaseSpecs `json:"baseSpecs,omitempty"`
 
-	Codec *SourceCodec `json:"codec,omitempty"`
+	Codec SourceCodec `json:"codec,omitempty"`
 
 	DoesNotNeedSplitting bool `json:"doesNotNeedSplitting,omitempty"`
 
 	Metadata *SourceMetadata `json:"metadata,omitempty"`
 
-	Spec *SourceSpec `json:"spec,omitempty"`
+	Spec SourceSpec `json:"spec,omitempty"`
 }
 
-type SourceBaseSpecs struct {
-}
+type SourceBaseSpecs interface{}
 
-type SourceCodec struct {
-}
+type SourceCodec interface{}
 
-type SourceSpec struct {
+type SourceSpec interface{}
+
+type SourceFork struct {
+	Primary *SourceSplitShard `json:"primary,omitempty"`
+
+	PrimarySource *DerivedSource `json:"primarySource,omitempty"`
+
+	Residual *SourceSplitShard `json:"residual,omitempty"`
+
+	ResidualSource *DerivedSource `json:"residualSource,omitempty"`
 }
 
 type SourceGetMetadataRequest struct {
@@ -514,6 +593,8 @@ type SourceOperationResponse struct {
 }
 
 type SourceSplitOptions struct {
+	DesiredBundleSizeBytes int64 `json:"desiredBundleSizeBytes,omitempty,string"`
+
 	DesiredShardSizeBytes int64 `json:"desiredShardSizeBytes,omitempty,string"`
 }
 
@@ -524,12 +605,23 @@ type SourceSplitRequest struct {
 }
 
 type SourceSplitResponse struct {
+	Bundles []*DerivedSource `json:"bundles,omitempty"`
+
+	// Possible values:
+	//   "SOURCE_SPLIT_OUTCOME_SPLITTING_HAPPENED"
+	//   "SOURCE_SPLIT_OUTCOME_UNKNOWN"
+	//   "SOURCE_SPLIT_OUTCOME_USE_CURRENT"
 	Outcome string `json:"outcome,omitempty"`
 
 	Shards []*SourceSplitShard `json:"shards,omitempty"`
 }
 
 type SourceSplitShard struct {
+	// Possible values:
+	//   "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_INDEPENDENT"
+	//   "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"
+	//   "SOURCE_DERIVATION_MODE_UNKNOWN"
 	DerivationMode string `json:"derivationMode,omitempty"`
 
 	Source *Source `json:"source,omitempty"`
@@ -538,29 +630,47 @@ type SourceSplitShard struct {
 type Status struct {
 	Code int64 `json:"code,omitempty"`
 
-	Details []*StatusDetails `json:"details,omitempty"`
+	Details []StatusDetails `json:"details,omitempty"`
 
 	Message string `json:"message,omitempty"`
 }
 
-type StatusDetails struct {
-}
+type StatusDetails interface{}
 
 type Step struct {
 	Kind string `json:"kind,omitempty"`
 
 	Name string `json:"name,omitempty"`
 
-	Properties *StepProperties `json:"properties,omitempty"`
+	Properties StepProperties `json:"properties,omitempty"`
 }
 
-type StepProperties struct {
-}
+type StepProperties interface{}
 
 type StreamLocation struct {
 	PubsubLocation *PubsubLocation `json:"pubsubLocation,omitempty"`
 
+	SideInputLocation *StreamingSideInputLocation `json:"sideInputLocation,omitempty"`
+
 	StreamingStageLocation *StreamingStageLocation `json:"streamingStageLocation,omitempty"`
+}
+
+type StreamingComputationRanges struct {
+	ComputationId string `json:"computationId,omitempty"`
+
+	RangeAssignments []*KeyRangeDataDiskAssignment `json:"rangeAssignments,omitempty"`
+}
+
+type StreamingComputationTask struct {
+	ComputationRanges []*StreamingComputationRanges `json:"computationRanges,omitempty"`
+
+	DataDisks []*MountedDataDisk `json:"dataDisks,omitempty"`
+
+	// Possible values:
+	//   "STREAMING_COMPUTATION_TASK_START"
+	//   "STREAMING_COMPUTATION_TASK_STOP"
+	//   "STREAMING_COMPUTATION_TASK_UNKNOWN"
+	TaskType string `json:"taskType,omitempty"`
 }
 
 type StreamingSetupTask struct {
@@ -569,6 +679,10 @@ type StreamingSetupTask struct {
 	StreamingComputationTopology *TopologyConfig `json:"streamingComputationTopology,omitempty"`
 
 	WorkerHarnessPort int64 `json:"workerHarnessPort,omitempty"`
+}
+
+type StreamingSideInputLocation struct {
+	Tag string `json:"tag,omitempty"`
 }
 
 type StreamingStageLocation struct {
@@ -626,6 +740,8 @@ type WorkItem struct {
 
 	Id int64 `json:"id,omitempty,string"`
 
+	InitialReportIndex int64 `json:"initialReportIndex,omitempty,string"`
+
 	JobId string `json:"jobId,omitempty"`
 
 	LeaseExpireTime string `json:"leaseExpireTime,omitempty"`
@@ -644,13 +760,17 @@ type WorkItem struct {
 
 	SourceOperationTask *SourceOperationRequest `json:"sourceOperationTask,omitempty"`
 
+	StreamingComputationTask *StreamingComputationTask `json:"streamingComputationTask,omitempty"`
+
 	StreamingSetupTask *StreamingSetupTask `json:"streamingSetupTask,omitempty"`
 }
 
 type WorkItemServiceState struct {
-	HarnessData *WorkItemServiceStateHarnessData `json:"harnessData,omitempty"`
+	HarnessData WorkItemServiceStateHarnessData `json:"harnessData,omitempty"`
 
 	LeaseExpireTime string `json:"leaseExpireTime,omitempty"`
+
+	NextReportIndex int64 `json:"nextReportIndex,omitempty,string"`
 
 	ReportStatusInterval string `json:"reportStatusInterval,omitempty"`
 
@@ -659,11 +779,12 @@ type WorkItemServiceState struct {
 	SuggestedStopPosition *Position `json:"suggestedStopPosition,omitempty"`
 }
 
-type WorkItemServiceStateHarnessData struct {
-}
+type WorkItemServiceStateHarnessData interface{}
 
 type WorkItemStatus struct {
 	Completed bool `json:"completed,omitempty"`
+
+	DynamicSourceSplit *DynamicSourceSplit `json:"dynamicSourceSplit,omitempty"`
 
 	Errors []*Status `json:"errors,omitempty"`
 
@@ -674,6 +795,8 @@ type WorkItemStatus struct {
 	ReportIndex int64 `json:"reportIndex,omitempty,string"`
 
 	RequestedLeaseDuration string `json:"requestedLeaseDuration,omitempty"`
+
+	SourceFork *SourceFork `json:"sourceFork,omitempty"`
 
 	SourceOperationResponse *SourceOperationResponse `json:"sourceOperationResponse,omitempty"`
 
@@ -687,11 +810,18 @@ type WorkerPool struct {
 
 	DataDisks []*Disk `json:"dataDisks,omitempty"`
 
+	// Possible values:
+	//   "DEFAULT_PACKAGE_SET_JAVA"
+	//   "DEFAULT_PACKAGE_SET_NONE"
+	//   "DEFAULT_PACKAGE_SET_PYTHON"
+	//   "DEFAULT_PACKAGE_SET_UNKNOWN"
 	DefaultPackageSet string `json:"defaultPackageSet,omitempty"`
 
 	DiskSizeGb int64 `json:"diskSizeGb,omitempty"`
 
 	DiskSourceImage string `json:"diskSourceImage,omitempty"`
+
+	DiskType string `json:"diskType,omitempty"`
 
 	Kind string `json:"kind,omitempty"`
 
@@ -705,12 +835,21 @@ type WorkerPool struct {
 
 	Packages []*Package `json:"packages,omitempty"`
 
+	PoolArgs WorkerPoolPoolArgs `json:"poolArgs,omitempty"`
+
 	TaskrunnerSettings *TaskRunnerSettings `json:"taskrunnerSettings,omitempty"`
 
+	// Possible values:
+	//   "TEARDOWN_ALWAYS"
+	//   "TEARDOWN_NEVER"
+	//   "TEARDOWN_ON_SUCCESS"
+	//   "TEARDOWN_POLICY_UNKNOWN"
 	TeardownPolicy string `json:"teardownPolicy,omitempty"`
 
 	Zone string `json:"zone,omitempty"`
 }
+
+type WorkerPoolPoolArgs interface{}
 
 type WorkerSettings struct {
 	BaseUrl string `json:"baseUrl,omitempty"`
@@ -749,7 +888,18 @@ func (r *V1b3ProjectsJobsService) Create(projectId string, job *Job) *V1b3Projec
 	return c
 }
 
+// ReplaceJobId sets the optional parameter "replaceJobId":
+func (c *V1b3ProjectsJobsCreateCall) ReplaceJobId(replaceJobId string) *V1b3ProjectsJobsCreateCall {
+	c.opt_["replaceJobId"] = replaceJobId
+	return c
+}
+
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "JOB_VIEW_ALL"
+//   "JOB_VIEW_SUMMARY"
+//   "JOB_VIEW_UNKNOWN"
 func (c *V1b3ProjectsJobsCreateCall) View(view string) *V1b3ProjectsJobsCreateCall {
 	c.opt_["view"] = view
 	return c
@@ -772,6 +922,9 @@ func (c *V1b3ProjectsJobsCreateCall) Do() (*Job, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["replaceJobId"]; ok {
+		params.Set("replaceJobId", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["view"]; ok {
 		params.Set("view", fmt.Sprintf("%v", v))
 	}
@@ -785,7 +938,7 @@ func (c *V1b3ProjectsJobsCreateCall) Do() (*Job, error) {
 		"projectId": c.projectId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -810,6 +963,10 @@ func (c *V1b3ProjectsJobsCreateCall) Do() (*Job, error) {
 	//     "projectId": {
 	//       "location": "path",
 	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "replaceJobId": {
+	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "view": {
@@ -860,6 +1017,11 @@ func (r *V1b3ProjectsJobsService) Get(projectId string, jobId string) *V1b3Proje
 }
 
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "JOB_VIEW_ALL"
+//   "JOB_VIEW_SUMMARY"
+//   "JOB_VIEW_UNKNOWN"
 func (c *V1b3ProjectsJobsGetCall) View(view string) *V1b3ProjectsJobsGetCall {
 	c.opt_["view"] = view
 	return c
@@ -890,7 +1052,7 @@ func (c *V1b3ProjectsJobsGetCall) Do() (*Job, error) {
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -998,7 +1160,7 @@ func (c *V1b3ProjectsJobsGetMetricsCall) Do() (*JobMetrics, error) {
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1076,6 +1238,11 @@ func (c *V1b3ProjectsJobsListCall) PageToken(pageToken string) *V1b3ProjectsJobs
 }
 
 // View sets the optional parameter "view":
+//
+// Possible values:
+//   "JOB_VIEW_ALL"
+//   "JOB_VIEW_SUMMARY"
+//   "JOB_VIEW_UNKNOWN"
 func (c *V1b3ProjectsJobsListCall) View(view string) *V1b3ProjectsJobsListCall {
 	c.opt_["view"] = view
 	return c
@@ -1111,7 +1278,7 @@ func (c *V1b3ProjectsJobsListCall) Do() (*ListJobsResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1222,7 +1389,7 @@ func (c *V1b3ProjectsJobsPatchCall) Do() (*Job, error) {
 		"jobId":     c.jobId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1318,7 +1485,7 @@ func (c *V1b3ProjectsJobsUpdateCall) Do() (*Job, error) {
 		"jobId":     c.jobId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1391,6 +1558,13 @@ func (c *V1b3ProjectsJobsMessagesListCall) EndTime(endTime string) *V1b3Projects
 }
 
 // MinimumImportance sets the optional parameter "minimumImportance":
+//
+// Possible values:
+//   "JOB_MESSAGE_DEBUG"
+//   "JOB_MESSAGE_DETAILED"
+//   "JOB_MESSAGE_ERROR"
+//   "JOB_MESSAGE_IMPORTANCE_UNKNOWN"
+//   "JOB_MESSAGE_WARNING"
 func (c *V1b3ProjectsJobsMessagesListCall) MinimumImportance(minimumImportance string) *V1b3ProjectsJobsMessagesListCall {
 	c.opt_["minimumImportance"] = minimumImportance
 	return c
@@ -1451,7 +1625,7 @@ func (c *V1b3ProjectsJobsMessagesListCall) Do() (*ListJobMessagesResponse, error
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1579,7 +1753,7 @@ func (c *V1b3ProjectsJobsWorkItemsLeaseCall) Do() (*LeaseWorkItemResponse, error
 		"jobId":     c.jobId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1676,7 +1850,7 @@ func (c *V1b3ProjectsJobsWorkItemsReportStatusCall) Do() (*ReportWorkItemStatusR
 		"jobId":     c.jobId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

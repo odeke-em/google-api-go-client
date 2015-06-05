@@ -67,8 +67,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Acl *AclService
 
@@ -85,6 +86,13 @@ type Service struct {
 	Freebusy *FreebusyService
 
 	Settings *SettingsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAclService(s *Service) *AclService {
@@ -192,20 +200,18 @@ type AclRule struct {
 	Kind string `json:"kind,omitempty"`
 
 	// Role: The role assigned to the scope. Possible values are:
-	// - "none"
-	// - Provides no access.
-	// - "freeBusyReader" - Provides read access to
-	// free/busy information.
-	// - "reader" - Provides read access to the
-	// calendar. Private events will appear to users with reader access, but
-	// event details will be hidden.
-	// - "writer" - Provides read and write
-	// access to the calendar. Private events will appear to users with
-	// writer access, and event details will be visible.
-	// - "owner" -
-	// Provides ownership of the calendar. This role has all of the
-	// permissions of the writer role with the additional ability to see and
-	// manipulate ACLs.
+	// - "none" - Provides no access.
+	// - "freeBusyReader" - Provides read access to free/busy information.
+	//
+	// - "reader" - Provides read access to the calendar. Private events
+	// will appear to users with reader access, but event details will be
+	// hidden.
+	// - "writer" - Provides read and write access to the calendar. Private
+	// events will appear to users with writer access, and event details
+	// will be visible.
+	// - "owner" - Provides ownership of the calendar. This role has all of
+	// the permissions of the writer role with the additional ability to see
+	// and manipulate ACLs.
 	Role string `json:"role,omitempty"`
 
 	// Scope: The scope of the rule.
@@ -214,13 +220,10 @@ type AclRule struct {
 
 type AclRuleScope struct {
 	// Type: The type of the scope. Possible values are:
-	// - "default" - The
-	// public scope. This is the default value.
-	// - "user" - Limits the scope
-	// to a single user.
+	// - "default" - The public scope. This is the default value.
+	// - "user" - Limits the scope to a single user.
 	// - "group" - Limits the scope to a group.
-	// -
-	// "domain" - Limits the scope to a domain.  Note: The permissions
+	// - "domain" - Limits the scope to a domain.  Note: The permissions
 	// granted to the "default", or public, scope apply to any user,
 	// authenticated or not.
 	Type string `json:"type,omitempty"`
@@ -280,18 +283,17 @@ type CalendarList struct {
 type CalendarListEntry struct {
 	// AccessRole: The effective access role that the authenticated user has
 	// on the calendar. Read-only. Possible values are:
-	// - "freeBusyReader"
-	// - Provides read access to free/busy information.
-	// - "reader" -
-	// Provides read access to the calendar. Private events will appear to
-	// users with reader access, but event details will be hidden.
-	// -
-	// "writer" - Provides read and write access to the calendar. Private
+	// - "freeBusyReader" - Provides read access to free/busy information.
+	//
+	// - "reader" - Provides read access to the calendar. Private events
+	// will appear to users with reader access, but event details will be
+	// hidden.
+	// - "writer" - Provides read and write access to the calendar. Private
 	// events will appear to users with writer access, and event details
 	// will be visible.
-	// - "owner" - Provides ownership of the calendar.
-	// This role has all of the permissions of the writer role with the
-	// additional ability to see and manipulate ACLs.
+	// - "owner" - Provides ownership of the calendar. This role has all of
+	// the permissions of the writer role with the additional ability to see
+	// and manipulate ACLs.
 	AccessRole string `json:"accessRole,omitempty"`
 
 	// BackgroundColor: The main color of the calendar in the hexadecimal
@@ -369,23 +371,19 @@ type CalendarNotification struct {
 	// Method: The method used to deliver the notification. Possible values
 	// are:
 	// - "email" - Reminders are sent via email.
-	// - "sms" - Reminders
-	// are sent via SMS. This value is read-only and is ignored on inserts
-	// and updates.
+	// - "sms" - Reminders are sent via SMS. This value is read-only and is
+	// ignored on inserts and updates.
 	Method string `json:"method,omitempty"`
 
 	// Type: The type of notification. Possible values are:
-	// -
-	// "eventCreation" - Notification sent when a new event is put on the
+	// - "eventCreation" - Notification sent when a new event is put on the
 	// calendar.
-	// - "eventChange" - Notification sent when an event is
-	// changed.
-	// - "eventCancellation" - Notification sent when an event is
-	// cancelled.
-	// - "eventResponse" - Notification sent when an event is
-	// changed.
-	// - "agenda" - An agenda with the events of the day (sent out
-	// in the morning).
+	// - "eventChange" - Notification sent when an event is changed.
+	// - "eventCancellation" - Notification sent when an event is cancelled.
+	//
+	// - "eventResponse" - Notification sent when an event is changed.
+	// - "agenda" - An agenda with the events of the day (sent out in the
+	// morning).
 	Type string `json:"type,omitempty"`
 }
 
@@ -463,16 +461,15 @@ type Error struct {
 
 	// Reason: Specific reason for the error. Some of the possible values
 	// are:
-	// - "groupTooBig" - The group of users requested is too large
-	// for a single query.
-	// - "tooManyCalendarsRequested" - The number of
-	// calendars requested is too large for a single query.
-	// - "notFound" -
-	// The requested resource was not found.
-	// - "internalError" - The API
-	// service has encountered an internal error.  Additional error types
-	// may be added in the future, so clients should gracefully handle
-	// additional error statuses not included in this list.
+	// - "groupTooBig" - The group of users requested is too large for a
+	// single query.
+	// - "tooManyCalendarsRequested" - The number of calendars requested is
+	// too large for a single query.
+	// - "notFound" - The requested resource was not found.
+	// - "internalError" - The API service has encountered an internal
+	// error.  Additional error types may be added in the future, so clients
+	// should gracefully handle additional error statuses not included in
+	// this list.
 	Reason string `json:"reason,omitempty"`
 }
 
@@ -526,7 +523,9 @@ type Event struct {
 
 	// GuestsCanInviteOthers: Whether attendees other than the organizer can
 	// invite others to the event. Optional. The default is True.
-	GuestsCanInviteOthers bool `json:"guestsCanInviteOthers,omitempty"`
+	//
+	// Default: true
+	GuestsCanInviteOthers *bool `json:"guestsCanInviteOthers,omitempty"`
 
 	// GuestsCanModify: Whether attendees other than the organizer can
 	// modify the event. Optional. The default is False.
@@ -534,7 +533,9 @@ type Event struct {
 
 	// GuestsCanSeeOtherGuests: Whether attendees other than the organizer
 	// can see who the event's attendees are. Optional. The default is True.
-	GuestsCanSeeOtherGuests bool `json:"guestsCanSeeOtherGuests,omitempty"`
+	//
+	// Default: true
+	GuestsCanSeeOtherGuests *bool `json:"guestsCanSeeOtherGuests,omitempty"`
 
 	// HangoutLink: An absolute link to the Google+ hangout associated with
 	// this event. Read-only.
@@ -550,16 +551,15 @@ type Event struct {
 	// Id: Identifier of the event. When creating new single or recurring
 	// events, you can specify their IDs. Provided IDs must follow these
 	// rules:
-	// - characters allowed in the ID are those used in base32hex
-	// encoding, i.e. lowercase letters a-v and digits 0-9, see section
-	// 3.1.2 in RFC2938
-	// - the length of the ID must be between 5 and 1024
-	// characters
-	// - the ID must be unique per calendar  Due to the globally
-	// distributed nature of the system, we cannot guarantee that ID
-	// collisions will be detected at event creation time. To minimize the
-	// risk of collisions we recommend using an established UUID algorithm
-	// such as one described in RFC4122.
+	// - characters allowed in the ID are those used in base32hex encoding,
+	// i.e. lowercase letters a-v and digits 0-9, see section 3.1.2 in
+	// RFC2938
+	// - the length of the ID must be between 5 and 1024 characters
+	// - the ID must be unique per calendar  Due to the globally distributed
+	// nature of the system, we cannot guarantee that ID collisions will be
+	// detected at event creation time. To minimize the risk of collisions
+	// we recommend using an established UUID algorithm such as one
+	// described in RFC4122.
 	Id string `json:"id,omitempty"`
 
 	// Kind: Type of the resource ("calendar#event").
@@ -617,12 +617,10 @@ type Event struct {
 	Start *EventDateTime `json:"start,omitempty"`
 
 	// Status: Status of the event. Optional. Possible values are:
-	// -
-	// "confirmed" - The event is confirmed. This is the default status.
-	// -
-	// "tentative" - The event is tentatively confirmed.
-	// - "cancelled" -
-	// The event is cancelled.
+	// - "confirmed" - The event is confirmed. This is the default status.
+	//
+	// - "tentative" - The event is tentatively confirmed.
+	// - "cancelled" - The event is cancelled.
 	Status string `json:"status,omitempty"`
 
 	// Summary: Title of the event.
@@ -630,10 +628,9 @@ type Event struct {
 
 	// Transparency: Whether the event blocks time on the calendar.
 	// Optional. Possible values are:
-	// - "opaque" - The event blocks time
-	// on the calendar. This is the default value.
-	// - "transparent" - The
-	// event does not block time on the calendar.
+	// - "opaque" - The event blocks time on the calendar. This is the
+	// default value.
+	// - "transparent" - The event does not block time on the calendar.
 	Transparency string `json:"transparency,omitempty"`
 
 	// Updated: Last modification time of the event (as a RFC 3339
@@ -642,15 +639,14 @@ type Event struct {
 
 	// Visibility: Visibility of the event. Optional. Possible values are:
 	//
-	// - "default" - Uses the default visibility for events on the
-	// calendar. This is the default value.
-	// - "public" - The event is
-	// public and event details are visible to all readers of the calendar.
-	//
+	// - "default" - Uses the default visibility for events on the calendar.
+	// This is the default value.
+	// - "public" - The event is public and event details are visible to all
+	// readers of the calendar.
 	// - "private" - The event is private and only event attendees may view
 	// event details.
-	// - "confidential" - The event is private. This value
-	// is provided for compatibility reasons.
+	// - "confidential" - The event is private. This value is provided for
+	// compatibility reasons.
 	Visibility string `json:"visibility,omitempty"`
 }
 
@@ -684,8 +680,7 @@ type EventGadget struct {
 	//
 	// - "icon" - The gadget displays next to the event's title in the
 	// calendar view.
-	// - "chip" - The gadget displays when the event is
-	// clicked.
+	// - "chip" - The gadget displays when the event is clicked.
 	Display string `json:"display,omitempty"`
 
 	// Height: The gadget's height in pixels. Optional.
@@ -784,8 +779,7 @@ type EventAttendee struct {
 	// - "needsAction" - The attendee has not responded to the invitation.
 	//
 	// - "declined" - The attendee has declined the invitation.
-	// -
-	// "tentative" - The attendee has tentatively accepted the invitation.
+	// - "tentative" - The attendee has tentatively accepted the invitation.
 	//
 	// - "accepted" - The attendee has accepted the invitation.
 	ResponseStatus string `json:"responseStatus,omitempty"`
@@ -815,10 +809,8 @@ type EventDateTime struct {
 
 type EventReminder struct {
 	// Method: The method used by this reminder. Possible values are:
-	// -
-	// "email" - Reminders are sent via email.
-	// - "sms" - Reminders are sent
-	// via SMS.
+	// - "email" - Reminders are sent via email.
+	// - "sms" - Reminders are sent via SMS.
 	// - "popup" - Reminders are sent via a UI popup.
 	Method string `json:"method,omitempty"`
 
@@ -831,19 +823,17 @@ type Events struct {
 	// AccessRole: The user's access role for this calendar. Read-only.
 	// Possible values are:
 	// - "none" - The user has no access.
-	// -
-	// "freeBusyReader" - The user has read access to free/busy information.
-	//
-	// - "reader" - The user has read access to the calendar. Private
-	// events will appear to users with reader access, but event details
-	// will be hidden.
-	// - "writer" - The user has read and write access to
-	// the calendar. Private events will appear to users with writer access,
-	// and event details will be visible.
-	// - "owner" - The user has
-	// ownership of the calendar. This role has all of the permissions of
-	// the writer role with the additional ability to see and manipulate
-	// ACLs.
+	// - "freeBusyReader" - The user has read access to free/busy
+	// information.
+	// - "reader" - The user has read access to the calendar. Private events
+	// will appear to users with reader access, but event details will be
+	// hidden.
+	// - "writer" - The user has read and write access to the calendar.
+	// Private events will appear to users with writer access, and event
+	// details will be visible.
+	// - "owner" - The user has ownership of the calendar. This role has all
+	// of the permissions of the writer role with the additional ability to
+	// see and manipulate ACLs.
 	AccessRole string `json:"accessRole,omitempty"`
 
 	// DefaultReminders: The default reminders on the calendar for the
@@ -1034,7 +1024,7 @@ func (c *AclDeleteCall) Do() error {
 		"calendarId": c.calendarId,
 		"ruleId":     c.ruleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1113,7 +1103,7 @@ func (c *AclGetCall) Do() (*AclRule, error) {
 		"calendarId": c.calendarId,
 		"ruleId":     c.ruleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1205,7 +1195,7 @@ func (c *AclInsertCall) Do() (*AclRule, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1293,12 +1283,10 @@ func (c *AclListCall) ShowDeleted(showDeleted bool) *AclListCall {
 // request contain only entries that have changed since then. All
 // entries deleted since the previous list request will always be in the
 // result set and it is not allowed to set showDeleted to False.
-// If the
-// syncToken expires, the server will respond with a 410 GONE response
-// code and the client should clear its storage and perform a full
-// synchronization without any syncToken.
-// Learn more about incremental
-// synchronization.
+// If the syncToken expires, the server will respond with a 410 GONE
+// response code and the client should clear its storage and perform a
+// full synchronization without any syncToken.
+// Learn more about incremental synchronization.
 //  The default is to return all entries.
 func (c *AclListCall) SyncToken(syncToken string) *AclListCall {
 	c.opt_["syncToken"] = syncToken
@@ -1338,7 +1326,7 @@ func (c *AclListCall) Do() (*Acl, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1449,7 +1437,7 @@ func (c *AclPatchCall) Do() (*AclRule, error) {
 		"ruleId":     c.ruleId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1546,7 +1534,7 @@ func (c *AclUpdateCall) Do() (*AclRule, error) {
 		"ruleId":     c.ruleId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1643,12 +1631,10 @@ func (c *AclWatchCall) ShowDeleted(showDeleted bool) *AclWatchCall {
 // request contain only entries that have changed since then. All
 // entries deleted since the previous list request will always be in the
 // result set and it is not allowed to set showDeleted to False.
-// If the
-// syncToken expires, the server will respond with a 410 GONE response
-// code and the client should clear its storage and perform a full
-// synchronization without any syncToken.
-// Learn more about incremental
-// synchronization.
+// If the syncToken expires, the server will respond with a 410 GONE
+// response code and the client should clear its storage and perform a
+// full synchronization without any syncToken.
+// Learn more about incremental synchronization.
 //  The default is to return all entries.
 func (c *AclWatchCall) SyncToken(syncToken string) *AclWatchCall {
 	c.opt_["syncToken"] = syncToken
@@ -1694,7 +1680,7 @@ func (c *AclWatchCall) Do() (*Channel, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1797,7 +1783,7 @@ func (c *CalendarListDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1866,7 +1852,7 @@ func (c *CalendarListGetCall) Do() (*CalendarListEntry, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1960,7 +1946,7 @@ func (c *CalendarListInsertCall) Do() (*CalendarListEntry, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2021,8 +2007,15 @@ func (c *CalendarListListCall) MaxResults(maxResults int64) *CalendarListListCal
 }
 
 // MinAccessRole sets the optional parameter "minAccessRole": The
-// minimum access role for the user in the returned entires.  The
+// minimum access role for the user in the returned entries.  The
 // default is no restriction.
+//
+// Possible values:
+//   "freeBusyReader" - The user can read free/busy information.
+//   "owner" - The user can read and modify events and access control
+// lists.
+//   "reader" - The user can read events that are not private.
+//   "writer" - The user can read and modify events.
 func (c *CalendarListListCall) MinAccessRole(minAccessRole string) *CalendarListListCall {
 	c.opt_["minAccessRole"] = minAccessRole
 	return c
@@ -2058,16 +2051,13 @@ func (c *CalendarListListCall) ShowHidden(showHidden bool) *CalendarListListCall
 // the entry won't be returned. All entries deleted and hidden since the
 // previous list request will always be in the result set and it is not
 // allowed to set showDeleted neither showHidden to False.
-// To ensure
-// client state consistency minAccessRole query parameter cannot be
-// specified together with nextSyncToken.
-// If the syncToken expires, the
-// server will respond with a 410 GONE response code and the client
-// should clear its storage and perform a full synchronization without
-// any syncToken.
+// To ensure client state consistency minAccessRole query parameter
+// cannot be specified together with nextSyncToken.
+// If the syncToken expires, the server will respond with a 410 GONE
+// response code and the client should clear its storage and perform a
+// full synchronization without any syncToken.
 // Learn more about incremental synchronization.
-//  The
-// default is to return all entries.
+//  The default is to return all entries.
 func (c *CalendarListListCall) SyncToken(syncToken string) *CalendarListListCall {
 	c.opt_["syncToken"] = syncToken
 	return c
@@ -2110,7 +2100,7 @@ func (c *CalendarListListCall) Do() (*CalendarList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2137,7 +2127,7 @@ func (c *CalendarListListCall) Do() (*CalendarList, error) {
 	//       "type": "integer"
 	//     },
 	//     "minAccessRole": {
-	//       "description": "The minimum access role for the user in the returned entires. Optional. The default is no restriction.",
+	//       "description": "The minimum access role for the user in the returned entries. Optional. The default is no restriction.",
 	//       "enum": [
 	//         "freeBusyReader",
 	//         "owner",
@@ -2245,7 +2235,7 @@ func (c *CalendarListPatchCall) Do() (*CalendarListEntry, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2350,7 +2340,7 @@ func (c *CalendarListUpdateCall) Do() (*CalendarListEntry, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2422,8 +2412,15 @@ func (c *CalendarListWatchCall) MaxResults(maxResults int64) *CalendarListWatchC
 }
 
 // MinAccessRole sets the optional parameter "minAccessRole": The
-// minimum access role for the user in the returned entires.  The
+// minimum access role for the user in the returned entries.  The
 // default is no restriction.
+//
+// Possible values:
+//   "freeBusyReader" - The user can read free/busy information.
+//   "owner" - The user can read and modify events and access control
+// lists.
+//   "reader" - The user can read events that are not private.
+//   "writer" - The user can read and modify events.
 func (c *CalendarListWatchCall) MinAccessRole(minAccessRole string) *CalendarListWatchCall {
 	c.opt_["minAccessRole"] = minAccessRole
 	return c
@@ -2459,16 +2456,13 @@ func (c *CalendarListWatchCall) ShowHidden(showHidden bool) *CalendarListWatchCa
 // the entry won't be returned. All entries deleted and hidden since the
 // previous list request will always be in the result set and it is not
 // allowed to set showDeleted neither showHidden to False.
-// To ensure
-// client state consistency minAccessRole query parameter cannot be
-// specified together with nextSyncToken.
-// If the syncToken expires, the
-// server will respond with a 410 GONE response code and the client
-// should clear its storage and perform a full synchronization without
-// any syncToken.
+// To ensure client state consistency minAccessRole query parameter
+// cannot be specified together with nextSyncToken.
+// If the syncToken expires, the server will respond with a 410 GONE
+// response code and the client should clear its storage and perform a
+// full synchronization without any syncToken.
 // Learn more about incremental synchronization.
-//  The
-// default is to return all entries.
+//  The default is to return all entries.
 func (c *CalendarListWatchCall) SyncToken(syncToken string) *CalendarListWatchCall {
 	c.opt_["syncToken"] = syncToken
 	return c
@@ -2517,7 +2511,7 @@ func (c *CalendarListWatchCall) Do() (*Channel, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2544,7 +2538,7 @@ func (c *CalendarListWatchCall) Do() (*Channel, error) {
 	//       "type": "integer"
 	//     },
 	//     "minAccessRole": {
-	//       "description": "The minimum access role for the user in the returned entires. Optional. The default is no restriction.",
+	//       "description": "The minimum access role for the user in the returned entries. Optional. The default is no restriction.",
 	//       "enum": [
 	//         "freeBusyReader",
 	//         "owner",
@@ -2606,9 +2600,8 @@ type CalendarsClearCall struct {
 	opt_       map[string]interface{}
 }
 
-// Clear: Clears a primary calendar. This operation deletes all data
-// associated with the primary calendar of an account and cannot be
-// undone.
+// Clear: Clears a primary calendar. This operation deletes all events
+// associated with the primary calendar of an account.
 func (r *CalendarsService) Clear(calendarId string) *CalendarsClearCall {
 	c := &CalendarsClearCall{s: r.s, opt_: make(map[string]interface{})}
 	c.calendarId = calendarId
@@ -2636,7 +2629,7 @@ func (c *CalendarsClearCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2647,7 +2640,7 @@ func (c *CalendarsClearCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Clears a primary calendar. This operation deletes all data associated with the primary calendar of an account and cannot be undone.",
+	//   "description": "Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.",
 	//   "httpMethod": "POST",
 	//   "id": "calendar.calendars.clear",
 	//   "parameterOrder": [
@@ -2677,7 +2670,8 @@ type CalendarsDeleteCall struct {
 	opt_       map[string]interface{}
 }
 
-// Delete: Deletes a secondary calendar.
+// Delete: Deletes a secondary calendar. Use calendars.clear for
+// clearing all events on primary calendars.
 func (r *CalendarsService) Delete(calendarId string) *CalendarsDeleteCall {
 	c := &CalendarsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
 	c.calendarId = calendarId
@@ -2705,7 +2699,7 @@ func (c *CalendarsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2716,7 +2710,7 @@ func (c *CalendarsDeleteCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Deletes a secondary calendar.",
+	//   "description": "Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.",
 	//   "httpMethod": "DELETE",
 	//   "id": "calendar.calendars.delete",
 	//   "parameterOrder": [
@@ -2774,7 +2768,7 @@ func (c *CalendarsGetCall) Do() (*Calendar, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2855,7 +2849,7 @@ func (c *CalendarsInsertCall) Do() (*Calendar, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2932,7 +2926,7 @@ func (c *CalendarsPatchCall) Do() (*Calendar, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3019,7 +3013,7 @@ func (c *CalendarsUpdateCall) Do() (*Calendar, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3102,7 +3096,7 @@ func (c *ChannelsStopCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3161,7 +3155,7 @@ func (c *ColorsGetCall) Do() (*Colors, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3241,7 +3235,7 @@ func (c *EventsDeleteCall) Do() error {
 		"calendarId": c.calendarId,
 		"eventId":    c.eventId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3362,7 +3356,7 @@ func (c *EventsGetCall) Do() (*Event, error) {
 		"calendarId": c.calendarId,
 		"eventId":    c.eventId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3472,7 +3466,7 @@ func (c *EventsImportCall) Do() (*Event, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3582,7 +3576,7 @@ func (c *EventsInsertCall) Do() (*Event, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3778,7 +3772,7 @@ func (c *EventsInstancesCall) Do() (*Events, error) {
 		"calendarId": c.calendarId,
 		"eventId":    c.eventId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3932,6 +3926,12 @@ func (c *EventsListCall) MaxResults(maxResults int64) *EventsListCall {
 // OrderBy sets the optional parameter "orderBy": The order of the
 // events returned in the result.  The default is an unspecified, stable
 // order.
+//
+// Possible values:
+//   "startTime" - Order by the start date/time (ascending). This is
+// only available when querying single events (i.e. the parameter
+// singleEvents is True)
+//   "updated" - Order by last modification time (ascending).
 func (c *EventsListCall) OrderBy(orderBy string) *EventsListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -4007,26 +4007,21 @@ func (c *EventsListCall) SingleEvents(singleEvents bool) *EventsListCall {
 // request contain only entries that have changed since then. All events
 // deleted since the previous list request will always be in the result
 // set and it is not allowed to set showDeleted to False.
-// There are
-// several query parameters that cannot be specified together with
-// nextSyncToken to ensure consistency of the client state.
+// There are several query parameters that cannot be specified together
+// with nextSyncToken to ensure consistency of the client state.
 //
 // These are:
-//
 // - iCalUID
 // - orderBy
 // - privateExtendedProperty
 // - q
-// -
-// sharedExtendedProperty
+// - sharedExtendedProperty
 // - timeMin
 // - timeMax
-// - updatedMin If the
-// syncToken expires, the server will respond with a 410 GONE response
-// code and the client should clear its storage and perform a full
-// synchronization without any syncToken.
-// Learn more about incremental
-// synchronization.
+// - updatedMin If the syncToken expires, the server will respond with a
+// 410 GONE response code and the client should clear its storage and
+// perform a full synchronization without any syncToken.
+// Learn more about incremental synchronization.
 //  The default is to return all entries.
 func (c *EventsListCall) SyncToken(syncToken string) *EventsListCall {
 	c.opt_["syncToken"] = syncToken
@@ -4138,7 +4133,7 @@ func (c *EventsListCall) Do() (*Events, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4336,7 +4331,7 @@ func (c *EventsMoveCall) Do() (*Event, error) {
 		"calendarId": c.calendarId,
 		"eventId":    c.eventId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4480,7 +4475,7 @@ func (c *EventsPatchCall) Do() (*Event, error) {
 		"eventId":    c.eventId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4597,7 +4592,7 @@ func (c *EventsQuickAddCall) Do() (*Event, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"calendarId": c.calendarId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4734,7 +4729,7 @@ func (c *EventsUpdateCall) Do() (*Event, error) {
 		"eventId":    c.eventId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4857,6 +4852,12 @@ func (c *EventsWatchCall) MaxResults(maxResults int64) *EventsWatchCall {
 // OrderBy sets the optional parameter "orderBy": The order of the
 // events returned in the result.  The default is an unspecified, stable
 // order.
+//
+// Possible values:
+//   "startTime" - Order by the start date/time (ascending). This is
+// only available when querying single events (i.e. the parameter
+// singleEvents is True)
+//   "updated" - Order by last modification time (ascending).
 func (c *EventsWatchCall) OrderBy(orderBy string) *EventsWatchCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -4932,26 +4933,21 @@ func (c *EventsWatchCall) SingleEvents(singleEvents bool) *EventsWatchCall {
 // request contain only entries that have changed since then. All events
 // deleted since the previous list request will always be in the result
 // set and it is not allowed to set showDeleted to False.
-// There are
-// several query parameters that cannot be specified together with
-// nextSyncToken to ensure consistency of the client state.
+// There are several query parameters that cannot be specified together
+// with nextSyncToken to ensure consistency of the client state.
 //
 // These are:
-//
 // - iCalUID
 // - orderBy
 // - privateExtendedProperty
 // - q
-// -
-// sharedExtendedProperty
+// - sharedExtendedProperty
 // - timeMin
 // - timeMax
-// - updatedMin If the
-// syncToken expires, the server will respond with a 410 GONE response
-// code and the client should clear its storage and perform a full
-// synchronization without any syncToken.
-// Learn more about incremental
-// synchronization.
+// - updatedMin If the syncToken expires, the server will respond with a
+// 410 GONE response code and the client should clear its storage and
+// perform a full synchronization without any syncToken.
+// Learn more about incremental synchronization.
 //  The default is to return all entries.
 func (c *EventsWatchCall) SyncToken(syncToken string) *EventsWatchCall {
 	c.opt_["syncToken"] = syncToken
@@ -5069,7 +5065,7 @@ func (c *EventsWatchCall) Do() (*Channel, error) {
 		"calendarId": c.calendarId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5257,7 +5253,7 @@ func (c *FreebusyQueryCall) Do() (*FreeBusyResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5326,7 +5322,7 @@ func (c *SettingsGetCall) Do() (*Setting, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"setting": c.setting,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5399,12 +5395,10 @@ func (c *SettingsListCall) PageToken(pageToken string) *SettingsListCall {
 // from the nextSyncToken field returned on the last page of results
 // from the previous list request. It makes the result of this list
 // request contain only entries that have changed since then.
-// If the
-// syncToken expires, the server will respond with a 410 GONE response
-// code and the client should clear its storage and perform a full
-// synchronization without any syncToken.
-// Learn more about incremental
-// synchronization.
+// If the syncToken expires, the server will respond with a 410 GONE
+// response code and the client should clear its storage and perform a
+// full synchronization without any syncToken.
+// Learn more about incremental synchronization.
 //  The default is to return all entries.
 func (c *SettingsListCall) SyncToken(syncToken string) *SettingsListCall {
 	c.opt_["syncToken"] = syncToken
@@ -5439,7 +5433,7 @@ func (c *SettingsListCall) Do() (*Settings, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5523,12 +5517,10 @@ func (c *SettingsWatchCall) PageToken(pageToken string) *SettingsWatchCall {
 // from the nextSyncToken field returned on the last page of results
 // from the previous list request. It makes the result of this list
 // request contain only entries that have changed since then.
-// If the
-// syncToken expires, the server will respond with a 410 GONE response
-// code and the client should clear its storage and perform a full
-// synchronization without any syncToken.
-// Learn more about incremental
-// synchronization.
+// If the syncToken expires, the server will respond with a 410 GONE
+// response code and the client should clear its storage and perform a
+// full synchronization without any syncToken.
+// Learn more about incremental synchronization.
 //  The default is to return all entries.
 func (c *SettingsWatchCall) SyncToken(syncToken string) *SettingsWatchCall {
 	c.opt_["syncToken"] = syncToken
@@ -5569,7 +5561,7 @@ func (c *SettingsWatchCall) Do() (*Channel, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

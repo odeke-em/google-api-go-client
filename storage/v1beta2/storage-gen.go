@@ -44,13 +44,13 @@ const basePath = "https://www.googleapis.com/storage/v1beta2/"
 // OAuth2 scopes used by this API.
 const (
 	// Manage your data and permissions in Google Cloud Storage
-	DevstorageFull_controlScope = "https://www.googleapis.com/auth/devstorage.full_control"
+	DevstorageFullControlScope = "https://www.googleapis.com/auth/devstorage.full_control"
 
 	// View your data in Google Cloud Storage
-	DevstorageRead_onlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
+	DevstorageReadOnlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
 
 	// Manage your data in Google Cloud Storage
-	DevstorageRead_writeScope = "https://www.googleapis.com/auth/devstorage.read_write"
+	DevstorageReadWriteScope = "https://www.googleapis.com/auth/devstorage.read_write"
 )
 
 func New(client *http.Client) (*Service, error) {
@@ -68,8 +68,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	BucketAccessControls *BucketAccessControlsService
 
@@ -82,6 +83,13 @@ type Service struct {
 	ObjectAccessControls *ObjectAccessControlsService
 
 	Objects *ObjectsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewBucketAccessControlsService(s *Service) *BucketAccessControlsService {
@@ -315,16 +323,13 @@ type BucketAccessControl struct {
 	// - user-email
 	// - group-groupId
 	// - group-email
-	//
 	// - domain-domain
 	// - allUsers
 	// - allAuthenticatedUsers Examples:
-	// -
-	// The user liz@example.com would be user-liz@example.com.
-	// - The group
-	// example@googlegroups.com would be group-example@googlegroups.com.
-	// -
-	// To refer to all members of the Google Apps for Business domain
+	// - The user liz@example.com would be user-liz@example.com.
+	// - The group example@googlegroups.com would be
+	// group-example@googlegroups.com.
+	// - To refer to all members of the Google Apps for Business domain
 	// example.com, the entity would be domain-example.com.
 	Entity string `json:"entity,omitempty"`
 
@@ -552,16 +557,13 @@ type ObjectAccessControl struct {
 	// - user-email
 	// - group-groupId
 	// - group-email
-	//
 	// - domain-domain
 	// - allUsers
 	// - allAuthenticatedUsers Examples:
-	// -
-	// The user liz@example.com would be user-liz@example.com.
-	// - The group
-	// example@googlegroups.com would be group-example@googlegroups.com.
-	// -
-	// To refer to all members of the Google Apps for Business domain
+	// - The user liz@example.com would be user-liz@example.com.
+	// - The group example@googlegroups.com would be
+	// group-example@googlegroups.com.
+	// - To refer to all members of the Google Apps for Business domain
 	// example.com, the entity would be domain-example.com.
 	Entity string `json:"entity,omitempty"`
 
@@ -658,7 +660,7 @@ func (c *BucketAccessControlsDeleteCall) Do() error {
 		"bucket": c.bucket,
 		"entity": c.entity,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -738,7 +740,7 @@ func (c *BucketAccessControlsGetCall) Do() (*BucketAccessControl, error) {
 		"bucket": c.bucket,
 		"entity": c.entity,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -829,7 +831,7 @@ func (c *BucketAccessControlsInsertCall) Do() (*BucketAccessControl, error) {
 		"bucket": c.bucket,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -908,7 +910,7 @@ func (c *BucketAccessControlsListCall) Do() (*BucketAccessControls, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"bucket": c.bucket,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -996,7 +998,7 @@ func (c *BucketAccessControlsPatchCall) Do() (*BucketAccessControl, error) {
 		"entity": c.entity,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1093,7 +1095,7 @@ func (c *BucketAccessControlsUpdateCall) Do() (*BucketAccessControl, error) {
 		"entity": c.entity,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1203,7 +1205,7 @@ func (c *BucketsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"bucket": c.bucket,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1284,6 +1286,10 @@ func (c *BucketsGetCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch uint6
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsGetCall) Projection(projection string) *BucketsGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1319,7 +1325,7 @@ func (c *BucketsGetCall) Do() (*Bucket, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"bucket": c.bucket,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1407,6 +1413,10 @@ func (r *BucketsService) Insert(projectid string, bucket *Bucket) *BucketsInsert
 // properties to return. Defaults to noAcl, unless the bucket resource
 // specifies acl or defaultObjectAcl properties, when it defaults to
 // full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsInsertCall) Projection(projection string) *BucketsInsertCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1441,7 +1451,7 @@ func (c *BucketsInsertCall) Do() (*Bucket, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1530,6 +1540,10 @@ func (c *BucketsListCall) PageToken(pageToken string) *BucketsListCall {
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsListCall) Projection(projection string) *BucketsListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1564,7 +1578,7 @@ func (c *BucketsListCall) Do() (*Buckets, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1668,6 +1682,10 @@ func (c *BucketsPatchCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch uin
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsPatchCall) Projection(projection string) *BucketsPatchCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1709,7 +1727,7 @@ func (c *BucketsPatchCall) Do() (*Bucket, error) {
 		"bucket": c.bucket,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1815,6 +1833,10 @@ func (c *BucketsUpdateCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch ui
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit acl and defaultObjectAcl properties.
 func (c *BucketsUpdateCall) Projection(projection string) *BucketsUpdateCall {
 	c.opt_["projection"] = projection
 	return c
@@ -1856,7 +1878,7 @@ func (c *BucketsUpdateCall) Do() (*Bucket, error) {
 		"bucket": c.bucket,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1965,7 +1987,7 @@ func (c *ChannelsStopCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2033,7 +2055,7 @@ func (c *DefaultObjectAccessControlsDeleteCall) Do() error {
 		"bucket": c.bucket,
 		"entity": c.entity,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2113,7 +2135,7 @@ func (c *DefaultObjectAccessControlsGetCall) Do() (*ObjectAccessControl, error) 
 		"bucket": c.bucket,
 		"entity": c.entity,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2205,7 +2227,7 @@ func (c *DefaultObjectAccessControlsInsertCall) Do() (*ObjectAccessControl, erro
 		"bucket": c.bucket,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2307,7 +2329,7 @@ func (c *DefaultObjectAccessControlsListCall) Do() (*ObjectAccessControls, error
 	googleapi.Expand(req.URL, map[string]string{
 		"bucket": c.bucket,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2407,7 +2429,7 @@ func (c *DefaultObjectAccessControlsPatchCall) Do() (*ObjectAccessControl, error
 		"entity": c.entity,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2504,7 +2526,7 @@ func (c *DefaultObjectAccessControlsUpdateCall) Do() (*ObjectAccessControl, erro
 		"entity": c.entity,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2608,7 +2630,7 @@ func (c *ObjectAccessControlsDeleteCall) Do() error {
 		"object": c.object,
 		"entity": c.entity,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2715,7 +2737,7 @@ func (c *ObjectAccessControlsGetCall) Do() (*ObjectAccessControl, error) {
 		"object": c.object,
 		"entity": c.entity,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2833,7 +2855,7 @@ func (c *ObjectAccessControlsInsertCall) Do() (*ObjectAccessControl, error) {
 		"object": c.object,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2939,7 +2961,7 @@ func (c *ObjectAccessControlsListCall) Do() (*ObjectAccessControls, error) {
 		"bucket": c.bucket,
 		"object": c.object,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3054,7 +3076,7 @@ func (c *ObjectAccessControlsPatchCall) Do() (*ObjectAccessControl, error) {
 		"entity": c.entity,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3178,7 +3200,7 @@ func (c *ObjectAccessControlsUpdateCall) Do() (*ObjectAccessControl, error) {
 		"entity": c.entity,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3311,7 +3333,7 @@ func (c *ObjectsComposeCall) Do() (*Object, error) {
 		"destinationObject": c.destinationObject,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3472,6 +3494,10 @@ func (c *ObjectsCopyCall) IfSourceMetagenerationNotMatch(ifSourceMetagenerationN
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl, unless the object resource
 // specifies the acl property, when it defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsCopyCall) Projection(projection string) *ObjectsCopyCall {
 	c.opt_["projection"] = projection
 	return c
@@ -3545,7 +3571,7 @@ func (c *ObjectsCopyCall) Do() (*Object, error) {
 		"destinationObject": c.destinationObject,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3775,7 +3801,7 @@ func (c *ObjectsDeleteCall) Do() error {
 		"bucket": c.bucket,
 		"object": c.object,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3906,6 +3932,10 @@ func (c *ObjectsGetCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch uint6
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsGetCall) Projection(projection string) *ObjectsGetCall {
 	c.opt_["projection"] = projection
 	return c
@@ -3951,7 +3981,7 @@ func (c *ObjectsGetCall) Do() (*Object, error) {
 		"bucket": c.bucket,
 		"object": c.object,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4110,6 +4140,10 @@ func (c *ObjectsInsertCall) Name(name string) *ObjectsInsertCall {
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl, unless the object resource
 // specifies the acl property, when it defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsInsertCall) Projection(projection string) *ObjectsInsertCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4211,13 +4245,10 @@ func (c *ObjectsInsertCall) Do() (*Object, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4230,6 +4261,7 @@ func (c *ObjectsInsertCall) Do() (*Object, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -4387,6 +4419,10 @@ func (c *ObjectsListCall) Prefix(prefix string) *ObjectsListCall {
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsListCall) Projection(projection string) *ObjectsListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4438,7 +4474,7 @@ func (c *ObjectsListCall) Do() (*Objects, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"bucket": c.bucket,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4584,6 +4620,10 @@ func (c *ObjectsPatchCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch uin
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsPatchCall) Projection(projection string) *ObjectsPatchCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4635,7 +4675,7 @@ func (c *ObjectsPatchCall) Do() (*Object, error) {
 		"object": c.object,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4791,6 +4831,10 @@ func (c *ObjectsUpdateCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch ui
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to full.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsUpdateCall) Projection(projection string) *ObjectsUpdateCall {
 	c.opt_["projection"] = projection
 	return c
@@ -4842,7 +4886,7 @@ func (c *ObjectsUpdateCall) Do() (*Object, error) {
 		"object": c.object,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4990,6 +5034,10 @@ func (c *ObjectsWatchAllCall) Prefix(prefix string) *ObjectsWatchAllCall {
 
 // Projection sets the optional parameter "projection": Set of
 // properties to return. Defaults to noAcl.
+//
+// Possible values:
+//   "full" - Include all properties.
+//   "noAcl" - Omit the acl property.
 func (c *ObjectsWatchAllCall) Projection(projection string) *ObjectsWatchAllCall {
 	c.opt_["projection"] = projection
 	return c
@@ -5047,7 +5095,7 @@ func (c *ObjectsWatchAllCall) Do() (*Channel, error) {
 		"bucket": c.bucket,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

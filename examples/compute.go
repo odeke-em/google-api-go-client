@@ -12,7 +12,7 @@ import (
 
 func init() {
 	scopes := strings.Join([]string{
-		compute.DevstorageFull_controlScope,
+		compute.DevstorageFullControlScope,
 		compute.ComputeScope,
 	}, " ")
 	registerDemo("compute", scopes, computeMain)
@@ -24,7 +24,11 @@ func computeMain(client *http.Client, argv []string) {
 		return
 	}
 
-	service, _ := compute.New(client)
+	service, err := compute.New(client)
+	if err != nil {
+		log.Fatalf("Unable to create Compute service: %v", err)
+	}
+
 	projectId := argv[0]
 	instanceName := argv[1]
 
@@ -66,7 +70,7 @@ func computeMain(client *http.Client, argv []string) {
 			{
 				Email: "default",
 				Scopes: []string{
-					compute.DevstorageFull_controlScope,
+					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
 				},
 			},

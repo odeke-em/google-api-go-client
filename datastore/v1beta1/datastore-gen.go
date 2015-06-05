@@ -63,10 +63,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Datasets *DatasetsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewDatasetsService(s *Service) *DatasetsService {
@@ -154,10 +162,9 @@ type CompositeFilter struct {
 type Entity struct {
 	// Key: The entity's key.
 	//
-	// An entity must have a key, unless otherwise
-	// documented (for example, an entity in Value.entityValue may have no
-	// key). An entity's kind is its key's path's last element's kind, or
-	// null if it has no key.
+	// An entity must have a key, unless otherwise documented (for example,
+	// an entity in Value.entityValue may have no key). An entity's kind is
+	// its key's path's last element's kind, or null if it has no key.
 	Key *Key `json:"key,omitempty"`
 
 	// Properties: The entity's properties.
@@ -489,7 +496,8 @@ type Value struct {
 	// BlobKeyValue: A blob key value.
 	BlobKeyValue string `json:"blobKeyValue,omitempty"`
 
-	// BlobValue: A blob value. May be a maximum of 1,000,000 bytes.
+	// BlobValue: A blob value. May be a maximum of 1,000,000 bytes. When
+	// indexed is true, may have at most 500 bytes.
 	BlobValue string `json:"blobValue,omitempty"`
 
 	// BooleanValue: A boolean value.
@@ -507,13 +515,12 @@ type Value struct {
 
 	// Indexed: If the value should be indexed.
 	//
-	// The indexed property may be
-	// set for a null value. When indexed is true, stringValue is limited to
-	// 500 characters and the blob value is limited to 500 bytes. Input
-	// values by default have indexed set to true; however, you can
-	// explicitly set indexed to true if you want. (An output value never
-	// has indexed explicitly set to true.) If a value is itself an entity,
-	// it cannot have indexed set to true.
+	// The indexed property may be set for a null value. When indexed is
+	// true, stringValue is limited to 500 characters and the blob value is
+	// limited to 500 bytes. Input values by default have indexed set to
+	// true; however, you can explicitly set indexed to true if you want.
+	// (An output value never has indexed explicitly set to true.) If a
+	// value is itself an entity, it cannot have indexed set to true.
 	Indexed bool `json:"indexed,omitempty"`
 
 	// IntegerValue: An integer value.
@@ -525,7 +532,8 @@ type Value struct {
 	// Meaning: The meaning field is reserved and should not be used.
 	Meaning int64 `json:"meaning,omitempty"`
 
-	// StringValue: A UTF-8 encoded string value.
+	// StringValue: A UTF-8 encoded string value. When indexed is true, may
+	// have at most 500 characters.
 	StringValue string `json:"stringValue,omitempty"`
 }
 
@@ -574,7 +582,7 @@ func (c *DatasetsAllocateIdsCall) Do() (*AllocateIdsResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -663,7 +671,7 @@ func (c *DatasetsBeginTransactionCall) Do() (*BeginTransactionResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -753,7 +761,7 @@ func (c *DatasetsBlindWriteCall) Do() (*BlindWriteResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -843,7 +851,7 @@ func (c *DatasetsCommitCall) Do() (*CommitResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -932,7 +940,7 @@ func (c *DatasetsLookupCall) Do() (*LookupResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1021,7 +1029,7 @@ func (c *DatasetsRollbackCall) Do() (*RollbackResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1110,7 +1118,7 @@ func (c *DatasetsRunQueryCall) Do() (*RunQueryResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

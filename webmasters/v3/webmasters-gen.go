@@ -63,8 +63,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Sitemaps *SitemapsService
 
@@ -73,6 +74,13 @@ type Service struct {
 	Urlcrawlerrorscounts *UrlcrawlerrorscountsService
 
 	Urlcrawlerrorssamples *UrlcrawlerrorssamplesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewSitemapsService(s *Service) *SitemapsService {
@@ -148,13 +156,13 @@ type UrlCrawlErrorsCountsQueryResponse struct {
 }
 
 type UrlCrawlErrorsSample struct {
-	// First_detected: The time the error was first detected, in RFC 3339
+	// FirstDetected: The time the error was first detected, in RFC 3339
 	// format.
-	First_detected string `json:"first_detected,omitempty"`
+	FirstDetected string `json:"first_detected,omitempty"`
 
-	// Last_crawled: The time when the URL was last crawled, in RFC 3339
+	// LastCrawled: The time when the URL was last crawled, in RFC 3339
 	// format.
-	Last_crawled string `json:"last_crawled,omitempty"`
+	LastCrawled string `json:"last_crawled,omitempty"`
 
 	// PageUrl: The URL of an error, relative to the site.
 	PageUrl string `json:"pageUrl,omitempty"`
@@ -274,7 +282,7 @@ func (c *SitemapsDeleteCall) Do() error {
 		"siteUrl":  c.siteUrl,
 		"feedpath": c.feedpath,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -353,7 +361,7 @@ func (c *SitemapsGetCall) Do() (*WmxSitemap, error) {
 		"siteUrl":  c.siteUrl,
 		"feedpath": c.feedpath,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -447,7 +455,7 @@ func (c *SitemapsListCall) Do() (*SitemapsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"siteUrl": c.siteUrl,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -532,7 +540,7 @@ func (c *SitemapsSubmitCall) Do() error {
 		"siteUrl":  c.siteUrl,
 		"feedpath": c.feedpath,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -608,7 +616,7 @@ func (c *SitesAddCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"siteUrl": c.siteUrl,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -678,7 +686,7 @@ func (c *SitesDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"siteUrl": c.siteUrl,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -747,7 +755,7 @@ func (c *SitesGetCall) Do() (*WmxSite, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"siteUrl": c.siteUrl,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -820,7 +828,7 @@ func (c *SitesListCall) Do() (*SitesListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -869,6 +877,16 @@ func (r *UrlcrawlerrorscountsService) Query(siteUrl string) *Urlcrawlerrorscount
 // Category sets the optional parameter "category": The crawl error
 // category, for example 'serverError'. If not specified, we return
 // results for all categories.
+//
+// Possible values:
+//   "authPermissions"
+//   "manyToOneRedirect"
+//   "notFollowed"
+//   "notFound"
+//   "other"
+//   "roboted"
+//   "serverError"
+//   "soft404"
 func (c *UrlcrawlerrorscountsQueryCall) Category(category string) *UrlcrawlerrorscountsQueryCall {
 	c.opt_["category"] = category
 	return c
@@ -884,6 +902,11 @@ func (c *UrlcrawlerrorscountsQueryCall) LatestCountsOnly(latestCountsOnly bool) 
 // Platform sets the optional parameter "platform": The user agent type
 // (platform) that made the request, for example 'web'. If not
 // specified, we return results for all platforms.
+//
+// Possible values:
+//   "mobile"
+//   "smartphoneOnly"
+//   "web"
 func (c *UrlcrawlerrorscountsQueryCall) Platform(platform string) *UrlcrawlerrorscountsQueryCall {
 	c.opt_["platform"] = platform
 	return c
@@ -919,7 +942,7 @@ func (c *UrlcrawlerrorscountsQueryCall) Do() (*UrlCrawlErrorsCountsQueryResponse
 	googleapi.Expand(req.URL, map[string]string{
 		"siteUrl": c.siteUrl,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1051,7 +1074,7 @@ func (c *UrlcrawlerrorssamplesGetCall) Do() (*UrlCrawlErrorsSample, error) {
 		"siteUrl": c.siteUrl,
 		"url":     c.url,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1186,7 +1209,7 @@ func (c *UrlcrawlerrorssamplesListCall) Do() (*UrlCrawlErrorsSamplesListResponse
 	googleapi.Expand(req.URL, map[string]string{
 		"siteUrl": c.siteUrl,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1317,7 +1340,7 @@ func (c *UrlcrawlerrorssamplesMarkAsFixedCall) Do() error {
 		"siteUrl": c.siteUrl,
 		"url":     c.url,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err

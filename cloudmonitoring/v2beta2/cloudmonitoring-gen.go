@@ -1,6 +1,6 @@
 // Package cloudmonitoring provides access to the Cloud Monitoring API.
 //
-// See https://developers.google.com/cloud/eap/cloud-monitoring/v2beta2/
+// See https://cloud.google.com/monitoring/v2beta2/
 //
 // Usage example:
 //
@@ -60,14 +60,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	MetricDescriptors *MetricDescriptorsService
 
 	Timeseries *TimeseriesService
 
 	TimeseriesDescriptors *TimeseriesDescriptorsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewMetricDescriptorsService(s *Service) *MetricDescriptorsService {
@@ -209,11 +217,12 @@ type MetricDescriptorLabelDescriptor struct {
 }
 
 type MetricDescriptorTypeDescriptor struct {
-	// MetricType: The method of collecting data for the metric.
+	// MetricType: The method of collecting data for the metric. See Metric
+	// types.
 	MetricType string `json:"metricType,omitempty"`
 
-	// ValueType: The type of data that is written to a timeseries point for
-	// this metric.
+	// ValueType: The data type of of individual points in the metric's time
+	// series. See Metric value types.
 	ValueType string `json:"valueType,omitempty"`
 }
 
@@ -396,7 +405,7 @@ func (c *MetricDescriptorsCreateCall) Do() (*MetricDescriptor, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -478,7 +487,7 @@ func (c *MetricDescriptorsDeleteCall) Do() (*DeleteMetricDescriptorResponse, err
 		"project": c.project,
 		"metric":  c.metric,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -604,7 +613,7 @@ func (c *MetricDescriptorsListCall) Do() (*ListMetricDescriptorsResponse, error)
 	googleapi.Expand(req.URL, map[string]string{
 		"project": c.project,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -693,7 +702,14 @@ func (r *TimeseriesService) List(project string, metric string, youngest string,
 
 // Aggregator sets the optional parameter "aggregator": The aggregation
 // function that will reduce the data points in each window to a single
-// point. This parameter is only valid for non-cumulative metric types.
+// point. This parameter is only valid for non-cumulative metrics with a
+// value type of INT64 or DOUBLE.
+//
+// Possible values:
+//   "max"
+//   "mean"
+//   "min"
+//   "sum"
 func (c *TimeseriesListCall) Aggregator(aggregator string) *TimeseriesListCall {
 	c.opt_["aggregator"] = aggregator
 	return c
@@ -708,14 +724,12 @@ func (c *TimeseriesListCall) Count(count int64) *TimeseriesListCall {
 
 // Labels sets the optional parameter "labels": A collection of labels
 // for the matching time series, which are represented as:
-// -
-// key==value: key equals the value
-// - key=~value: key regex matches the
-// value
+// - key==value: key equals the value
+// - key=~value: key regex matches the value
 // - key!=value: key does not equal the value
-// - key!~value: key
-// regex does not match the value  For example, to list all of the time
-// series descriptors for the region us-central1, you could
+// - key!~value: key regex does not match the value  For example, to
+// list all of the time series descriptors for the region us-central1,
+// you could
 // specify:
 // label=cloud.googleapis.com%2Flocation=~us-central1.*
 func (c *TimeseriesListCall) Labels(labels string) *TimeseriesListCall {
@@ -746,16 +760,14 @@ func (c *TimeseriesListCall) PageToken(pageToken string) *TimeseriesListCall {
 // interval: (youngest - timespan, youngest]. The timespan and oldest
 // parameters should not be used together. Units:
 // - s: second
-// - m:
-// minute
+// - m: minute
 // - h: hour
 // - d: day
-// - w: week  Examples: 2s, 3m, 4w. Only
-// one unit is allowed, for example: 2w3d is not allowed; you should use
-// 17d instead.
+// - w: week  Examples: 2s, 3m, 4w. Only one unit is allowed, for
+// example: 2w3d is not allowed; you should use 17d instead.
 //
-// If neither oldest nor timespan is specified, the
-// default time interval will be (youngest - 4 hours, youngest].
+// If neither oldest nor timespan is specified, the default time
+// interval will be (youngest - 4 hours, youngest].
 func (c *TimeseriesListCall) Timespan(timespan string) *TimeseriesListCall {
 	c.opt_["timespan"] = timespan
 	return c
@@ -768,9 +780,8 @@ func (c *TimeseriesListCall) Timespan(timespan string) *TimeseriesListCall {
 // - m: minute
 // - h: hour
 // - d: day
-// - w: week
-// Examples: 3m, 4w. Only one unit is allowed, for example: 2w3d is not
-// allowed; you should use 17d instead.
+// - w: week  Examples: 3m, 4w. Only one unit is allowed, for example:
+// 2w3d is not allowed; you should use 17d instead.
 func (c *TimeseriesListCall) Window(window string) *TimeseriesListCall {
 	c.opt_["window"] = window
 	return c
@@ -820,7 +831,7 @@ func (c *TimeseriesListCall) Do() (*ListTimeseriesResponse, error) {
 		"project": c.project,
 		"metric":  c.metric,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -845,7 +856,7 @@ func (c *TimeseriesListCall) Do() (*ListTimeseriesResponse, error) {
 	//   ],
 	//   "parameters": {
 	//     "aggregator": {
-	//       "description": "The aggregation function that will reduce the data points in each window to a single point. This parameter is only valid for non-cumulative metric types.",
+	//       "description": "The aggregation function that will reduce the data points in each window to a single point. This parameter is only valid for non-cumulative metrics with a value type of INT64 or DOUBLE.",
 	//       "enum": [
 	//         "max",
 	//         "mean",
@@ -983,7 +994,7 @@ func (c *TimeseriesWriteCall) Do() (*WriteTimeseriesResponse, error) {
 		"project": c.project,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1053,7 +1064,14 @@ func (r *TimeseriesDescriptorsService) List(project string, metric string, young
 
 // Aggregator sets the optional parameter "aggregator": The aggregation
 // function that will reduce the data points in each window to a single
-// point. This parameter is only valid for non-cumulative metric types.
+// point. This parameter is only valid for non-cumulative metrics with a
+// value type of INT64 or DOUBLE.
+//
+// Possible values:
+//   "max"
+//   "mean"
+//   "min"
+//   "sum"
 func (c *TimeseriesDescriptorsListCall) Aggregator(aggregator string) *TimeseriesDescriptorsListCall {
 	c.opt_["aggregator"] = aggregator
 	return c
@@ -1069,14 +1087,12 @@ func (c *TimeseriesDescriptorsListCall) Count(count int64) *TimeseriesDescriptor
 
 // Labels sets the optional parameter "labels": A collection of labels
 // for the matching time series, which are represented as:
-// -
-// key==value: key equals the value
-// - key=~value: key regex matches the
-// value
+// - key==value: key equals the value
+// - key=~value: key regex matches the value
 // - key!=value: key does not equal the value
-// - key!~value: key
-// regex does not match the value  For example, to list all of the time
-// series descriptors for the region us-central1, you could
+// - key!~value: key regex does not match the value  For example, to
+// list all of the time series descriptors for the region us-central1,
+// you could
 // specify:
 // label=cloud.googleapis.com%2Flocation=~us-central1.*
 func (c *TimeseriesDescriptorsListCall) Labels(labels string) *TimeseriesDescriptorsListCall {
@@ -1107,16 +1123,14 @@ func (c *TimeseriesDescriptorsListCall) PageToken(pageToken string) *TimeseriesD
 // interval: (youngest - timespan, youngest]. The timespan and oldest
 // parameters should not be used together. Units:
 // - s: second
-// - m:
-// minute
+// - m: minute
 // - h: hour
 // - d: day
-// - w: week  Examples: 2s, 3m, 4w. Only
-// one unit is allowed, for example: 2w3d is not allowed; you should use
-// 17d instead.
+// - w: week  Examples: 2s, 3m, 4w. Only one unit is allowed, for
+// example: 2w3d is not allowed; you should use 17d instead.
 //
-// If neither oldest nor timespan is specified, the
-// default time interval will be (youngest - 4 hours, youngest].
+// If neither oldest nor timespan is specified, the default time
+// interval will be (youngest - 4 hours, youngest].
 func (c *TimeseriesDescriptorsListCall) Timespan(timespan string) *TimeseriesDescriptorsListCall {
 	c.opt_["timespan"] = timespan
 	return c
@@ -1129,9 +1143,8 @@ func (c *TimeseriesDescriptorsListCall) Timespan(timespan string) *TimeseriesDes
 // - m: minute
 // - h: hour
 // - d: day
-// - w: week
-// Examples: 3m, 4w. Only one unit is allowed, for example: 2w3d is not
-// allowed; you should use 17d instead.
+// - w: week  Examples: 3m, 4w. Only one unit is allowed, for example:
+// 2w3d is not allowed; you should use 17d instead.
 func (c *TimeseriesDescriptorsListCall) Window(window string) *TimeseriesDescriptorsListCall {
 	c.opt_["window"] = window
 	return c
@@ -1181,7 +1194,7 @@ func (c *TimeseriesDescriptorsListCall) Do() (*ListTimeseriesDescriptorsResponse
 		"project": c.project,
 		"metric":  c.metric,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1206,7 +1219,7 @@ func (c *TimeseriesDescriptorsListCall) Do() (*ListTimeseriesDescriptorsResponse
 	//   ],
 	//   "parameters": {
 	//     "aggregator": {
-	//       "description": "The aggregation function that will reduce the data points in each window to a single point. This parameter is only valid for non-cumulative metric types.",
+	//       "description": "The aggregation function that will reduce the data points in each window to a single point. This parameter is only valid for non-cumulative metrics with a value type of INT64 or DOUBLE.",
 	//       "enum": [
 	//         "max",
 	//         "mean",

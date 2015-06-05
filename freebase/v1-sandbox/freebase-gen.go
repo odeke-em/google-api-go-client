@@ -50,8 +50,16 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 type ReconcileCandidate struct {
@@ -214,7 +222,7 @@ func (c *ReconcileCall) Do() (*ReconcileGet, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -296,10 +304,10 @@ func (s *Service) Search() *SearchCall {
 	return c
 }
 
-// As_of_time sets the optional parameter "as_of_time": A mql as_of_time
+// AsOfTime sets the optional parameter "as_of_time": A mql as_of_time
 // value to use with mql_output queries.
-func (c *SearchCall) As_of_time(as_of_time string) *SearchCall {
-	c.opt_["as_of_time"] = as_of_time
+func (c *SearchCall) AsOfTime(asOfTime string) *SearchCall {
+	c.opt_["as_of_time"] = asOfTime
 	return c
 }
 
@@ -326,6 +334,13 @@ func (c *SearchCall) Domain(domain string) *SearchCall {
 
 // Encode sets the optional parameter "encode": The encoding of the
 // response. You can use this parameter to enable html encoding.
+//
+// Possible values:
+//   "html" - Encode certain characters in the response (such as tags
+// and ambersands) using html encoding.
+//   "off" (default) - No encoding of the response. You should not print
+// the results directly on an web page without html-escaping the content
+// first.
 func (c *SearchCall) Encode(encode string) *SearchCall {
 	c.opt_["encode"] = encode
 	return c
@@ -347,6 +362,15 @@ func (c *SearchCall) Filter(filter string) *SearchCall {
 
 // Format sets the optional parameter "format": Structural format of the
 // json response.
+//
+// Possible values:
+//   "ac" - Compact format useful for autocomplete/suggest UIs.
+//   "classic" - [DEPRECATED] Same format as was returned by
+// api.freebase.com.
+//   "entity" (default) - Basic information about the entities.
+//   "guids" - [DEPRECATED] Ordered list of a freebase guids.
+//   "ids" - Ordered list of freebase ids.
+//   "mids" - Ordered list of freebase mids.
 func (c *SearchCall) Format(format string) *SearchCall {
 	c.opt_["format"] = format
 	return c
@@ -354,6 +378,13 @@ func (c *SearchCall) Format(format string) *SearchCall {
 
 // Help sets the optional parameter "help": The keyword to request help
 // on.
+//
+// Possible values:
+//   "langs" - The language codes served by the service.
+//   "mappings" - The property/path mappings supported by the filter and
+// output request parameters.
+//   "predicates" - The predicates and path-terminating properties
+// supported by the filter and output request parameters.
 func (c *SearchCall) Help(help string) *SearchCall {
 	c.opt_["help"] = help
 	return c
@@ -387,10 +418,10 @@ func (c *SearchCall) Mid(mid string) *SearchCall {
 	return c
 }
 
-// Mql_output sets the optional parameter "mql_output": The MQL query to
+// MqlOutput sets the optional parameter "mql_output": The MQL query to
 // run againist the results to extract more data.
-func (c *SearchCall) Mql_output(mql_output string) *SearchCall {
-	c.opt_["mql_output"] = mql_output
+func (c *SearchCall) MqlOutput(mqlOutput string) *SearchCall {
+	c.opt_["mql_output"] = mqlOutput
 	return c
 }
 
@@ -416,6 +447,11 @@ func (c *SearchCall) Query(query string) *SearchCall {
 
 // Scoring sets the optional parameter "scoring": Relevance scoring
 // algorithm to use.
+//
+// Possible values:
+//   "entity" (default) - Use freebase and popularity entity ranking.
+//   "freebase" - Use freebase entity ranking.
+//   "schema" - Use schema ranking for properties and types.
 func (c *SearchCall) Scoring(scoring string) *SearchCall {
 	c.opt_["scoring"] = scoring
 	return c
@@ -423,6 +459,13 @@ func (c *SearchCall) Scoring(scoring string) *SearchCall {
 
 // Spell sets the optional parameter "spell": Request 'did you mean'
 // suggestions
+//
+// Possible values:
+//   "always" - Request spelling suggestions for any query at least
+// three characters long.
+//   "no_results" - Request spelling suggestions if no results were
+// found.
+//   "no_spelling" (default) - Don't request spelling suggestions.
 func (c *SearchCall) Spell(spell string) *SearchCall {
 	c.opt_["spell"] = spell
 	return c
@@ -543,7 +586,7 @@ func (c *SearchCall) Do() error {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err

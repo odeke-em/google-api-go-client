@@ -53,14 +53,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Divisions *DivisionsService
 
 	Elections *ElectionsService
 
 	Representatives *RepresentativesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewDivisionsService(s *Service) *DivisionsService {
@@ -100,10 +108,10 @@ type AdministrationRegion struct {
 	// that can be requested from the Request more link on the Quotas page.
 	Id string `json:"id,omitempty"`
 
-	// Local_jurisdiction: The city or county that provides election
+	// LocalJurisdiction: The city or county that provides election
 	// information for this voter. This object can have the same elements as
 	// state.
-	Local_jurisdiction *AdministrationRegion `json:"local_jurisdiction,omitempty"`
+	LocalJurisdiction *AdministrationRegion `json:"local_jurisdiction,omitempty"`
 
 	// Name: The name of the jurisdiction.
 	Name string `json:"name,omitempty"`
@@ -157,9 +165,9 @@ type AdministrativeBody struct {
 	// PhysicalAddress: The physical address of this administrative body.
 	PhysicalAddress *SimpleAddressType `json:"physicalAddress,omitempty"`
 
-	// Voter_services: A description of the services this administrative
-	// body may provide.
-	Voter_services []string `json:"voter_services,omitempty"`
+	// VoterServices: A description of the services this administrative body
+	// may provide.
+	VoterServices []string `json:"voter_services,omitempty"`
 
 	// VotingLocationFinderUrl: A URL provided by this administrative body
 	// for looking up where to vote.
@@ -357,13 +365,12 @@ type GeographicDivision struct {
 	// AlsoKnownAs: Any other valid OCD IDs that refer to the same
 	// division.
 	//
-	// Because OCD IDs are meant to be human-readable and at
-	// least somewhat predictable, there are occasionally several
-	// identifiers for a single division. These identifiers are defined to
-	// be equivalent to one another, and one is always indicated as the
-	// primary identifier. The primary identifier will be returned in ocd_id
-	// above, and any other equivalent valid identifiers will be returned in
-	// this list.
+	// Because OCD IDs are meant to be human-readable and at least somewhat
+	// predictable, there are occasionally several identifiers for a single
+	// division. These identifiers are defined to be equivalent to one
+	// another, and one is always indicated as the primary identifier. The
+	// primary identifier will be returned in ocd_id above, and any other
+	// equivalent valid identifiers will be returned in this list.
 	//
 	// For example, if this division's OCD ID is
 	// ocd-division/country:us/district:dc, this will contain
@@ -628,7 +635,7 @@ func (c *DivisionsSearchCall) Do() (*DivisionSearchResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -693,7 +700,7 @@ func (c *ElectionsElectionQueryCall) Do() (*ElectionsQueryResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -776,7 +783,7 @@ func (c *ElectionsVoterInfoQueryCall) Do() (*VoterInfoResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -859,6 +866,17 @@ func (c *RepresentativesRepresentativeInfoByAddressCall) IncludeOffices(includeO
 // to filter by. Only offices that serve at least one of these levels
 // will be returned. Divisions that don't contain a matching office will
 // not be returned.
+//
+// Possible values:
+//   "administrativeArea1"
+//   "administrativeArea2"
+//   "country"
+//   "international"
+//   "locality"
+//   "regional"
+//   "special"
+//   "subLocality1"
+//   "subLocality2"
 func (c *RepresentativesRepresentativeInfoByAddressCall) Levels(levels string) *RepresentativesRepresentativeInfoByAddressCall {
 	c.opt_["levels"] = levels
 	return c
@@ -868,6 +886,19 @@ func (c *RepresentativesRepresentativeInfoByAddressCall) Levels(levels string) *
 // filter by. Only offices fulfilling one of these roles will be
 // returned. Divisions that don't contain a matching office will not be
 // returned.
+//
+// Possible values:
+//   "deputyHeadOfGovernment"
+//   "executiveCouncil"
+//   "governmentOfficer"
+//   "headOfGovernment"
+//   "headOfState"
+//   "highestCourtJudge"
+//   "judge"
+//   "legislatorLowerBody"
+//   "legislatorUpperBody"
+//   "schoolBoard"
+//   "specialPurposeOfficer"
 func (c *RepresentativesRepresentativeInfoByAddressCall) Roles(roles string) *RepresentativesRepresentativeInfoByAddressCall {
 	c.opt_["roles"] = roles
 	return c
@@ -904,7 +935,7 @@ func (c *RepresentativesRepresentativeInfoByAddressCall) Do() (*RepresentativeIn
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1023,6 +1054,17 @@ func (r *RepresentativesService) RepresentativeInfoByDivision(ocdId string) *Rep
 // to filter by. Only offices that serve at least one of these levels
 // will be returned. Divisions that don't contain a matching office will
 // not be returned.
+//
+// Possible values:
+//   "administrativeArea1"
+//   "administrativeArea2"
+//   "country"
+//   "international"
+//   "locality"
+//   "regional"
+//   "special"
+//   "subLocality1"
+//   "subLocality2"
 func (c *RepresentativesRepresentativeInfoByDivisionCall) Levels(levels string) *RepresentativesRepresentativeInfoByDivisionCall {
 	c.opt_["levels"] = levels
 	return c
@@ -1042,6 +1084,19 @@ func (c *RepresentativesRepresentativeInfoByDivisionCall) Recursive(recursive bo
 // filter by. Only offices fulfilling one of these roles will be
 // returned. Divisions that don't contain a matching office will not be
 // returned.
+//
+// Possible values:
+//   "deputyHeadOfGovernment"
+//   "executiveCouncil"
+//   "governmentOfficer"
+//   "headOfGovernment"
+//   "headOfState"
+//   "highestCourtJudge"
+//   "judge"
+//   "legislatorLowerBody"
+//   "legislatorUpperBody"
+//   "schoolBoard"
+//   "specialPurposeOfficer"
 func (c *RepresentativesRepresentativeInfoByDivisionCall) Roles(roles string) *RepresentativesRepresentativeInfoByDivisionCall {
 	c.opt_["roles"] = roles
 	return c
@@ -1077,7 +1132,7 @@ func (c *RepresentativesRepresentativeInfoByDivisionCall) Do() (*RepresentativeI
 	googleapi.Expand(req.URL, map[string]string{
 		"ocdId": c.ocdId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

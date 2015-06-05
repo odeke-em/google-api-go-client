@@ -1,4 +1,4 @@
-// Package pubsub provides access to the Cloud Pub/Sub API.
+// Package pubsub provides access to the Google Cloud Pub/Sub API.
 //
 // See https://developers.google.com/pubsub/v1beta1
 //
@@ -61,12 +61,20 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Subscriptions *SubscriptionsService
 
 	Topics *TopicsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewSubscriptionsService(s *Service) *SubscriptionsService {
@@ -108,15 +116,13 @@ type Label struct {
 	//
 	// Keys are defined by the following grammar:
 	//
-	// key =
-	// hostname "/" kpath kpath = ksegment *[ "/" ksegment ] ksegment =
-	// alphadigit | *[ alphadigit | "-" | "_" | "." ]
+	// key = hostname "/" kpath kpath = ksegment *[ "/" ksegment ] ksegment
+	// = alphadigit | *[ alphadigit | "-" | "_" | "." ]
 	//
-	// where "hostname" and
-	// "alphadigit" are defined as in RFC 1738.
+	// where "hostname" and "alphadigit" are defined as in RFC
+	// 1738.
 	//
-	// Example key:
-	// spanner.google.com/universe
+	// Example key: spanner.google.com/universe
 	Key string `json:"key,omitempty"`
 
 	// NumValue: An integer value.
@@ -147,7 +153,11 @@ type ListTopicsResponse struct {
 }
 
 type ModifyAckDeadlineRequest struct {
-	// AckDeadlineSeconds: The new Ack deadline. Must be >= 0.
+	// AckDeadlineSeconds: The new ack deadline with respect to the time
+	// this request was sent to the Pub/Sub system. Must be >= 0. For
+	// example, if the value is 10, the new ack deadline will expire 10
+	// seconds after the ModifyAckDeadline call was made. Specifying zero
+	// may immediately make the message available for another pull request.
 	AckDeadlineSeconds int64 `json:"ackDeadlineSeconds,omitempty"`
 
 	// AckId: The acknowledgment ID.
@@ -290,16 +300,15 @@ type Subscription struct {
 	// again. Multiple Acks to the message are allowed and will
 	// succeed.
 	//
-	// For push delivery, this value is used to set the request
-	// timeout for the call to the push endpoint.
+	// For push delivery, this value is used to set the request timeout for
+	// the call to the push endpoint.
 	//
-	// For pull delivery, this
-	// value is used as the initial value for the Ack deadline. It may be
-	// overridden for a specific pull request (message) with
-	// ModifyAckDeadline. While a message is outstanding (i.e. it has been
-	// delivered to a pull subscriber and the subscriber has not yet Acked
-	// or Nacked), the Pub/Sub system will not deliver that message to
-	// another pull subscriber (on a best-effort basis).
+	// For pull delivery, this value is used as the initial value for the
+	// Ack deadline. It may be overridden for a specific pull request
+	// (message) with ModifyAckDeadline. While a message is outstanding
+	// (i.e. it has been delivered to a pull subscriber and the subscriber
+	// has not yet Acked or Nacked), the Pub/Sub system will not deliver
+	// that message to another pull subscriber (on a best-effort basis).
 	AckDeadlineSeconds int64 `json:"ackDeadlineSeconds,omitempty"`
 
 	// Name: Name of the subscription.
@@ -364,7 +373,7 @@ func (c *SubscriptionsAcknowledgeCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -403,9 +412,8 @@ type SubscriptionsCreateCall struct {
 // ALREADY_EXISTS. If the corresponding topic doesn't exist, returns
 // NOT_FOUND.
 //
-// If the name is not provided in the request, the server
-// will assign a random name for this subscription on the same project
-// as the topic.
+// If the name is not provided in the request, the server will assign a
+// random name for this subscription on the same project as the topic.
 func (r *SubscriptionsService) Create(subscription *Subscription) *SubscriptionsCreateCall {
 	c := &SubscriptionsCreateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.subscription = subscription
@@ -437,7 +445,7 @@ func (c *SubscriptionsCreateCall) Do() (*Subscription, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -508,7 +516,7 @@ func (c *SubscriptionsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"subscription": c.subscription,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -578,7 +586,7 @@ func (c *SubscriptionsGetCall) Do() (*Subscription, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"subscription": c.subscription,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -681,7 +689,7 @@ func (c *SubscriptionsListCall) Do() (*ListSubscriptionsResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -770,7 +778,7 @@ func (c *SubscriptionsModifyAckDeadlineCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -840,7 +848,7 @@ func (c *SubscriptionsModifyPushConfigCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -910,7 +918,7 @@ func (c *SubscriptionsPullCall) Do() (*PullResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -986,7 +994,7 @@ func (c *SubscriptionsPullBatchCall) Do() (*PullBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1059,7 +1067,7 @@ func (c *TopicsCreateCall) Do() (*Topic, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1100,10 +1108,9 @@ type TopicsDeleteCall struct {
 	opt_  map[string]interface{}
 }
 
-// Delete: Deletes the topic with the given name. All subscriptions to
-// this topic are also deleted. Returns NOT_FOUND if the topic does not
-// exist. After a topic is deleted, a new topic may be created with the
-// same name.
+// Delete: Deletes the topic with the given name. Returns NOT_FOUND if
+// the topic does not exist. After a topic is deleted, a new topic may
+// be created with the same name.
 func (r *TopicsService) Delete(topic string) *TopicsDeleteCall {
 	c := &TopicsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
 	c.topic = topic
@@ -1131,7 +1138,7 @@ func (c *TopicsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"topic": c.topic,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1142,7 +1149,7 @@ func (c *TopicsDeleteCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Deletes the topic with the given name. All subscriptions to this topic are also deleted. Returns NOT_FOUND if the topic does not exist. After a topic is deleted, a new topic may be created with the same name.",
+	//   "description": "Deletes the topic with the given name. Returns NOT_FOUND if the topic does not exist. After a topic is deleted, a new topic may be created with the same name.",
 	//   "httpMethod": "DELETE",
 	//   "id": "pubsub.topics.delete",
 	//   "parameterOrder": [
@@ -1204,7 +1211,7 @@ func (c *TopicsGetCall) Do() (*Topic, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"topic": c.topic,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1307,7 +1314,7 @@ func (c *TopicsListCall) Do() (*ListTopicsResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1396,7 +1403,7 @@ func (c *TopicsPublishCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1463,7 +1470,7 @@ func (c *TopicsPublishBatchCall) Do() (*PublishBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

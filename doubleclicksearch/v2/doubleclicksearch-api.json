@@ -1,11 +1,11 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/cxvPCR_xcZiPo49FRoYXODxx8IM\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/m0eXdHWebgpev9NpY2LiBz6rOW0\"",
  "discoveryVersion": "v1",
  "id": "doubleclicksearch:v2",
  "name": "doubleclicksearch",
  "version": "v2",
- "revision": "20141222",
+ "revision": "20150305",
  "title": "DoubleClick Search API",
  "description": "Report and modify your advertising data in DoubleClick Search (for example, campaigns, ad groups, keywords, and conversions).",
  "ownerDomain": "google.com",
@@ -158,12 +158,16 @@
     },
     "attributionModel": {
      "type": "string",
-     "description": "Attribution model name."
+     "description": "Attribution model name. This field is ignored."
     },
     "campaignId": {
      "type": "string",
      "description": "DS campaign ID.",
      "format": "int64"
+    },
+    "channel": {
+     "type": "string",
+     "description": "Channel of the product: local or online."
     },
     "clickId": {
      "type": "string",
@@ -195,7 +199,7 @@
     },
     "countMillis": {
      "type": "string",
-     "description": "Conversion count in millis.",
+     "description": "The number of conversions, formatted in millis (conversions multiplied by 1000). This field is ignored.",
      "format": "int64"
     },
     "criterionId": {
@@ -221,6 +225,10 @@
       "$ref": "CustomMetric"
      }
     },
+    "deviceType": {
+     "type": "string",
+     "description": "The type of device on which the conversion occurred. Valid values are \"DESKTOP\", \"TABLET\", \"HIGH_END_MOBILE\", \"OTHER_DEVICE\"."
+    },
     "dsConversionId": {
      "type": "string",
      "description": "DS conversion ID.",
@@ -231,9 +239,31 @@
      "description": "DS engine account ID.",
      "format": "int64"
     },
+    "feedId": {
+     "type": "string",
+     "description": "DS inventory feed ID.",
+     "format": "int64"
+    },
     "floodlightOrderId": {
      "type": "string",
      "description": "The advertiser-provided order id for the conversion."
+    },
+    "productCountry": {
+     "type": "string",
+     "description": "ISO 3166 code of the product country."
+    },
+    "productGroupId": {
+     "type": "string",
+     "description": "DS product group ID.",
+     "format": "int64"
+    },
+    "productId": {
+     "type": "string",
+     "description": "The product ID (SKU)."
+    },
+    "productLanguage": {
+     "type": "string",
+     "description": "ISO 639 code of the product language."
     },
     "quantityMillis": {
      "type": "string",
@@ -266,6 +296,10 @@
     "state": {
      "type": "string",
      "description": "The state of the conversion, that is, either ACTIVE or REMOVED. Note: state DELETED is deprecated."
+    },
+    "storeId": {
+     "type": "string",
+     "description": "The store id for which the product was advertised, when the channel is \"local\"."
     },
     "type": {
      "type": "string",
@@ -987,7 +1021,7 @@
      "id": "doubleclicksearch.reports.getFile",
      "path": "reports/{reportId}/files/{reportFragment}",
      "httpMethod": "GET",
-     "description": "Downloads a report file.",
+     "description": "Downloads a report file encoded in UTF-8.",
      "parameters": {
       "reportFragment": {
        "type": "integer",

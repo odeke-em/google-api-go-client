@@ -91,8 +91,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Activities *ActivitiesService
 
@@ -105,6 +106,13 @@ type Service struct {
 	Media *MediaService
 
 	People *PeopleService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewActivitiesService(s *Service) *ActivitiesService {
@@ -247,8 +255,7 @@ type Activity struct {
 	// performed. Possible values include, but are not limited to, the
 	// following values:
 	// - "post" - Publish content to the stream.
-	// -
-	// "share" - Reshare an activity.
+	// - "share" - Reshare an activity.
 	Verb string `json:"verb,omitempty"`
 }
 
@@ -303,7 +310,6 @@ type ActivityObject struct {
 	// ObjectType: The type of the object. Possible values include, but are
 	// not limited to, the following values:
 	// - "note" - Textual content.
-	//
 	// - "activity" - A Google+ activity.
 	ObjectType string `json:"objectType,omitempty"`
 
@@ -373,11 +379,9 @@ type ActivityObjectAttachments struct {
 	// ObjectType: The type of media object. Possible values include, but
 	// are not limited to, the following values:
 	// - "photo" - A photo.
-	// -
-	// "album" - A photo album.
+	// - "album" - A photo album.
 	// - "video" - A video.
-	// - "article" - An
-	// article, specified by a link.
+	// - "article" - An article, specified by a link.
 	ObjectType string `json:"objectType,omitempty"`
 
 	// PreviewThumbnails: When previewing, these are the optional thumbnails
@@ -560,10 +564,8 @@ type Audience struct {
 	// Visibility: The circle members' visibility as chosen by the owner of
 	// the circle. This only applies for items with "item.type" equals
 	// "circle". Possible values are:
-	// - "public" - Members are visible to
-	// the public.
+	// - "public" - Members are visible to the public.
 	// - "limited" - Members are visible to a limited audience.
-	//
 	// - "private" - Members are visible to the owner only.
 	Visibility string `json:"visibility,omitempty"`
 }
@@ -720,8 +722,7 @@ type CommentObject struct {
 	Content string `json:"content,omitempty"`
 
 	// ObjectType: The object type of this comment. Possible values are:
-	// -
-	// "comment" - A comment in reply to an activity.
+	// - "comment" - A comment in reply to an activity.
 	ObjectType string `json:"objectType,omitempty"`
 
 	// OriginalContent: The content (text) as provided by the author, stored
@@ -823,13 +824,10 @@ type Media struct {
 	// VideoStatus: The encoding status of this video. Possible values are:
 	//
 	// - "UPLOADING" - Not all the video bytes have been received.
-	// -
-	// "PENDING" - Video not yet processed.
-	// - "FAILED" - Video processing
-	// failed.
+	// - "PENDING" - Video not yet processed.
+	// - "FAILED" - Video processing failed.
 	// - "READY" - A single video stream is playable.
-	// - "FINAL" -
-	// All video streams are playable.
+	// - "FINAL" - All video streams are playable.
 	VideoStatus string `json:"videoStatus,omitempty"`
 
 	// Width: The width in pixels of the original image.
@@ -934,8 +932,7 @@ type Person struct {
 	// Gender: The person's gender. Possible values include, but are not
 	// limited to, the following values:
 	// - "male" - Male gender.
-	// -
-	// "female" - Female gender.
+	// - "female" - Female gender.
 	// - "other" - Other.
 	Gender string `json:"gender,omitempty"`
 
@@ -960,8 +957,7 @@ type Person struct {
 
 	// ObjectType: Type of person within Google+. Possible values include,
 	// but are not limited to, the following values:
-	// - "person" -
-	// represents an actual person.
+	// - "person" - represents an actual person.
 	// - "page" - represents a page.
 	ObjectType string `json:"objectType,omitempty"`
 
@@ -981,22 +977,15 @@ type Person struct {
 
 	// RelationshipStatus: The person's relationship status. Possible values
 	// include, but are not limited to, the following values:
-	// - "single" -
-	// Person is single.
-	// - "in_a_relationship" - Person is in a
-	// relationship.
+	// - "single" - Person is single.
+	// - "in_a_relationship" - Person is in a relationship.
 	// - "engaged" - Person is engaged.
-	// - "married" - Person
-	// is married.
+	// - "married" - Person is married.
 	// - "its_complicated" - The relationship is complicated.
-	//
 	// - "open_relationship" - Person is in an open relationship.
-	// -
-	// "widowed" - Person is widowed.
-	// - "in_domestic_partnership" - Person
-	// is in a domestic partnership.
-	// - "in_civil_union" - Person is in a
-	// civil union.
+	// - "widowed" - Person is widowed.
+	// - "in_domestic_partnership" - Person is in a domestic partnership.
+	// - "in_civil_union" - Person is in a civil union.
 	RelationshipStatus string `json:"relationshipStatus,omitempty"`
 
 	// Skills: The person's skills.
@@ -1024,8 +1013,7 @@ type PersonCover struct {
 
 	// Layout: The layout of the cover art. Possible values include, but are
 	// not limited to, the following values:
-	// - "banner" - One large image
-	// banner.
+	// - "banner" - One large image banner.
 	Layout string `json:"layout,omitempty"`
 }
 
@@ -1055,11 +1043,9 @@ type PersonCoverCoverPhoto struct {
 type PersonEmails struct {
 	// Type: The type of address. Possible values include, but are not
 	// limited to, the following values:
-	// - "account" - Google account
-	// email address.
+	// - "account" - Google account email address.
 	// - "home" - Home email address.
-	// - "work" - Work email
-	// address.
+	// - "work" - Work email address.
 	// - "other" - Other.
 	Type string `json:"type,omitempty"`
 
@@ -1130,8 +1116,7 @@ type PersonOrganizations struct {
 	// Type: The type of organization. Possible values include, but are not
 	// limited to, the following values:
 	// - "work" - Work.
-	// - "school" -
-	// School.
+	// - "school" - School.
 	Type string `json:"type,omitempty"`
 }
 
@@ -1151,12 +1136,10 @@ type PersonUrls struct {
 
 	// Type: The type of URL. Possible values include, but are not limited
 	// to, the following values:
-	// - "otherProfile" - URL for another
-	// profile.
+	// - "otherProfile" - URL for another profile.
 	// - "contributor" - URL to a site for which this person is a
 	// contributor.
-	// - "website" - URL for this Google+ Page's primary
-	// website.
+	// - "website" - URL for this Google+ Page's primary website.
 	// - "other" - Other URL.
 	Type string `json:"type,omitempty"`
 
@@ -1206,15 +1189,11 @@ type PlusDomainsAclentryResource struct {
 	// Type: The type of entry describing to whom access is granted.
 	// Possible values are:
 	// - "person" - Access to an individual.
-	// -
-	// "circle" - Access to members of a circle.
-	// - "myCircles" - Access to
-	// members of all the person's circles.
-	// - "extendedCircles" - Access to
-	// members of all the person's circles, plus all of the people in their
-	// circles.
-	// - "domain" - Access to members of the person's Google Apps
-	// domain.
+	// - "circle" - Access to members of a circle.
+	// - "myCircles" - Access to members of all the person's circles.
+	// - "extendedCircles" - Access to members of all the person's circles,
+	// plus all of the people in their circles.
+	// - "domain" - Access to members of the person's Google Apps domain.
 	// - "public" - Access to anyone on the web.
 	Type string `json:"type,omitempty"`
 }
@@ -1269,7 +1248,7 @@ func (c *ActivitiesGetCall) Do() (*Activity, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"activityId": c.activityId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1367,7 +1346,7 @@ func (c *ActivitiesInsertCall) Do() (*Activity, error) {
 		"userId": c.userId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1481,7 +1460,7 @@ func (c *ActivitiesListCall) Do() (*ActivityFeed, error) {
 		"userId":     c.userId,
 		"collection": c.collection,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1610,7 +1589,7 @@ func (c *AudiencesListCall) Do() (*AudiencesFeed, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1723,7 +1702,7 @@ func (c *CirclesAddPeopleCall) Do() (*Circle, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"circleId": c.circleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1812,7 +1791,7 @@ func (c *CirclesGetCall) Do() (*Circle, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"circleId": c.circleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1897,7 +1876,7 @@ func (c *CirclesInsertCall) Do() (*Circle, error) {
 		"userId": c.userId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2002,7 +1981,7 @@ func (c *CirclesListCall) Do() (*CircleFeed, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2103,7 +2082,7 @@ func (c *CirclesPatchCall) Do() (*Circle, error) {
 		"circleId": c.circleId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2183,7 +2162,7 @@ func (c *CirclesRemoveCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"circleId": c.circleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2273,7 +2252,7 @@ func (c *CirclesRemovePeopleCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"circleId": c.circleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2363,7 +2342,7 @@ func (c *CirclesUpdateCall) Do() (*Circle, error) {
 		"circleId": c.circleId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2443,7 +2422,7 @@ func (c *CommentsGetCall) Do() (*Comment, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"commentId": c.commentId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2528,7 +2507,7 @@ func (c *CommentsInsertCall) Do() (*Comment, error) {
 		"activityId": c.activityId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2607,6 +2586,10 @@ func (c *CommentsListCall) PageToken(pageToken string) *CommentsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": The order in which
 // to sort the list of comments.
+//
+// Possible values:
+//   "ascending" (default) - Sort oldest comments first.
+//   "descending" - Sort newest comments first.
 func (c *CommentsListCall) SortOrder(sortOrder string) *CommentsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -2642,7 +2625,7 @@ func (c *CommentsListCall) Do() (*CommentFeed, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"activityId": c.activityId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2817,13 +2800,10 @@ func (c *MediaInsertCall) Do() (*Media, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2836,6 +2816,7 @@ func (c *MediaInsertCall) Do() (*Media, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2949,7 +2930,7 @@ func (c *PeopleGetCall) Do() (*Person, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"userId": c.userId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3021,6 +3002,10 @@ func (c *PeopleListCall) MaxResults(maxResults int64) *PeopleListCall {
 
 // OrderBy sets the optional parameter "orderBy": The order to return
 // people in.
+//
+// Possible values:
+//   "alphabetical" - Order the people by their display name.
+//   "best" - Order people based on the relevence to the viewer.
 func (c *PeopleListCall) OrderBy(orderBy string) *PeopleListCall {
 	c.opt_["orderBy"] = orderBy
 	return c
@@ -3066,7 +3051,7 @@ func (c *PeopleListCall) Do() (*PeopleFeed, error) {
 		"userId":     c.userId,
 		"collection": c.collection,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3212,7 +3197,7 @@ func (c *PeopleListByActivityCall) Do() (*PeopleFeed, error) {
 		"activityId": c.activityId,
 		"collection": c.collection,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3344,7 +3329,7 @@ func (c *PeopleListByCircleCall) Do() (*PeopleFeed, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"circleId": c.circleId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

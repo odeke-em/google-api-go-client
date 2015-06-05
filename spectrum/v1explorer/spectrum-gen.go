@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Paws *PawsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewPawsService(s *Service) *PawsService {
@@ -158,9 +166,9 @@ type DeviceDescriptor struct {
 	// refuse to service the device requests. If present, the list must
 	// contain at least one entry.
 	//
-	// For information about the valid
-	// requests, see section 9.2 of the PAWS specification. Currently,
-	// FccTvBandWhiteSpace-2010 is the only supported ruleset.
+	// For information about the valid requests, see section 9.2 of the PAWS
+	// specification. Currently, FccTvBandWhiteSpace-2010 is the only
+	// supported ruleset.
 	RulesetIds []string `json:"rulesetIds,omitempty"`
 
 	// SerialNumber: The manufacturer's device serial number; required by
@@ -295,19 +303,16 @@ type GeoLocationPolygon struct {
 	// vertices of a polygon. The first and last points must be the same.
 	// Thus, a minimum of four points is required. The following polygon
 	// restrictions from RFC5491 apply:
-	// - A connecting line shall not
-	// cross another connecting line of the same polygon.
-	// - The vertices
-	// must be defined in a counterclockwise order.
-	// - The edges of a
-	// polygon are defined by the shortest path between two points in space
-	// (not a geodesic curve). Consequently, the length between two adjacent
-	// vertices should be restricted to a maximum of 130 km.
-	// - All vertices
-	// are assumed to be at the same altitude.
-	// - Polygon shapes should be
-	// restricted to a maximum of 15 vertices (16 points that include the
-	// repeated vertex).
+	// - A connecting line shall not cross another connecting line of the
+	// same polygon.
+	// - The vertices must be defined in a counterclockwise order.
+	// - The edges of a polygon are defined by the shortest path between two
+	// points in space (not a geodesic curve). Consequently, the length
+	// between two adjacent vertices should be restricted to a maximum of
+	// 130 km.
+	// - All vertices are assumed to be at the same altitude.
+	// - Polygon shapes should be restricted to a maximum of 15 vertices (16
+	// points that include the repeated vertex).
 	Exterior []*GeoLocationPoint `json:"exterior,omitempty"`
 }
 
@@ -352,15 +357,14 @@ type PawsGetSpectrumBatchRequest struct {
 	// rather than a point, the database may return an UNIMPLEMENTED error
 	// if it does not support query by region.
 	//
-	// There is no upper limit on
-	// the number of locations included in a available spectrum batch
-	// request, but the database may restrict the number of locations it
-	// supports by returning a response with fewer locations than specified
-	// in the batch request. Note that geolocations must be those of the
-	// master device (a device with geolocation capability that makes an
-	// available spectrum batch request), whether the master device is
-	// making the request on its own behalf or on behalf of a slave device
-	// (one without geolocation capability).
+	// There is no upper limit on the number of locations included in a
+	// available spectrum batch request, but the database may restrict the
+	// number of locations it supports by returning a response with fewer
+	// locations than specified in the batch request. Note that geolocations
+	// must be those of the master device (a device with geolocation
+	// capability that makes an available spectrum batch request), whether
+	// the master device is making the request on its own behalf or on
+	// behalf of a slave device (one without geolocation capability).
 	Locations []*GeoLocation `json:"locations,omitempty"`
 
 	// MasterDeviceDesc: When an available spectrum batch request is made by
@@ -1004,7 +1008,7 @@ func (c *PawsGetSpectrumCall) Do() (*PawsGetSpectrumResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1074,7 +1078,7 @@ func (c *PawsGetSpectrumBatchCall) Do() (*PawsGetSpectrumBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1144,7 +1148,7 @@ func (c *PawsInitCall) Do() (*PawsInitResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1217,7 +1221,7 @@ func (c *PawsNotifySpectrumUseCall) Do() (*PawsNotifySpectrumUseResponse, error)
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1288,7 +1292,7 @@ func (c *PawsRegisterCall) Do() (*PawsRegisterResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1360,7 +1364,7 @@ func (c *PawsVerifyDeviceCall) Do() (*PawsVerifyDeviceResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

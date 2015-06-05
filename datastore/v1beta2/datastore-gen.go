@@ -63,10 +63,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Datasets *DatasetsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewDatasetsService(s *Service) *DatasetsService {
@@ -100,6 +108,10 @@ type BeginTransactionRequest struct {
 	// can request to be made serializable which means that another
 	// transaction cannot concurrently modify the data that is read or
 	// modified by this transaction.
+	//
+	// Possible values:
+	//   "SERIALIZABLE"
+	//   "SNAPSHOT"
 	IsolationLevel string `json:"isolationLevel,omitempty"`
 }
 
@@ -115,6 +127,10 @@ type CommitRequest struct {
 
 	// Mode: The type of commit to perform. Either TRANSACTIONAL or
 	// NON_TRANSACTIONAL.
+	//
+	// Possible values:
+	//   "NON_TRANSACTIONAL"
+	//   "TRANSACTIONAL"
 	Mode string `json:"mode,omitempty"`
 
 	// Mutation: The mutation to perform. Optional.
@@ -139,16 +155,18 @@ type CompositeFilter struct {
 
 	// Operator: The operator for combining multiple filters. Only "and" is
 	// currently supported.
+	//
+	// Possible values:
+	//   "AND"
 	Operator string `json:"operator,omitempty"`
 }
 
 type Entity struct {
 	// Key: The entity's key.
 	//
-	// An entity must have a key, unless otherwise
-	// documented (for example, an entity in Value.entityValue may have no
-	// key). An entity's kind is its key's path's last element's kind, or
-	// null if it has no key.
+	// An entity must have a key, unless otherwise documented (for example,
+	// an entity in Value.entityValue may have no key). An entity's kind is
+	// its key's path's last element's kind, or null if it has no key.
 	Key *Key `json:"key,omitempty"`
 
 	// Properties: The entity's properties.
@@ -311,7 +329,8 @@ type Property struct {
 	// BlobKeyValue: A blob key value.
 	BlobKeyValue string `json:"blobKeyValue,omitempty"`
 
-	// BlobValue: A blob value. May be a maximum of 1,000,000 bytes.
+	// BlobValue: A blob value. May be a maximum of 1,000,000 bytes. When
+	// indexed is true, may have at most 500 bytes.
 	BlobValue string `json:"blobValue,omitempty"`
 
 	// BooleanValue: A boolean value.
@@ -329,13 +348,12 @@ type Property struct {
 
 	// Indexed: If the value should be indexed.
 	//
-	// The indexed property may be
-	// set for a null value. When indexed is true, stringValue is limited to
-	// 500 characters and the blob value is limited to 500 bytes. Input
-	// values by default have indexed set to true; however, you can
-	// explicitly set indexed to true if you want. (An output value never
-	// has indexed explicitly set to true.) If a value is itself an entity,
-	// it cannot have indexed set to true.
+	// The indexed property may be set for a null value. When indexed is
+	// true, stringValue is limited to 500 characters and the blob value is
+	// limited to 500 bytes. Input values by default have indexed set to
+	// true; however, you can explicitly set indexed to true if you want.
+	// (An output value never has indexed explicitly set to true.) If a
+	// value is itself an entity, it cannot have indexed set to true.
 	Indexed bool `json:"indexed,omitempty"`
 
 	// IntegerValue: An integer value.
@@ -344,14 +362,16 @@ type Property struct {
 	// KeyValue: A key value.
 	KeyValue *Key `json:"keyValue,omitempty"`
 
-	// ListValue: A list value. Cannot contain another list value. Cannot
-	// also have a meaning and indexing set.
+	// ListValue: A list value. Cannot contain another list value. A Value
+	// instance that sets field list_value must not set field meaning or
+	// field indexed.
 	ListValue []*Value `json:"listValue,omitempty"`
 
 	// Meaning: The meaning field is reserved and should not be used.
 	Meaning int64 `json:"meaning,omitempty"`
 
-	// StringValue: A UTF-8 encoded string value.
+	// StringValue: A UTF-8 encoded string value. When indexed is true, may
+	// have at most 500 characters.
 	StringValue string `json:"stringValue,omitempty"`
 }
 
@@ -361,6 +381,9 @@ type PropertyExpression struct {
 	// property. Must then be set on all properties in the projection that
 	// are not being grouped by. Aggregation functions: first selects the
 	// first result as determined by the query's order.
+	//
+	// Possible values:
+	//   "FIRST"
 	AggregationFunction string `json:"aggregationFunction,omitempty"`
 
 	// Property: The property to project.
@@ -371,6 +394,14 @@ type PropertyFilter struct {
 	// Operator: The operator to filter by. One of lessThan,
 	// lessThanOrEqual, greaterThan, greaterThanOrEqual, equal, or
 	// hasAncestor.
+	//
+	// Possible values:
+	//   "EQUAL"
+	//   "GREATER_THAN"
+	//   "GREATER_THAN_OR_EQUAL"
+	//   "HAS_ANCESTOR"
+	//   "LESS_THAN"
+	//   "LESS_THAN_OR_EQUAL"
 	Operator string `json:"operator,omitempty"`
 
 	// Property: The property to filter by.
@@ -383,6 +414,10 @@ type PropertyFilter struct {
 type PropertyOrder struct {
 	// Direction: The direction to order by. One of ascending or descending.
 	// Optional, defaults to ascending.
+	//
+	// Possible values:
+	//   "ASCENDING"
+	//   "DESCENDING"
 	Direction string `json:"direction,omitempty"`
 
 	// Property: The property to order by.
@@ -440,6 +475,11 @@ type QueryResultBatch struct {
 	// EntityResultType: The result type for every entity in entityResults.
 	// full for full entities, projection for entities with only projected
 	// properties, keyOnly for entities with only a key.
+	//
+	// Possible values:
+	//   "FULL"
+	//   "KEY_ONLY"
+	//   "PROJECTION"
 	EntityResultType string `json:"entityResultType,omitempty"`
 
 	// EntityResults: The results for this batch.
@@ -447,6 +487,11 @@ type QueryResultBatch struct {
 
 	// MoreResults: The state of the query after the current batch. One of
 	// notFinished, moreResultsAfterLimit, noMoreResults.
+	//
+	// Possible values:
+	//   "MORE_RESULTS_AFTER_LIMIT"
+	//   "NOT_FINISHED"
+	//   "NO_MORE_RESULTS"
 	MoreResults string `json:"moreResults,omitempty"`
 
 	// SkippedResults: The number of results skipped because of
@@ -459,6 +504,11 @@ type ReadOptions struct {
 	// or eventual. Cannot be set when transaction is set. Lookup and
 	// ancestor queries default to strong, global queries default to
 	// eventual and cannot be set to strong. Optional. Default is default.
+	//
+	// Possible values:
+	//   "DEFAULT"
+	//   "EVENTUAL"
+	//   "STRONG"
 	ReadConsistency string `json:"readConsistency,omitempty"`
 
 	// Transaction: The transaction to use. Optional.
@@ -513,7 +563,8 @@ type Value struct {
 	// BlobKeyValue: A blob key value.
 	BlobKeyValue string `json:"blobKeyValue,omitempty"`
 
-	// BlobValue: A blob value. May be a maximum of 1,000,000 bytes.
+	// BlobValue: A blob value. May be a maximum of 1,000,000 bytes. When
+	// indexed is true, may have at most 500 bytes.
 	BlobValue string `json:"blobValue,omitempty"`
 
 	// BooleanValue: A boolean value.
@@ -531,13 +582,12 @@ type Value struct {
 
 	// Indexed: If the value should be indexed.
 	//
-	// The indexed property may be
-	// set for a null value. When indexed is true, stringValue is limited to
-	// 500 characters and the blob value is limited to 500 bytes. Input
-	// values by default have indexed set to true; however, you can
-	// explicitly set indexed to true if you want. (An output value never
-	// has indexed explicitly set to true.) If a value is itself an entity,
-	// it cannot have indexed set to true.
+	// The indexed property may be set for a null value. When indexed is
+	// true, stringValue is limited to 500 characters and the blob value is
+	// limited to 500 bytes. Input values by default have indexed set to
+	// true; however, you can explicitly set indexed to true if you want.
+	// (An output value never has indexed explicitly set to true.) If a
+	// value is itself an entity, it cannot have indexed set to true.
 	Indexed bool `json:"indexed,omitempty"`
 
 	// IntegerValue: An integer value.
@@ -546,14 +596,16 @@ type Value struct {
 	// KeyValue: A key value.
 	KeyValue *Key `json:"keyValue,omitempty"`
 
-	// ListValue: A list value. Cannot contain another list value. Cannot
-	// also have a meaning and indexing set.
+	// ListValue: A list value. Cannot contain another list value. A Value
+	// instance that sets field list_value must not set field meaning or
+	// field indexed.
 	ListValue []*Value `json:"listValue,omitempty"`
 
 	// Meaning: The meaning field is reserved and should not be used.
 	Meaning int64 `json:"meaning,omitempty"`
 
-	// StringValue: A UTF-8 encoded string value.
+	// StringValue: A UTF-8 encoded string value. When indexed is true, may
+	// have at most 500 characters.
 	StringValue string `json:"stringValue,omitempty"`
 }
 
@@ -602,7 +654,7 @@ func (c *DatasetsAllocateIdsCall) Do() (*AllocateIdsResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -691,7 +743,7 @@ func (c *DatasetsBeginTransactionCall) Do() (*BeginTransactionResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -781,7 +833,7 @@ func (c *DatasetsCommitCall) Do() (*CommitResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -870,7 +922,7 @@ func (c *DatasetsLookupCall) Do() (*LookupResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -959,7 +1011,7 @@ func (c *DatasetsRollbackCall) Do() (*RollbackResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1048,7 +1100,7 @@ func (c *DatasetsRunQueryCall) Do() (*RunQueryResponse, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

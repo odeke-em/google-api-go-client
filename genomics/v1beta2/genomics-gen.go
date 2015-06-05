@@ -46,8 +46,11 @@ const (
 	// View and manage your data in Google BigQuery
 	BigqueryScope = "https://www.googleapis.com/auth/bigquery"
 
+	// View and manage your data across Google Cloud Platform services
+	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
+
 	// Manage your data in Google Cloud Storage
-	DevstorageRead_writeScope = "https://www.googleapis.com/auth/devstorage.read_write"
+	DevstorageReadWriteScope = "https://www.googleapis.com/auth/devstorage.read_write"
 
 	// View and manage Genomics data
 	GenomicsScope = "https://www.googleapis.com/auth/genomics"
@@ -77,8 +80,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	AnnotationSets *AnnotationSetsService
 
@@ -103,6 +107,13 @@ type Service struct {
 	Variants *VariantsService
 
 	Variantsets *VariantsetsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAnnotationSetsService(s *Service) *AnnotationSetsService {
@@ -306,19 +317,25 @@ type Annotation struct {
 
 	// Transcript: A transcript value represents the assertion that a
 	// particular region of the reference genome may be transcribed as RNA.
-	// An alternate splicing pattern would be represented as separate
+	// An alternative splicing pattern would be represented as a separate
 	// transcript object. This field is only set for annotations of type
 	// TRANSCRIPT.
 	Transcript *Transcript `json:"transcript,omitempty"`
 
 	// Type: The data type for this annotation. Must match the containing
 	// annotation set's type.
+	//
+	// Possible values:
+	//   "GENE"
+	//   "GENERIC"
+	//   "TRANSCRIPT"
+	//   "VARIANT"
 	Type string `json:"type,omitempty"`
 
-	// Variant: A variant annotation which describes the effect of a variant
-	// on the genome, the coding sequence, and/or higher level consequences
-	// at the organism level e.g. pathogenicity. This field is only set for
-	// annotations of type VARIANT.
+	// Variant: A variant annotation, which describes the effect of a
+	// variant on the genome, the coding sequence, and/or higher level
+	// consequences at the organism level e.g. pathogenicity. This field is
+	// only set for annotations of type VARIANT.
 	Variant *VariantAnnotation `json:"variant,omitempty"`
 }
 
@@ -335,8 +352,8 @@ type AnnotationSet struct {
 	// Name: The display name for this annotation set.
 	Name string `json:"name,omitempty"`
 
-	// ReferenceSetId: The ID of the reference set which defines the
-	// coordinate-space for this set's annotations.
+	// ReferenceSetId: The ID of the reference set that defines the
+	// coordinate space for this set's annotations.
 	ReferenceSetId string `json:"referenceSetId,omitempty"`
 
 	// SourceUri: The source URI describing the file from which this
@@ -344,7 +361,41 @@ type AnnotationSet struct {
 	SourceUri string `json:"sourceUri,omitempty"`
 
 	// Type: The type of annotations contained within this set.
+	//
+	// Possible values:
+	//   "GENE"
+	//   "GENERIC"
+	//   "TRANSCRIPT"
+	//   "VARIANT"
 	Type string `json:"type,omitempty"`
+}
+
+type BatchAnnotationsResponse struct {
+	// Entries: The resulting per-annotation entries, ordered consistently
+	// with the original request.
+	Entries []*BatchAnnotationsResponseEntry `json:"entries,omitempty"`
+}
+
+type BatchAnnotationsResponseEntry struct {
+	// Annotation: The annotation, if any.
+	Annotation *Annotation `json:"annotation,omitempty"`
+
+	// Status: The resulting status for this annotation operation.
+	Status *BatchAnnotationsResponseEntryStatus `json:"status,omitempty"`
+}
+
+type BatchAnnotationsResponseEntryStatus struct {
+	// Code: The HTTP status code for this operation.
+	Code int64 `json:"code,omitempty"`
+
+	// Message: Error message for this status, if any.
+	Message string `json:"message,omitempty"`
+}
+
+type BatchCreateAnnotationsRequest struct {
+	// Annotations: The annotations to be created. At most 4096 can be
+	// specified in a single request.
+	Annotations []*Annotation `json:"annotations,omitempty"`
 }
 
 type Call struct {
@@ -430,6 +481,17 @@ type CallSet struct {
 }
 
 type CigarUnit struct {
+	// Possible values:
+	//   "ALIGNMENT_MATCH"
+	//   "CLIP_HARD"
+	//   "CLIP_SOFT"
+	//   "DELETE"
+	//   "INSERT"
+	//   "OPERATION_UNSPECIFIED"
+	//   "PAD"
+	//   "SEQUENCE_MATCH"
+	//   "SEQUENCE_MISMATCH"
+	//   "SKIP"
 	Operation string `json:"operation,omitempty"`
 
 	// OperationLength: The number of bases that the operation runs for.
@@ -506,10 +568,9 @@ type ExperimentalCreateJobResponse struct {
 }
 
 type ExportReadGroupSetsRequest struct {
-	// ExportUri: A Google Cloud Storage URI where the exported BAM file
-	// will be created. The currently authenticated user must have write
-	// access to the new file location. An error will be returned if the URI
-	// already contains data.
+	// ExportUri: A Google Cloud Storage URI for the exported BAM file. The
+	// currently authenticated user must have write access to the new file.
+	// An error will be returned if the URI already contains data.
 	ExportUri string `json:"exportUri,omitempty"`
 
 	// ProjectNumber: The Google Developers Console project number that owns
@@ -546,6 +607,9 @@ type ExportVariantSetRequest struct {
 	CallSetIds []string `json:"callSetIds,omitempty"`
 
 	// Format: The format for the exported data.
+	//
+	// Possible values:
+	//   "BIGQUERY"
 	Format string `json:"format,omitempty"`
 
 	// ProjectNumber: The Google Cloud project number that owns the
@@ -598,6 +662,10 @@ type ImportReadGroupSetsRequest struct {
 
 	// PartitionStrategy: The partition strategy describes how read groups
 	// are partitioned into read group sets.
+	//
+	// Possible values:
+	//   "MERGE_ALL"
+	//   "PER_FILE_PER_SAMPLE"
 	PartitionStrategy string `json:"partitionStrategy,omitempty"`
 
 	// ReferenceSetId: The reference set to which the imported read group
@@ -618,12 +686,17 @@ type ImportReadGroupSetsResponse struct {
 }
 
 type ImportVariantsRequest struct {
-	// Format: The format of the variant data being imported.
+	// Format: The format of the variant data being imported. If
+	// unspecified, defaults to to "VCF".
+	//
+	// Possible values:
+	//   "COMPLETE_GENOMICS"
+	//   "VCF"
 	Format string `json:"format,omitempty"`
 
-	// SourceUris: A list of URIs pointing at VCF files in Google Cloud
-	// Storage. See the VCF Specification for more details on the input
-	// format.
+	// SourceUris: A list of URIs referencing variant files in Google Cloud
+	// Storage. URIs can include wildcards as described here. Note that
+	// recursive wildcards ('**') are not supported.
 	SourceUris []string `json:"sourceUris,omitempty"`
 }
 
@@ -675,6 +748,15 @@ type Job struct {
 	Request *JobRequest `json:"request,omitempty"`
 
 	// Status: The status of this job.
+	//
+	// Possible values:
+	//   "CANCELED"
+	//   "FAILURE"
+	//   "NEW"
+	//   "PENDING"
+	//   "RUNNING"
+	//   "SUCCESS"
+	//   "UNKNOWN_STATUS"
 	Status string `json:"status,omitempty"`
 
 	// Warnings: Any warnings that occurred during processing.
@@ -691,6 +773,16 @@ type JobRequest struct {
 	Source []string `json:"source,omitempty"`
 
 	// Type: The original request type.
+	//
+	// Possible values:
+	//   "ALIGN_READSETS"
+	//   "CALL_READSETS"
+	//   "EXPERIMENTAL_CREATE_JOB"
+	//   "EXPORT_READSETS"
+	//   "EXPORT_VARIANTS"
+	//   "IMPORT_READSETS"
+	//   "IMPORT_VARIANTS"
+	//   "UNKNOWN_TYPE"
 	Type string `json:"type,omitempty"`
 }
 
@@ -780,6 +872,14 @@ type Metadata struct {
 
 	// Type: The type of data. Possible types include: Integer, Float, Flag,
 	// Character, and String.
+	//
+	// Possible values:
+	//   "CHARACTER"
+	//   "FLAG"
+	//   "FLOAT"
+	//   "INTEGER"
+	//   "STRING"
+	//   "UNKNOWN_TYPE"
 	Type string `json:"type,omitempty"`
 
 	// Value: The value field for simple metadata
@@ -903,7 +1003,7 @@ type Read struct {
 	AlignedSequence string `json:"alignedSequence,omitempty"`
 
 	// Alignment: The linear alignment for this alignment record. This field
-	// will be null if the read is unmapped.
+	// will be unset if the read is unmapped.
 	Alignment *LinearAlignment `json:"alignment,omitempty"`
 
 	// DuplicateFragment: The fragment is a PCR or optical duplicate (SAM
@@ -928,9 +1028,10 @@ type Read struct {
 	// Info: A map of additional read alignment information.
 	Info map[string][]string `json:"info,omitempty"`
 
-	// NextMatePosition: The mapping of the primary alignment of the
+	// NextMatePosition: The position of the primary alignment of the
 	// (readNumber+1)%numberReads read in the fragment. It replaces mate
-	// position and mate strand in SAM.
+	// position and mate strand in SAM. This field will be unset if that
+	// read is unmapped or if the fragment only has a single read.
 	NextMatePosition *Position `json:"nextMatePosition,omitempty"`
 
 	// NumberReads: The number of reads in the fragment (extension to SAM
@@ -1126,7 +1227,7 @@ type ReferenceSet struct {
 	// AssemblyId: Public id of this reference set, such as GRCh37.
 	AssemblyId string `json:"assemblyId,omitempty"`
 
-	// Description: Optional free text description of this reference set.
+	// Description: Free text description of this reference set.
 	Description string `json:"description,omitempty"`
 
 	// Id: The Google generated immutable ID of the reference set.
@@ -1183,7 +1284,7 @@ type SearchAnnotationSetsRequest struct {
 	// the given reference set are returned.
 	ReferenceSetId string `json:"referenceSetId,omitempty"`
 
-	// Types: If specified, only annotation sets which have any of these
+	// Types: If specified, only annotation sets that have any of these
 	// types are returned.
 	Types []string `json:"types,omitempty"`
 }
@@ -1214,8 +1315,8 @@ type SearchAnnotationsRequest struct {
 	// parameter to the value of nextPageToken from the previous response.
 	PageToken string `json:"pageToken,omitempty"`
 
-	// Range: If specified, this query matches only annotations which
-	// overlap this range.
+	// Range: If specified, this query matches only annotations that overlap
+	// this range.
 	Range *QueryRange `json:"range,omitempty"`
 }
 
@@ -1235,7 +1336,8 @@ type SearchCallSetsRequest struct {
 	// this string.
 	Name string `json:"name,omitempty"`
 
-	// PageSize: The maximum number of call sets to return.
+	// PageSize: The maximum number of call sets to return. If unspecified,
+	// defaults to 1000.
 	PageSize int64 `json:"pageSize,omitempty"`
 
 	// PageToken: The continuation token, which is used to page through
@@ -1306,7 +1408,7 @@ type SearchReadGroupSetsRequest struct {
 	Name string `json:"name,omitempty"`
 
 	// PageSize: Specifies number of results to return in a single page. If
-	// unspecified, it will default to 128. The maximum value is 1024.
+	// unspecified, it will default to 256. The maximum value is 1024.
 	PageSize int64 `json:"pageSize,omitempty"`
 
 	// PageToken: The continuation token, which is used to page through
@@ -1482,16 +1584,17 @@ type SearchVariantsRequest struct {
 	// will never be returned.
 	CallSetIds []string `json:"callSetIds,omitempty"`
 
-	// End: Required. The end of the window (0-based, exclusive) for which
-	// overlapping variants should be returned.
+	// End: The end of the window, 0-based exclusive. If unspecified or 0,
+	// defaults to the length of the reference.
 	End int64 `json:"end,omitempty,string"`
 
 	// MaxCalls: The maximum number of calls to return. However, at least
 	// one variant will always be returned, even if it has more calls than
-	// this limit.
+	// this limit. If unspecified, defaults to 5000.
 	MaxCalls int64 `json:"maxCalls,omitempty"`
 
-	// PageSize: The maximum number of variants to return.
+	// PageSize: The maximum number of variants to return. If unspecified,
+	// defaults to 5000.
 	PageSize int64 `json:"pageSize,omitempty"`
 
 	// PageToken: The continuation token, which is used to page through
@@ -1503,15 +1606,17 @@ type SearchVariantsRequest struct {
 	// sequence.
 	ReferenceName string `json:"referenceName,omitempty"`
 
-	// Start: Required. The beginning of the window (0-based, inclusive) for
-	// which overlapping variants should be returned.
+	// Start: The beginning of the window (0-based, inclusive) for which
+	// overlapping variants should be returned. If unspecified, defaults to
+	// 0.
 	Start int64 `json:"start,omitempty,string"`
 
 	// VariantName: Only return variants which have exactly this name.
 	VariantName string `json:"variantName,omitempty"`
 
-	// VariantSetIds: Exactly one variant set ID must be provided. Only
-	// variants from this variant set will be returned.
+	// VariantSetIds: At most one variant set ID must be provided. Only
+	// variants from this variant set will be returned. If omitted, a call
+	// set id must be included in the request.
 	VariantSetIds []string `json:"variantSetIds,omitempty"`
 }
 
@@ -1532,35 +1637,31 @@ type Transcript struct {
 	// this range with those of the exons, if any. If there are any exons,
 	// the codingSequence must start and end within them.
 	//
-	// Note that in some
-	// cases, the reference genome will not exactly match the observed mRNA
-	// transcript e.g. due to variance in the source genome from reference.
-	// In these cases, exon.frame will not necessarily match the expected
-	// reference reading frame and coding exon reference bases cannot
-	// necessarily be concatenated to produce the original transcript mRNA.
+	// Note that in some cases, the reference genome will not exactly match
+	// the observed mRNA transcript e.g. due to variance in the source
+	// genome from reference. In these cases, exon.frame will not
+	// necessarily match the expected reference reading frame and coding
+	// exon reference bases cannot necessarily be concatenated to produce
+	// the original transcript mRNA.
 	CodingSequence *TranscriptCodingSequence `json:"codingSequence,omitempty"`
 
-	// Exons: The exons which compose this transcript. Exons are the pieces
-	// of the transcript which are spliced together, may be exported from a
-	// cell's nucleus, and may then be translated to protein. This field
-	// should be unset for genomes where transcript splicing does not occur,
-	// for example prokaryotes.
+	// Exons: The exons that compose this transcript. This field should be
+	// unset for genomes where transcript splicing does not occur, for
+	// example prokaryotes.
 	//
 	//
-	// Introns are regions of the transcript
-	// which are not included in the spliced RNA product. Though not
-	// explicitly modeled here, intron ranges can be deduced; all regions of
-	// this transcript which are not exons are introns.
+	// Introns are regions of the transcript that are not included in the
+	// spliced RNA product. Though not explicitly modeled here, intron
+	// ranges can be deduced; all regions of this transcript that are not
+	// exons are introns.
 	//
 	//
-	// Exonic sequences
-	// do not necessarily code for a translational product (amino acids).
-	// Only the regions of exons bounded by the codingSequence correspond to
-	// coding DNA sequence.
+	// Exonic sequences do not necessarily code for a translational product
+	// (amino acids). Only the regions of exons bounded by the
+	// codingSequence correspond to coding DNA sequence.
 	//
 	//
-	// Exons are ordered by start position and may
-	// not overlap.
+	// Exons are ordered by start position and may not overlap.
 	Exons []*TranscriptExon `json:"exons,omitempty"`
 
 	// GeneId: The annotation ID of the gene from which this transcript is
@@ -1587,7 +1688,7 @@ type TranscriptExon struct {
 	// reference start, and not the containing annotation start.
 	End int64 `json:"end,omitempty,string"`
 
-	// Frame: The frame of this exon. Contains a value of 0, 1, or 2 which
+	// Frame: The frame of this exon. Contains a value of 0, 1, or 2, which
 	// indicates the offset of the first coding base of the exon within the
 	// reading frame of the coding DNA sequence, if any. This field is
 	// dependent on the strandedness of this annotation (see
@@ -1595,10 +1696,9 @@ type TranscriptExon struct {
 	// this offset is relative to the exon.start. For reverse strand
 	// annotations, this offset is relative to the exon.end-1.
 	//
-	// Unset if
-	// this exon does not intersect the coding sequence. Upon creation of a
-	// transcript, the frame must be populated for all or none of the coding
-	// exons.
+	// Unset if this exon does not intersect the coding sequence. Upon
+	// creation of a transcript, the frame must be populated for all or none
+	// of the coding exons.
 	Frame *Int32Value `json:"frame,omitempty"`
 
 	// Start: The start position of the exon on this annotation's reference
@@ -1670,6 +1770,22 @@ type VariantAnnotation struct {
 	// variant. It is adapted from the ClinVar controlled vocabulary for
 	// clinical significance described at:
 	// http://www.ncbi.nlm.nih.gov/clinvar/docs/clinsig/
+	//
+	// Possible values:
+	//   "ASSOCIATION"
+	//   "BENIGN"
+	//   "CLINICAL_SIGNIFICANCE_UNSPECIFIED"
+	//   "CONFERS_SENSITIVITY"
+	//   "DRUG_RESPONSE"
+	//   "HISTOCOMPATIBILITY"
+	//   "LIKELY_BENIGN"
+	//   "LIKELY_PATHOGENIC"
+	//   "MULTIPLE_REPORTED"
+	//   "OTHER"
+	//   "PATHOGENIC"
+	//   "PROTECTIVE"
+	//   "RISK_FACTOR"
+	//   "UNCERTAIN"
 	ClinicalSignificance string `json:"clinicalSignificance,omitempty"`
 
 	// Conditions: The set of conditions associated with this variant. A
@@ -1677,17 +1793,38 @@ type VariantAnnotation struct {
 	Conditions []*VariantAnnotationCondition `json:"conditions,omitempty"`
 
 	// Effect: Effect of the variant on the coding sequence.
+	//
+	// Possible values:
+	//   "EFFECT_UNSPECIFIED"
+	//   "FRAMESHIFT"
+	//   "FRAME_PRESERVING_INDEL"
+	//   "NONSYNONYMOUS_SNP"
+	//   "OTHER"
+	//   "SPLICE_SITE_DISRUPTION"
+	//   "STOP_GAIN"
+	//   "STOP_LOSS"
+	//   "SYNONYMOUS_SNP"
 	Effect string `json:"effect,omitempty"`
 
 	// GeneId: Google annotation ID of the gene affected by this variant.
 	// This should be provided when the variant is created.
 	GeneId string `json:"geneId,omitempty"`
 
-	// TranscriptIds: Google annotation ID of the transcripts affected by
+	// TranscriptIds: Google annotation IDs of the transcripts affected by
 	// this variant. These should be provided when the variant is created.
 	TranscriptIds []string `json:"transcriptIds,omitempty"`
 
 	// Type: Type has been adapted from ClinVar's list of variant types.
+	//
+	// Possible values:
+	//   "CNV"
+	//   "DELETION"
+	//   "INSERTION"
+	//   "OTHER"
+	//   "SNP"
+	//   "STRUCTURAL"
+	//   "SUBSTITUTION"
+	//   "TYPE_UNSPECIFIED"
 	Type string `json:"type,omitempty"`
 }
 
@@ -1696,7 +1833,7 @@ type VariantAnnotationCondition struct {
 	// for these IDs at http://www.ncbi.nlm.nih.gov/medgen/
 	ConceptId string `json:"conceptId,omitempty"`
 
-	// ExternalIds: The set of external ids for this condition.
+	// ExternalIds: The set of external IDs for this condition.
 	ExternalIds []*ExternalId `json:"externalIds,omitempty"`
 
 	// Names: A set of names for the condition.
@@ -1763,7 +1900,7 @@ func (c *AnnotationSetsCreateCall) Do() (*AnnotationSet, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1789,6 +1926,7 @@ func (c *AnnotationSetsCreateCall) Do() (*AnnotationSet, error) {
 	//     "$ref": "AnnotationSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -1832,7 +1970,7 @@ func (c *AnnotationSetsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"annotationSetId": c.annotationSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1859,6 +1997,7 @@ func (c *AnnotationSetsDeleteCall) Do() error {
 	//   },
 	//   "path": "annotationSets/{annotationSetId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -1902,7 +2041,7 @@ func (c *AnnotationSetsGetCall) Do() (*AnnotationSet, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"annotationSetId": c.annotationSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1936,6 +2075,7 @@ func (c *AnnotationSetsGetCall) Do() (*AnnotationSet, error) {
 	//     "$ref": "AnnotationSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -1990,7 +2130,7 @@ func (c *AnnotationSetsPatchCall) Do() (*AnnotationSet, error) {
 		"annotationSetId": c.annotationSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2027,6 +2167,7 @@ func (c *AnnotationSetsPatchCall) Do() (*AnnotationSet, error) {
 	//     "$ref": "AnnotationSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2041,7 +2182,7 @@ type AnnotationSetsSearchCall struct {
 	opt_                        map[string]interface{}
 }
 
-// Search: Searches for annotation sets which match the given criteria.
+// Search: Searches for annotation sets that match the given criteria.
 // Results are returned in a deterministic order. Caller must have READ
 // permission for the queried datasets.
 func (r *AnnotationSetsService) Search(searchannotationsetsrequest *SearchAnnotationSetsRequest) *AnnotationSetsSearchCall {
@@ -2075,7 +2216,7 @@ func (c *AnnotationSetsSearchCall) Do() (*SearchAnnotationSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2090,7 +2231,7 @@ func (c *AnnotationSetsSearchCall) Do() (*SearchAnnotationSetsResponse, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Searches for annotation sets which match the given criteria. Results are returned in a deterministic order. Caller must have READ permission for the queried datasets.",
+	//   "description": "Searches for annotation sets that match the given criteria. Results are returned in a deterministic order. Caller must have READ permission for the queried datasets.",
 	//   "httpMethod": "POST",
 	//   "id": "genomics.annotationSets.search",
 	//   "path": "annotationSets/search",
@@ -2101,6 +2242,7 @@ func (c *AnnotationSetsSearchCall) Do() (*SearchAnnotationSetsResponse, error) {
 	//     "$ref": "SearchAnnotationSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -2155,7 +2297,7 @@ func (c *AnnotationSetsUpdateCall) Do() (*AnnotationSet, error) {
 		"annotationSetId": c.annotationSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2192,6 +2334,90 @@ func (c *AnnotationSetsUpdateCall) Do() (*AnnotationSet, error) {
 	//     "$ref": "AnnotationSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/genomics"
+	//   ]
+	// }
+
+}
+
+// method id "genomics.annotations.batchCreate":
+
+type AnnotationsBatchCreateCall struct {
+	s                             *Service
+	batchcreateannotationsrequest *BatchCreateAnnotationsRequest
+	opt_                          map[string]interface{}
+}
+
+// BatchCreate: Creates one or more new annotations atomically. All
+// annotations must belong to the same annotation set. Caller must have
+// WRITE permission for this annotation set. For optimal performance,
+// batch positionally adjacent annotations together.
+//
+//
+// If the request has a systemic issue, such as an attempt to write to
+// an inaccessible annotation set, the entire RPC will fail accordingly.
+// For lesser data issues, when possible an error will be isolated to
+// the corresponding batch entry in the response; the remaining well
+// formed annotations will be created normally.
+func (r *AnnotationsService) BatchCreate(batchcreateannotationsrequest *BatchCreateAnnotationsRequest) *AnnotationsBatchCreateCall {
+	c := &AnnotationsBatchCreateCall{s: r.s, opt_: make(map[string]interface{})}
+	c.batchcreateannotationsrequest = batchcreateannotationsrequest
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *AnnotationsBatchCreateCall) Fields(s ...googleapi.Field) *AnnotationsBatchCreateCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *AnnotationsBatchCreateCall) Do() (*BatchAnnotationsResponse, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.batchcreateannotationsrequest)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "annotations:batchCreate")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *BatchAnnotationsResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Creates one or more new annotations atomically. All annotations must belong to the same annotation set. Caller must have WRITE permission for this annotation set. For optimal performance, batch positionally adjacent annotations together.\n\n\nIf the request has a systemic issue, such as an attempt to write to an inaccessible annotation set, the entire RPC will fail accordingly. For lesser data issues, when possible an error will be isolated to the corresponding batch entry in the response; the remaining well formed annotations will be created normally.",
+	//   "httpMethod": "POST",
+	//   "id": "genomics.annotations.batchCreate",
+	//   "path": "annotations:batchCreate",
+	//   "request": {
+	//     "$ref": "BatchCreateAnnotationsRequest"
+	//   },
+	//   "response": {
+	//     "$ref": "BatchAnnotationsResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2239,7 +2465,7 @@ func (c *AnnotationsCreateCall) Do() (*Annotation, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2265,6 +2491,7 @@ func (c *AnnotationsCreateCall) Do() (*Annotation, error) {
 	//     "$ref": "Annotation"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2308,7 +2535,7 @@ func (c *AnnotationsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"annotationId": c.annotationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2335,6 +2562,7 @@ func (c *AnnotationsDeleteCall) Do() error {
 	//   },
 	//   "path": "annotations/{annotationId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2378,7 +2606,7 @@ func (c *AnnotationsGetCall) Do() (*Annotation, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"annotationId": c.annotationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2412,6 +2640,7 @@ func (c *AnnotationsGetCall) Do() (*Annotation, error) {
 	//     "$ref": "Annotation"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -2466,7 +2695,7 @@ func (c *AnnotationsPatchCall) Do() (*Annotation, error) {
 		"annotationId": c.annotationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2503,6 +2732,7 @@ func (c *AnnotationsPatchCall) Do() (*Annotation, error) {
 	//     "$ref": "Annotation"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2517,10 +2747,10 @@ type AnnotationsSearchCall struct {
 	opt_                     map[string]interface{}
 }
 
-// Search: Searches for annotations which match the given criteria.
-// Results are returned ordered by start position. Annotations which
-// have matching start positions are ordered deterministically. Caller
-// must have READ permission for the queried annotation sets.
+// Search: Searches for annotations that match the given criteria.
+// Results are returned ordered by start position. Annotations that have
+// matching start positions are ordered deterministically. Caller must
+// have READ permission for the queried annotation sets.
 func (r *AnnotationsService) Search(searchannotationsrequest *SearchAnnotationsRequest) *AnnotationsSearchCall {
 	c := &AnnotationsSearchCall{s: r.s, opt_: make(map[string]interface{})}
 	c.searchannotationsrequest = searchannotationsrequest
@@ -2552,7 +2782,7 @@ func (c *AnnotationsSearchCall) Do() (*SearchAnnotationsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2567,7 +2797,7 @@ func (c *AnnotationsSearchCall) Do() (*SearchAnnotationsResponse, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Searches for annotations which match the given criteria. Results are returned ordered by start position. Annotations which have matching start positions are ordered deterministically. Caller must have READ permission for the queried annotation sets.",
+	//   "description": "Searches for annotations that match the given criteria. Results are returned ordered by start position. Annotations that have matching start positions are ordered deterministically. Caller must have READ permission for the queried annotation sets.",
 	//   "httpMethod": "POST",
 	//   "id": "genomics.annotations.search",
 	//   "path": "annotations/search",
@@ -2578,6 +2808,7 @@ func (c *AnnotationsSearchCall) Do() (*SearchAnnotationsResponse, error) {
 	//     "$ref": "SearchAnnotationsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -2632,7 +2863,7 @@ func (c *AnnotationsUpdateCall) Do() (*Annotation, error) {
 		"annotationId": c.annotationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2669,6 +2900,7 @@ func (c *AnnotationsUpdateCall) Do() (*Annotation, error) {
 	//     "$ref": "Annotation"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2715,7 +2947,7 @@ func (c *CallsetsCreateCall) Do() (*CallSet, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2741,6 +2973,7 @@ func (c *CallsetsCreateCall) Do() (*CallSet, error) {
 	//     "$ref": "CallSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2783,7 +3016,7 @@ func (c *CallsetsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"callSetId": c.callSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2810,6 +3043,7 @@ func (c *CallsetsDeleteCall) Do() error {
 	//   },
 	//   "path": "callsets/{callSetId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2852,7 +3086,7 @@ func (c *CallsetsGetCall) Do() (*CallSet, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"callSetId": c.callSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2886,6 +3120,7 @@ func (c *CallsetsGetCall) Do() (*CallSet, error) {
 	//     "$ref": "CallSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -2937,7 +3172,7 @@ func (c *CallsetsPatchCall) Do() (*CallSet, error) {
 		"callSetId": c.callSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2974,6 +3209,7 @@ func (c *CallsetsPatchCall) Do() (*CallSet, error) {
 	//     "$ref": "CallSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -2990,8 +3226,7 @@ type CallsetsSearchCall struct {
 
 // Search: Gets a list of call sets matching the criteria.
 //
-// Implements
-// GlobalAllianceApi.searchCallSets.
+// Implements GlobalAllianceApi.searchCallSets.
 func (r *CallsetsService) Search(searchcallsetsrequest *SearchCallSetsRequest) *CallsetsSearchCall {
 	c := &CallsetsSearchCall{s: r.s, opt_: make(map[string]interface{})}
 	c.searchcallsetsrequest = searchcallsetsrequest
@@ -3023,7 +3258,7 @@ func (c *CallsetsSearchCall) Do() (*SearchCallSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3049,6 +3284,7 @@ func (c *CallsetsSearchCall) Do() (*SearchCallSetsResponse, error) {
 	//     "$ref": "SearchCallSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -3100,7 +3336,7 @@ func (c *CallsetsUpdateCall) Do() (*CallSet, error) {
 		"callSetId": c.callSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3137,6 +3373,7 @@ func (c *CallsetsUpdateCall) Do() (*CallSet, error) {
 	//     "$ref": "CallSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3183,7 +3420,7 @@ func (c *DatasetsCreateCall) Do() (*Dataset, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3209,6 +3446,7 @@ func (c *DatasetsCreateCall) Do() (*Dataset, error) {
 	//     "$ref": "Dataset"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3251,7 +3489,7 @@ func (c *DatasetsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3278,6 +3516,7 @@ func (c *DatasetsDeleteCall) Do() error {
 	//   },
 	//   "path": "datasets/{datasetId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3320,7 +3559,7 @@ func (c *DatasetsGetCall) Do() (*Dataset, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3354,6 +3593,7 @@ func (c *DatasetsGetCall) Do() (*Dataset, error) {
 	//     "$ref": "Dataset"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -3368,14 +3608,14 @@ type DatasetsListCall struct {
 	opt_ map[string]interface{}
 }
 
-// List: Lists all datasets.
+// List: Lists datasets within a project.
 func (r *DatasetsService) List() *DatasetsListCall {
 	c := &DatasetsListCall{s: r.s, opt_: make(map[string]interface{})}
 	return c
 }
 
 // PageSize sets the optional parameter "pageSize": The maximum number
-// of results returned by this request.
+// of results returned by this request. If unspecified, defaults to 50.
 func (c *DatasetsListCall) PageSize(pageSize int64) *DatasetsListCall {
 	c.opt_["pageSize"] = pageSize
 	return c
@@ -3390,10 +3630,8 @@ func (c *DatasetsListCall) PageToken(pageToken string) *DatasetsListCall {
 	return c
 }
 
-// ProjectNumber sets the optional parameter "projectNumber": Only
-// return datasets which belong to this Google Developers Console
-// project. Only accepts project numbers. Returns all public projects if
-// no project number is specified.
+// ProjectNumber sets the optional parameter "projectNumber": The
+// project to list datasets for.
 func (c *DatasetsListCall) ProjectNumber(projectNumber int64) *DatasetsListCall {
 	c.opt_["projectNumber"] = projectNumber
 	return c
@@ -3427,7 +3665,7 @@ func (c *DatasetsListCall) Do() (*ListDatasetsResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3442,13 +3680,12 @@ func (c *DatasetsListCall) Do() (*ListDatasetsResponse, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Lists all datasets.",
+	//   "description": "Lists datasets within a project.",
 	//   "httpMethod": "GET",
 	//   "id": "genomics.datasets.list",
 	//   "parameters": {
 	//     "pageSize": {
-	//       "default": "50",
-	//       "description": "The maximum number of results returned by this request.",
+	//       "description": "The maximum number of results returned by this request. If unspecified, defaults to 50.",
 	//       "format": "int32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -3459,7 +3696,7 @@ func (c *DatasetsListCall) Do() (*ListDatasetsResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "projectNumber": {
-	//       "description": "Only return datasets which belong to this Google Developers Console project. Only accepts project numbers. Returns all public projects if no project number is specified.",
+	//       "description": "The project to list datasets for.",
 	//       "format": "int64",
 	//       "location": "query",
 	//       "type": "string"
@@ -3470,6 +3707,7 @@ func (c *DatasetsListCall) Do() (*ListDatasetsResponse, error) {
 	//     "$ref": "ListDatasetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -3521,7 +3759,7 @@ func (c *DatasetsPatchCall) Do() (*Dataset, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3558,6 +3796,7 @@ func (c *DatasetsPatchCall) Do() (*Dataset, error) {
 	//     "$ref": "Dataset"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3602,7 +3841,7 @@ func (c *DatasetsUndeleteCall) Do() (*Dataset, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3636,6 +3875,7 @@ func (c *DatasetsUndeleteCall) Do() (*Dataset, error) {
 	//     "$ref": "Dataset"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3686,7 +3926,7 @@ func (c *DatasetsUpdateCall) Do() (*Dataset, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3723,6 +3963,7 @@ func (c *DatasetsUpdateCall) Do() (*Dataset, error) {
 	//     "$ref": "Dataset"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3770,7 +4011,7 @@ func (c *ExperimentalJobsCreateCall) Do() (*ExperimentalCreateJobResponse, error
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3796,6 +4037,7 @@ func (c *ExperimentalJobsCreateCall) Do() (*ExperimentalCreateJobResponse, error
 	//     "$ref": "ExperimentalCreateJobResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/devstorage.read_write",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
@@ -3840,7 +4082,7 @@ func (c *JobsCancelCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"jobId": c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3867,6 +4109,7 @@ func (c *JobsCancelCall) Do() error {
 	//   },
 	//   "path": "jobs/{jobId}/cancel",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -3909,7 +4152,7 @@ func (c *JobsGetCall) Do() (*Job, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"jobId": c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3943,6 +4186,7 @@ func (c *JobsGetCall) Do() (*Job, error) {
 	//     "$ref": "Job"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -3990,7 +4234,7 @@ func (c *JobsSearchCall) Do() (*SearchJobsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4016,6 +4260,7 @@ func (c *JobsSearchCall) Do() (*SearchJobsResponse, error) {
 	//     "$ref": "SearchJobsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -4065,7 +4310,7 @@ func (c *ReadgroupsetsAlignCall) Do() (*AlignReadGroupSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4091,6 +4336,7 @@ func (c *ReadgroupsetsAlignCall) Do() (*AlignReadGroupSetsResponse, error) {
 	//     "$ref": "AlignReadGroupSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/devstorage.read_write",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
@@ -4140,7 +4386,7 @@ func (c *ReadgroupsetsCallCall) Do() (*CallReadGroupSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4166,6 +4412,7 @@ func (c *ReadgroupsetsCallCall) Do() (*CallReadGroupSetsResponse, error) {
 	//     "$ref": "CallReadGroupSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/devstorage.read_write",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
@@ -4209,7 +4456,7 @@ func (c *ReadgroupsetsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"readGroupSetId": c.readGroupSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -4236,6 +4483,7 @@ func (c *ReadgroupsetsDeleteCall) Do() error {
 	//   },
 	//   "path": "readgroupsets/{readGroupSetId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -4253,11 +4501,11 @@ type ReadgroupsetsExportCall struct {
 // Export: Exports read group sets to a BAM file in Google Cloud
 // Storage.
 //
-// Note that currently there may be some differences between
-// exported BAM files and the original BAM file at the time of import.
-// In particular, comments in the input file header will not be
-// preserved, some custom tags will be converted to strings, and
-// original reference sequence order is not necessarily preserved.
+// Note that currently there may be some differences between exported
+// BAM files and the original BAM file at the time of import. In
+// particular, comments in the input file header will not be preserved,
+// some custom tags will be converted to strings, and original reference
+// sequence order is not necessarily preserved.
 func (r *ReadgroupsetsService) Export(exportreadgroupsetsrequest *ExportReadGroupSetsRequest) *ReadgroupsetsExportCall {
 	c := &ReadgroupsetsExportCall{s: r.s, opt_: make(map[string]interface{})}
 	c.exportreadgroupsetsrequest = exportreadgroupsetsrequest
@@ -4289,7 +4537,7 @@ func (c *ReadgroupsetsExportCall) Do() (*ExportReadGroupSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4315,6 +4563,7 @@ func (c *ReadgroupsetsExportCall) Do() (*ExportReadGroupSetsResponse, error) {
 	//     "$ref": "ExportReadGroupSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/devstorage.read_write",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
@@ -4358,7 +4607,7 @@ func (c *ReadgroupsetsGetCall) Do() (*ReadGroupSet, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"readGroupSetId": c.readGroupSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4392,6 +4641,7 @@ func (c *ReadgroupsetsGetCall) Do() (*ReadGroupSet, error) {
 	//     "$ref": "ReadGroupSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -4410,10 +4660,10 @@ type ReadgroupsetsImportCall struct {
 // Import: Creates read group sets by asynchronously importing the
 // provided information.
 //
-// Note that currently comments in the input file
-// header are not imported and some custom tags will be converted to
-// strings, rather than preserving tag types. The caller must have WRITE
-// permissions to the dataset.
+// Note that currently comments in the input file header are not
+// imported and some custom tags will be converted to strings, rather
+// than preserving tag types. The caller must have WRITE permissions to
+// the dataset.
 func (r *ReadgroupsetsService) Import(importreadgroupsetsrequest *ImportReadGroupSetsRequest) *ReadgroupsetsImportCall {
 	c := &ReadgroupsetsImportCall{s: r.s, opt_: make(map[string]interface{})}
 	c.importreadgroupsetsrequest = importreadgroupsetsrequest
@@ -4445,7 +4695,7 @@ func (c *ReadgroupsetsImportCall) Do() (*ImportReadGroupSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4471,6 +4721,7 @@ func (c *ReadgroupsetsImportCall) Do() (*ImportReadGroupSetsResponse, error) {
 	//     "$ref": "ImportReadGroupSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/devstorage.read_write",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
@@ -4523,7 +4774,7 @@ func (c *ReadgroupsetsPatchCall) Do() (*ReadGroupSet, error) {
 		"readGroupSetId": c.readGroupSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4560,6 +4811,7 @@ func (c *ReadgroupsetsPatchCall) Do() (*ReadGroupSet, error) {
 	//     "$ref": "ReadGroupSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -4609,7 +4861,7 @@ func (c *ReadgroupsetsSearchCall) Do() (*SearchReadGroupSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4635,6 +4887,7 @@ func (c *ReadgroupsetsSearchCall) Do() (*SearchReadGroupSetsResponse, error) {
 	//     "$ref": "SearchReadGroupSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -4686,7 +4939,7 @@ func (c *ReadgroupsetsUpdateCall) Do() (*ReadGroupSet, error) {
 		"readGroupSetId": c.readGroupSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4723,6 +4976,7 @@ func (c *ReadgroupsetsUpdateCall) Do() (*ReadGroupSet, error) {
 	//     "$ref": "ReadGroupSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -4742,11 +4996,11 @@ type ReadgroupsetsCoveragebucketsListCall struct {
 // summarizes coverage information across its corresponding genomic
 // range.
 //
-// Coverage is defined as the number of reads which are aligned
-// to a given base in the reference sequence. Coverage buckets are
-// available at several precomputed bucket widths, enabling retrieval of
-// various coverage 'zoom levels'. The caller must have READ permissions
-// for the target read group set.
+// Coverage is defined as the number of reads which are aligned to a
+// given base in the reference sequence. Coverage buckets are available
+// at several precomputed bucket widths, enabling retrieval of various
+// coverage 'zoom levels'. The caller must have READ permissions for the
+// target read group set.
 func (r *ReadgroupsetsCoveragebucketsService) List(readGroupSetId string) *ReadgroupsetsCoveragebucketsListCall {
 	c := &ReadgroupsetsCoveragebucketsListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.readGroupSetId = readGroupSetId
@@ -4845,7 +5099,7 @@ func (c *ReadgroupsetsCoveragebucketsListCall) Do() (*ListCoverageBucketsRespons
 	googleapi.Expand(req.URL, map[string]string{
 		"readGroupSetId": c.readGroupSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4868,7 +5122,6 @@ func (c *ReadgroupsetsCoveragebucketsListCall) Do() (*ListCoverageBucketsRespons
 	//   ],
 	//   "parameters": {
 	//     "pageSize": {
-	//       "default": "1024",
 	//       "description": "The maximum number of results to return in a single page. If unspecified, defaults to 1024. The maximum value is 2048.",
 	//       "format": "int32",
 	//       "location": "query",
@@ -4914,6 +5167,7 @@ func (c *ReadgroupsetsCoveragebucketsListCall) Do() (*ListCoverageBucketsRespons
 	//     "$ref": "ListCoverageBucketsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -4934,16 +5188,15 @@ type ReadsSearchCall struct {
 // & position defined over the reference sequences to which the
 // requested read group sets are aligned.
 //
-// If a target positional range
-// is specified, search returns all reads whose alignment to the
-// reference genome overlap the range. A query which specifies only read
-// group set IDs yields all reads in those read group sets, including
-// unmapped reads.
+// If a target positional range is specified, search returns all reads
+// whose alignment to the reference genome overlap the range. A query
+// which specifies only read group set IDs yields all reads in those
+// read group sets, including unmapped reads.
 //
-// All reads returned (including reads on subsequent
-// pages) are ordered by genomic coordinate (reference sequence &
-// position). Reads with equivalent genomic coordinates are returned in
-// a deterministic order.
+// All reads returned (including reads on subsequent pages) are ordered
+// by genomic coordinate (reference sequence & position). Reads with
+// equivalent genomic coordinates are returned in a deterministic
+// order.
 //
 // Implements GlobalAllianceApi.searchReads.
 func (r *ReadsService) Search(searchreadsrequest *SearchReadsRequest) *ReadsSearchCall {
@@ -4977,7 +5230,7 @@ func (c *ReadsSearchCall) Do() (*SearchReadsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5003,6 +5256,7 @@ func (c *ReadsSearchCall) Do() (*SearchReadsResponse, error) {
 	//     "$ref": "SearchReadsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5048,7 +5302,7 @@ func (c *ReferencesGetCall) Do() (*Reference, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"referenceId": c.referenceId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5082,6 +5336,7 @@ func (c *ReferencesGetCall) Do() (*Reference, error) {
 	//     "$ref": "Reference"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5132,7 +5387,7 @@ func (c *ReferencesSearchCall) Do() (*SearchReferencesResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5158,6 +5413,7 @@ func (c *ReferencesSearchCall) Do() (*SearchReferencesResponse, error) {
 	//     "$ref": "SearchReferencesResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5246,7 +5502,7 @@ func (c *ReferencesBasesListCall) Do() (*ListBasesResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"referenceId": c.referenceId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5275,7 +5531,6 @@ func (c *ReferencesBasesListCall) Do() (*ListBasesResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "pageSize": {
-	//       "default": "200000",
 	//       "description": "Specifies the maximum number of bases to return in a single page.",
 	//       "format": "int32",
 	//       "location": "query",
@@ -5304,6 +5559,7 @@ func (c *ReferencesBasesListCall) Do() (*ListBasesResponse, error) {
 	//     "$ref": "ListBasesResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5321,8 +5577,7 @@ type ReferencesetsGetCall struct {
 
 // Get: Gets a reference set.
 //
-// Implements
-// GlobalAllianceApi.getReferenceSet.
+// Implements GlobalAllianceApi.getReferenceSet.
 func (r *ReferencesetsService) Get(referenceSetId string) *ReferencesetsGetCall {
 	c := &ReferencesetsGetCall{s: r.s, opt_: make(map[string]interface{})}
 	c.referenceSetId = referenceSetId
@@ -5350,7 +5605,7 @@ func (c *ReferencesetsGetCall) Do() (*ReferenceSet, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"referenceSetId": c.referenceSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5384,6 +5639,7 @@ func (c *ReferencesetsGetCall) Do() (*ReferenceSet, error) {
 	//     "$ref": "ReferenceSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5434,7 +5690,7 @@ func (c *ReferencesetsSearchCall) Do() (*SearchReferenceSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5460,6 +5716,7 @@ func (c *ReferencesetsSearchCall) Do() (*SearchReferenceSetsResponse, error) {
 	//     "$ref": "SearchReferenceSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5507,7 +5764,7 @@ func (c *VariantsCreateCall) Do() (*Variant, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5533,6 +5790,7 @@ func (c *VariantsCreateCall) Do() (*Variant, error) {
 	//     "$ref": "Variant"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -5575,7 +5833,7 @@ func (c *VariantsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"variantId": c.variantId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5602,6 +5860,7 @@ func (c *VariantsDeleteCall) Do() error {
 	//   },
 	//   "path": "variants/{variantId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -5644,7 +5903,7 @@ func (c *VariantsGetCall) Do() (*Variant, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"variantId": c.variantId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5678,6 +5937,7 @@ func (c *VariantsGetCall) Do() (*Variant, error) {
 	//     "$ref": "Variant"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5695,8 +5955,7 @@ type VariantsSearchCall struct {
 
 // Search: Gets a list of variants matching the criteria.
 //
-// Implements
-// GlobalAllianceApi.searchVariants.
+// Implements GlobalAllianceApi.searchVariants.
 func (r *VariantsService) Search(searchvariantsrequest *SearchVariantsRequest) *VariantsSearchCall {
 	c := &VariantsSearchCall{s: r.s, opt_: make(map[string]interface{})}
 	c.searchvariantsrequest = searchvariantsrequest
@@ -5728,7 +5987,7 @@ func (c *VariantsSearchCall) Do() (*SearchVariantsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5754,6 +6013,7 @@ func (c *VariantsSearchCall) Do() (*SearchVariantsResponse, error) {
 	//     "$ref": "SearchVariantsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -5807,7 +6067,7 @@ func (c *VariantsUpdateCall) Do() (*Variant, error) {
 		"variantId": c.variantId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5844,6 +6104,7 @@ func (c *VariantsUpdateCall) Do() (*Variant, error) {
 	//     "$ref": "Variant"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -5887,7 +6148,7 @@ func (c *VariantsetsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"variantSetId": c.variantSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5914,6 +6175,7 @@ func (c *VariantsetsDeleteCall) Do() error {
 	//   },
 	//   "path": "variantsets/{variantSetId}",
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -5964,7 +6226,7 @@ func (c *VariantsetsExportCall) Do() (*ExportVariantSetResponse, error) {
 		"variantSetId": c.variantSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6002,6 +6264,7 @@ func (c *VariantsetsExportCall) Do() (*ExportVariantSetResponse, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -6044,7 +6307,7 @@ func (c *VariantsetsGetCall) Do() (*VariantSet, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"variantSetId": c.variantSetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6078,6 +6341,7 @@ func (c *VariantsetsGetCall) Do() (*VariantSet, error) {
 	//     "$ref": "VariantSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -6097,14 +6361,14 @@ type VariantsetsImportVariantsCall struct {
 // ImportVariants: Creates variant data by asynchronously importing the
 // provided information.
 //
-// The variants for import will be merged with
-// any existing data and each other according to the behavior of
-// mergeVariants. In particular, this means for merged VCF variants that
-// have conflicting INFO fields, some data will be arbitrarily
-// discarded. As a special case, for single-sample VCF files, QUAL and
-// FILTER fields will be moved to the call level; these are sometimes
-// interpreted in a call-specific context. Imported VCF headers are
-// appended to the metadata already in a variant set.
+// The variants for import will be merged with any existing data and
+// each other according to the behavior of mergeVariants. In particular,
+// this means for merged VCF variants that have conflicting INFO fields,
+// some data will be arbitrarily discarded. As a special case, for
+// single-sample VCF files, QUAL and FILTER fields will be moved to the
+// call level; these are sometimes interpreted in a call-specific
+// context. Imported VCF headers are appended to the metadata already in
+// a variant set.
 func (r *VariantsetsService) ImportVariants(variantSetId string, importvariantsrequest *ImportVariantsRequest) *VariantsetsImportVariantsCall {
 	c := &VariantsetsImportVariantsCall{s: r.s, opt_: make(map[string]interface{})}
 	c.variantSetId = variantSetId
@@ -6139,7 +6403,7 @@ func (c *VariantsetsImportVariantsCall) Do() (*ImportVariantsResponse, error) {
 		"variantSetId": c.variantSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6176,6 +6440,7 @@ func (c *VariantsetsImportVariantsCall) Do() (*ImportVariantsResponse, error) {
 	//     "$ref": "ImportVariantsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/devstorage.read_write",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
@@ -6197,9 +6462,8 @@ type VariantsetsMergeVariantsCall struct {
 // reference sequence, start, end, reference bases, and alternative
 // bases. If no such variant exists, a new one will be created.
 //
-// When
-// variants are merged, the call information from the new variant is
-// added to the existing variant, and other fields (such as key/value
+// When variants are merged, the call information from the new variant
+// is added to the existing variant, and other fields (such as key/value
 // pairs) are discarded.
 func (r *VariantsetsService) MergeVariants(variantSetId string, mergevariantsrequest *MergeVariantsRequest) *VariantsetsMergeVariantsCall {
 	c := &VariantsetsMergeVariantsCall{s: r.s, opt_: make(map[string]interface{})}
@@ -6235,7 +6499,7 @@ func (c *VariantsetsMergeVariantsCall) Do() error {
 		"variantSetId": c.variantSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6263,7 +6527,11 @@ func (c *VariantsetsMergeVariantsCall) Do() error {
 	//   "path": "variantsets/{variantSetId}/mergeVariants",
 	//   "request": {
 	//     "$ref": "MergeVariantsRequest"
-	//   }
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/genomics"
+	//   ]
 	// }
 
 }
@@ -6313,7 +6581,7 @@ func (c *VariantsetsPatchCall) Do() (*VariantSet, error) {
 		"variantSetId": c.variantSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6350,6 +6618,7 @@ func (c *VariantsetsPatchCall) Do() (*VariantSet, error) {
 	//     "$ref": "VariantSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }
@@ -6399,7 +6668,7 @@ func (c *VariantsetsSearchCall) Do() (*SearchVariantSetsResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6425,6 +6694,7 @@ func (c *VariantsetsSearchCall) Do() (*SearchVariantSetsResponse, error) {
 	//     "$ref": "SearchVariantSetsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics",
 	//     "https://www.googleapis.com/auth/genomics.readonly"
 	//   ]
@@ -6477,7 +6747,7 @@ func (c *VariantsetsUpdateCall) Do() (*VariantSet, error) {
 		"variantSetId": c.variantSetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6514,6 +6784,7 @@ func (c *VariantsetsUpdateCall) Do() (*VariantSet, error) {
 	//     "$ref": "VariantSet"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/genomics"
 	//   ]
 	// }

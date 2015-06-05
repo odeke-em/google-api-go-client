@@ -64,12 +64,20 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	RollingUpdates *RollingUpdatesService
 
 	ZoneOperations *ZoneOperationsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewRollingUpdatesService(s *Service) *RollingUpdatesService {
@@ -91,29 +99,22 @@ type ZoneOperationsService struct {
 }
 
 type InstanceUpdate struct {
-	// Error: Errors that occurred during the instance update. Setting
-	// (api.field).field_number manually is a workaround for b/16512602.
+	// Error: Errors that occurred during the instance update.
 	Error *InstanceUpdateError `json:"error,omitempty"`
 
 	// Instance: URL of the instance being updated.
 	Instance string `json:"instance,omitempty"`
 
 	// Status: Status of the instance update. Possible values are:
-	// -
-	// "PENDING": The instance update is pending execution.
-	// -
-	// "ROLLING_FORWARD": The instance update is going forward.
-	// -
-	// "ROLLING_BACK": The instance update is being rolled back.
-	// -
-	// "PAUSED": The instance update is temporarily paused (inactive).
-	// -
-	// "ROLLED_OUT": The instance update is finished, the instance is
+	// - "PENDING": The instance update is pending execution.
+	// - "ROLLING_FORWARD": The instance update is going forward.
+	// - "ROLLING_BACK": The instance update is being rolled back.
+	// - "PAUSED": The instance update is temporarily paused (inactive).
+	// - "ROLLED_OUT": The instance update is finished, the instance is
 	// running the new template.
-	// - "ROLLED_BACK": The instance update is
-	// finished, the instance has been reverted to the previous template.
-	// -
-	// "CANCELLED": The instance update is paused and no longer can be
+	// - "ROLLED_BACK": The instance update is finished, the instance has
+	// been reverted to the previous template.
+	// - "CANCELLED": The instance update is paused and no longer can be
 	// resumed, undefined in which template the instance is running.
 	Status string `json:"status,omitempty"`
 }
@@ -128,7 +129,7 @@ type InstanceUpdateErrorErrors struct {
 	// Code: [Output Only] The error type identifier for this error.
 	Code string `json:"code,omitempty"`
 
-	// Location: [Output Only] Indicates the field in the request which
+	// Location: [Output Only] Indicates the field in the request that
 	// caused the error. This property is optional.
 	Location string `json:"location,omitempty"`
 
@@ -154,7 +155,7 @@ type Operation struct {
 	ClientOperationId string `json:"clientOperationId,omitempty"`
 
 	// CreationTimestamp: [Output Only] Creation timestamp in RFC3339 text
-	// format (output only).
+	// format.
 	CreationTimestamp string `json:"creationTimestamp,omitempty"`
 
 	EndTime string `json:"endTime,omitempty"`
@@ -179,15 +180,14 @@ type Operation struct {
 	// Operation resources.
 	Kind string `json:"kind,omitempty"`
 
-	// Name: [Output Only] Name of the resource (output only).
+	// Name: [Output Only] Name of the resource.
 	Name string `json:"name,omitempty"`
 
 	OperationType string `json:"operationType,omitempty"`
 
 	Progress int64 `json:"progress,omitempty"`
 
-	// Region: [Output Only] URL of the region where the operation resides
-	// (output only).
+	// Region: [Output Only] URL of the region where the operation resides.
 	Region string `json:"region,omitempty"`
 
 	// SelfLink: [Output Only] Server defined URL for the resource.
@@ -210,15 +210,14 @@ type Operation struct {
 	TargetId uint64 `json:"targetId,omitempty,string"`
 
 	// TargetLink: [Output Only] URL of the resource the operation is
-	// mutating (output only).
+	// mutating.
 	TargetLink string `json:"targetLink,omitempty"`
 
 	User string `json:"user,omitempty"`
 
 	Warnings []*OperationWarnings `json:"warnings,omitempty"`
 
-	// Zone: [Output Only] URL of the zone where the operation resides
-	// (output only).
+	// Zone: [Output Only] URL of the zone where the operation resides.
 	Zone string `json:"zone,omitempty"`
 }
 
@@ -232,7 +231,7 @@ type OperationErrorErrors struct {
 	// Code: [Output Only] The error type identifier for this error.
 	Code string `json:"code,omitempty"`
 
-	// Location: [Output Only] Indicates the field in the request which
+	// Location: [Output Only] Indicates the field in the request that
 	// caused the error. This property is optional.
 	Location string `json:"location,omitempty"`
 
@@ -261,12 +260,11 @@ type OperationWarningsData struct {
 }
 
 type RollingUpdate struct {
-	// ActionType: Action to be performed for each instance. Possible values
-	// are:
-	// - "RECREATE": Instance will be recreated. Only for managed
-	// instance groups.
-	// - "REBOOT": Soft reboot will be performed on an
-	// instance. Only for non-managed instance groups.
+	// ActionType: Specifies the action to take for each instance within the
+	// instance group. This can be RECREATE which will recreate each
+	// instance and is only available for managed instance groups. It can
+	// also be REBOOT which performs a soft reboot for each instance and is
+	// only available for regular (non-managed) instance groups.
 	ActionType string `json:"actionType,omitempty"`
 
 	// CreationTimestamp: [Output Only] Creation timestamp in RFC3339 text
@@ -277,26 +275,31 @@ type RollingUpdate struct {
 	// provided by the client when the resource is created.
 	Description string `json:"description,omitempty"`
 
+	// Error: [Output Only] Errors that occurred during the rolling update.
+	Error *RollingUpdateError `json:"error,omitempty"`
+
 	// Id: [Output Only] Unique identifier for the resource; defined by the
 	// server.
 	Id string `json:"id,omitempty"`
 
-	// InstanceGroup: URL of an instance group being updated. Exactly one of
-	// instance_group_manager and instance_group must be set.
+	// InstanceGroup: Fully-qualified URL of an instance group being
+	// updated. Exactly one of instanceGroupManager and instanceGroup must
+	// be set.
 	InstanceGroup string `json:"instanceGroup,omitempty"`
 
-	// InstanceGroupManager: URL of an instance group manager being updated.
-	// Exactly one of instance_group_manager and instance_group must be set.
+	// InstanceGroupManager: Fully-qualified URL of an instance group
+	// manager being updated. Exactly one of instanceGroupManager and
+	// instanceGroup must be set.
 	InstanceGroupManager string `json:"instanceGroupManager,omitempty"`
 
-	// InstanceTemplate: URL of an instance template to apply.
+	// InstanceTemplate: Fully-qualified URL of an instance template to
+	// apply.
 	InstanceTemplate string `json:"instanceTemplate,omitempty"`
 
 	// Kind: [Output Only] Type of the resource.
 	Kind string `json:"kind,omitempty"`
 
-	// Policy: Parameters of the update process. Setting
-	// (api.field).field_number manually is a workaround for b/16512602.
+	// Policy: Parameters of the update process.
 	Policy *RollingUpdatePolicy `json:"policy,omitempty"`
 
 	// Progress: [Output Only] An optional progress indicator that ranges
@@ -310,20 +313,15 @@ type RollingUpdate struct {
 	SelfLink string `json:"selfLink,omitempty"`
 
 	// Status: [Output Only] Status of the update. Possible values are:
-	// -
-	// "ROLLING_FORWARD": The update is going forward.
-	// - "ROLLING_BACK":
-	// The update is being rolled back.
-	// - "PAUSED": The update is
-	// temporarily paused (inactive).
-	// - "ROLLED_OUT": The update is
-	// finished, all instances have been updated successfully.
-	// -
-	// "ROLLED_BACK": The update is finished, all instances have been
+	// - "ROLLING_FORWARD": The update is going forward.
+	// - "ROLLING_BACK": The update is being rolled back.
+	// - "PAUSED": The update is temporarily paused (inactive).
+	// - "ROLLED_OUT": The update is finished, all instances have been
+	// updated successfully.
+	// - "ROLLED_BACK": The update is finished, all instances have been
 	// reverted to the previous template.
-	// - "CANCELLED": The update is
-	// paused and no longer can be resumed, undefined how many instances are
-	// running in which template.
+	// - "CANCELLED": The update is paused and no longer can be resumed,
+	// undefined how many instances are running in which template.
 	Status string `json:"status,omitempty"`
 
 	// StatusMessage: [Output Only] An optional textual description of the
@@ -335,28 +333,55 @@ type RollingUpdate struct {
 	User string `json:"user,omitempty"`
 }
 
-type RollingUpdatePolicy struct {
-	// Canary: Parameters of a canary phase. If absent, canary will NOT be
-	// performed.
-	Canary *RollingUpdatePolicyCanary `json:"canary,omitempty"`
-
-	// MaxNumConcurrentInstances: Maximum number of instances that can be
-	// updated simultaneously (concurrently). An update of an instance
-	// starts when the instance is about to be restarted and finishes after
-	// the instance has been restarted and the sleep period (defined by
-	// sleepAfterInstanceRestartSec) has passed.
-	MaxNumConcurrentInstances int64 `json:"maxNumConcurrentInstances,omitempty"`
-
-	// SleepAfterInstanceRestartSec: The number of seconds to wait between
-	// when the instance has been successfully updated and restarted, to
-	// when it is marked as done.
-	SleepAfterInstanceRestartSec int64 `json:"sleepAfterInstanceRestartSec,omitempty"`
+type RollingUpdateError struct {
+	// Errors: [Output Only] The array of errors encountered while
+	// processing this operation.
+	Errors []*RollingUpdateErrorErrors `json:"errors,omitempty"`
 }
 
-type RollingUpdatePolicyCanary struct {
-	// NumInstances: Number of instances updated as a part of canary phase.
-	// If absent, the default number of instances will be used.
-	NumInstances int64 `json:"numInstances,omitempty"`
+type RollingUpdateErrorErrors struct {
+	// Code: [Output Only] The error type identifier for this error.
+	Code string `json:"code,omitempty"`
+
+	// Location: [Output Only] Indicates the field in the request that
+	// caused the error. This property is optional.
+	Location string `json:"location,omitempty"`
+
+	// Message: [Output Only] An optional, human-readable error message.
+	Message string `json:"message,omitempty"`
+}
+
+type RollingUpdatePolicy struct {
+	// AutoPauseAfterInstances: Number of instances to update before the
+	// updater pauses the rolling update.
+	AutoPauseAfterInstances int64 `json:"autoPauseAfterInstances,omitempty"`
+
+	// InstanceStartupTimeoutSec: The maximum amount of time that the
+	// updater waits for a HEALTHY state after all of the update steps are
+	// complete. If the HEALTHY state is not received before the deadline,
+	// the instance update is considered a failure.
+	InstanceStartupTimeoutSec int64 `json:"instanceStartupTimeoutSec,omitempty"`
+
+	// MaxNumConcurrentInstances: The maximum number of instances that can
+	// be updated simultaneously. An instance update is considered complete
+	// only after the instance is restarted and initialized.
+	MaxNumConcurrentInstances int64 `json:"maxNumConcurrentInstances,omitempty"`
+
+	// MaxNumFailedInstances: The maximum number of instance updates that
+	// can fail before the group update is considered a failure. An instance
+	// update is considered failed if any of its update actions (e.g. Stop
+	// call on Instance resource in Rolling Reboot) failed with permanent
+	// failure, or if the instance is in an UNHEALTHY state after it
+	// finishes all of the update actions.
+	MaxNumFailedInstances int64 `json:"maxNumFailedInstances,omitempty"`
+
+	// MinInstanceUpdateTimeSec: The minimum amount of time that the updater
+	// spends to update each instance. Update time is the time it takes to
+	// complete all update actions (e.g. Stop call on Instance resource in
+	// Rolling Reboot), reboot, and initialize. If the instance update
+	// finishes early, the updater pauses for the remainder of the time
+	// before it starts the next instance update.
+	MinInstanceUpdateTimeSec int64 `json:"minInstanceUpdateTimeSec,omitempty"`
 }
 
 type RollingUpdateList struct {
@@ -417,7 +442,7 @@ func (c *RollingUpdatesCancelCall) Do() (*Operation, error) {
 		"zone":          c.zone,
 		"rollingUpdate": c.rollingUpdate,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -516,7 +541,7 @@ func (c *RollingUpdatesGetCall) Do() (*RollingUpdate, error) {
 		"zone":          c.zone,
 		"rollingUpdate": c.rollingUpdate,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -621,7 +646,7 @@ func (c *RollingUpdatesInsertCall) Do() (*Operation, error) {
 		"zone":    c.zone,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -700,8 +725,9 @@ func (c *RollingUpdatesListCall) Filter(filter string) *RollingUpdatesListCall {
 }
 
 // InstanceGroupManager sets the optional parameter
-// "instanceGroupManager": The name of the instance group manager used
-// for filtering.
+// "instanceGroupManager": The name of the instance group manager. Use
+// this parameter to return only updates to instances that are part of a
+// specific instance group.
 func (c *RollingUpdatesListCall) InstanceGroupManager(instanceGroupManager string) *RollingUpdatesListCall {
 	c.opt_["instanceGroupManager"] = instanceGroupManager
 	return c
@@ -757,7 +783,7 @@ func (c *RollingUpdatesListCall) Do() (*RollingUpdateList, error) {
 		"project": c.project,
 		"zone":    c.zone,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -786,7 +812,7 @@ func (c *RollingUpdatesListCall) Do() (*RollingUpdateList, error) {
 	//       "type": "string"
 	//     },
 	//     "instanceGroupManager": {
-	//       "description": "The name of the instance group manager used for filtering.",
+	//       "description": "The name of the instance group manager. Use this parameter to return only updates to instances that are part of a specific instance group.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -907,7 +933,7 @@ func (c *RollingUpdatesListInstanceUpdatesCall) Do() (*InstanceUpdateList, error
 		"zone":          c.zone,
 		"rollingUpdate": c.rollingUpdate,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1028,7 +1054,7 @@ func (c *RollingUpdatesPauseCall) Do() (*Operation, error) {
 		"zone":          c.zone,
 		"rollingUpdate": c.rollingUpdate,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1128,7 +1154,7 @@ func (c *RollingUpdatesResumeCall) Do() (*Operation, error) {
 		"zone":          c.zone,
 		"rollingUpdate": c.rollingUpdate,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1229,7 +1255,7 @@ func (c *RollingUpdatesRollbackCall) Do() (*Operation, error) {
 		"zone":          c.zone,
 		"rollingUpdate": c.rollingUpdate,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1327,7 +1353,7 @@ func (c *ZoneOperationsGetCall) Do() (*Operation, error) {
 		"zone":      c.zone,
 		"operation": c.operation,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

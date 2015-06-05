@@ -43,7 +43,7 @@ const basePath = "https://www.googleapis.com/games/v1configuration/"
 
 // OAuth2 scopes used by this API.
 const (
-	// View and manage your Google Play Android Developer account
+	// View and manage your Google Play Developer account
 	AndroidpublisherScope = "https://www.googleapis.com/auth/androidpublisher"
 )
 
@@ -59,14 +59,22 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	AchievementConfigurations *AchievementConfigurationsService
 
 	ImageConfigurations *ImageConfigurationsService
 
 	LeaderboardConfigurations *LeaderboardConfigurationsService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAchievementConfigurationsService(s *Service) *AchievementConfigurationsService {
@@ -99,10 +107,8 @@ type LeaderboardConfigurationsService struct {
 type AchievementConfiguration struct {
 	// AchievementType: The type of the achievement.
 	// Possible values are:
-	//
 	// - "STANDARD" - Achievement is either locked or unlocked.
-	// -
-	// "INCREMENTAL" - Achievement is incremental.
+	// - "INCREMENTAL" - Achievement is incremental.
 	AchievementType string `json:"achievementType,omitempty"`
 
 	// Draft: The draft data of the achievement.
@@ -112,11 +118,9 @@ type AchievementConfiguration struct {
 	Id string `json:"id,omitempty"`
 
 	// InitialState: The initial state of the achievement.
-	// Possible values
-	// are:
+	// Possible values are:
 	// - "HIDDEN" - Achievement is hidden.
-	// - "REVEALED" -
-	// Achievement is revealed.
+	// - "REVEALED" - Achievement is revealed.
 	// - "UNLOCKED" - Achievement is unlocked.
 	InitialState string `json:"initialState,omitempty"`
 
@@ -210,14 +214,12 @@ type GamesNumberFormatConfiguration struct {
 
 	// NumberFormatType: The formatting for the number.
 	// Possible values are:
-	//
 	// - "NUMERIC" - Numbers are formatted to have no digits or a fixed
 	// number of digits after the decimal point according to locale. An
 	// optional custom unit can be added.
-	// - "TIME_DURATION" - Numbers are
-	// formatted to hours, minutes and seconds.
-	// - "CURRENCY" - Numbers are
-	// formatted to currency according to locale.
+	// - "TIME_DURATION" - Numbers are formatted to hours, minutes and
+	// seconds.
+	// - "CURRENCY" - Numbers are formatted to currency according to locale.
 	NumberFormatType string `json:"numberFormatType,omitempty"`
 
 	// Suffix: An optional suffix for the NUMERIC format type. These strings
@@ -262,10 +264,8 @@ type LeaderboardConfiguration struct {
 
 	// ScoreOrder: The type of the leaderboard.
 	// Possible values are:
-	// -
-	// "LARGER_IS_BETTER" - Larger scores posted are ranked higher.
-	// -
-	// "SMALLER_IS_BETTER" - Smaller scores posted are ranked higher.
+	// - "LARGER_IS_BETTER" - Larger scores posted are ranked higher.
+	// - "SMALLER_IS_BETTER" - Smaller scores posted are ranked higher.
 	ScoreOrder string `json:"scoreOrder,omitempty"`
 
 	// Token: The token for this resource.
@@ -361,7 +361,7 @@ func (c *AchievementConfigurationsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"achievementId": c.achievementId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -431,7 +431,7 @@ func (c *AchievementConfigurationsGetCall) Do() (*AchievementConfiguration, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"achievementId": c.achievementId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -515,7 +515,7 @@ func (c *AchievementConfigurationsInsertCall) Do() (*AchievementConfiguration, e
 		"applicationId": c.applicationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -617,7 +617,7 @@ func (c *AchievementConfigurationsListCall) Do() (*AchievementConfigurationListR
 	googleapi.Expand(req.URL, map[string]string{
 		"applicationId": c.applicationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -715,7 +715,7 @@ func (c *AchievementConfigurationsPatchCall) Do() (*AchievementConfiguration, er
 		"achievementId": c.achievementId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -803,7 +803,7 @@ func (c *AchievementConfigurationsUpdateCall) Do() (*AchievementConfiguration, e
 		"achievementId": c.achievementId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -945,13 +945,10 @@ func (c *ImageConfigurationsUploadCall) Do() (*ImageConfiguration, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -964,6 +961,7 @@ func (c *ImageConfigurationsUploadCall) Do() (*ImageConfiguration, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -1075,7 +1073,7 @@ func (c *LeaderboardConfigurationsDeleteCall) Do() error {
 	googleapi.Expand(req.URL, map[string]string{
 		"leaderboardId": c.leaderboardId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1145,7 +1143,7 @@ func (c *LeaderboardConfigurationsGetCall) Do() (*LeaderboardConfiguration, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"leaderboardId": c.leaderboardId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1229,7 +1227,7 @@ func (c *LeaderboardConfigurationsInsertCall) Do() (*LeaderboardConfiguration, e
 		"applicationId": c.applicationId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1331,7 +1329,7 @@ func (c *LeaderboardConfigurationsListCall) Do() (*LeaderboardConfigurationListR
 	googleapi.Expand(req.URL, map[string]string{
 		"applicationId": c.applicationId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1429,7 +1427,7 @@ func (c *LeaderboardConfigurationsPatchCall) Do() (*LeaderboardConfiguration, er
 		"leaderboardId": c.leaderboardId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1517,7 +1515,7 @@ func (c *LeaderboardConfigurationsUpdateCall) Do() (*LeaderboardConfiguration, e
 		"leaderboardId": c.leaderboardId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

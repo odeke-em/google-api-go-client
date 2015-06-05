@@ -1,12 +1,12 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/-uPFfUdnJ6wKBvr9hp_nZCg__WI\"",
+ "etag": "\"ye6orv2F-1npMW3u9suM3a7C5Bo/G-ZyOp5RRHFr1ENfVUNl9TTyO6w\"",
  "discoveryVersion": "v1",
  "id": "content:v2",
  "name": "content",
  "canonicalName": "Shopping Content",
  "version": "v2",
- "revision": "20150204",
+ "revision": "20150424",
  "title": "Content API for Shopping",
  "description": "Manage product items, inventory, and Merchant Center accounts for Google Shopping.",
  "ownerDomain": "google.com",
@@ -88,7 +88,7 @@
     },
     "adwordsLinks": {
      "type": "array",
-     "description": "List of linked AdWords accounts.",
+     "description": "List of linked AdWords accounts, active or pending approval. To create a new link request, add a new link with status active to the list. It will remain is state pending until approved or rejected in the AdWords interface. To delete an active link or to cancel a link request, remove it from the list.",
      "items": {
       "$ref": "AccountAdwordsLink"
      }
@@ -150,7 +150,23 @@
     },
     "status": {
      "type": "string",
-     "description": "Status of the link between this Merchant Center account and the AdWords account."
+     "description": "Status of the link between this Merchant Center account and the AdWords account. Upon retrieval, it represents the actual status of the link and can be either active if it was approved in Google AdWords or pending if it's pending approval. Upon insertion, it represents the intended status of the link. Re-uploading a link with status active when it's still pending or with status pending when it's already active will have no effect: the status will remain unchanged. Re-uploading a link with deprecated status inactive is equivalent to not submitting the link at all and will delete the link if it was active or cancel the link request if it was pending."
+    }
+   }
+  },
+  "AccountIdentifier": {
+   "id": "AccountIdentifier",
+   "type": "object",
+   "properties": {
+    "aggregatorId": {
+     "type": "string",
+     "description": "The aggregator ID, set for aggregators and subaccounts (in that case, it represents the aggregator of the subaccount).",
+     "format": "uint64"
+    },
+    "merchantId": {
+     "type": "string",
+     "description": "The merchant account ID, set for individual accounts and subaccounts.",
+     "format": "uint64"
     }
    }
   },
@@ -673,6 +689,24 @@
     "emailAddress": {
      "type": "string",
      "description": "User's email address."
+    }
+   }
+  },
+  "AccountsAuthInfoResponse": {
+   "id": "AccountsAuthInfoResponse",
+   "type": "object",
+   "properties": {
+    "accountIdentifiers": {
+     "type": "array",
+     "description": "The account identifiers corresponding to the authenticated user.\n- For an individual account: only the merchant ID is defined\n- For an aggregator: only the aggregator ID is defined\n- For a subaccount of an MCA: both the merchant ID and the aggregator ID are defined.",
+     "items": {
+      "$ref": "AccountIdentifier"
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"content#accountsAuthInfoResponse\".",
+     "default": "content#accountsAuthInfoResponse"
     }
    }
   },
@@ -1268,6 +1302,10 @@
      "description": "Identifies what kind of resource this is. Value: the fixed string \"content#datafeedStatus\".",
      "default": "content#datafeedStatus"
     },
+    "lastUploadDate": {
+     "type": "string",
+     "description": "The last date at which the feed was uploaded."
+    },
     "processingStatus": {
      "type": "string",
      "description": "The processing status of the feed."
@@ -1788,6 +1826,13 @@
      "type": "string",
      "description": "Target age group of the item."
     },
+    "aspects": {
+     "type": "array",
+     "description": "Specifies the intended aspects for the product.",
+     "items": {
+      "$ref": "ProductAspect"
+     }
+    },
     "availability": {
      "type": "string",
      "description": "Availability status of the item."
@@ -1870,6 +1915,30 @@
      "items": {
       "$ref": "ProductDestination"
      }
+    },
+    "displayAdsId": {
+     "type": "string",
+     "description": "An identifier for an item for dynamic remarketing campaigns."
+    },
+    "displayAdsLink": {
+     "type": "string",
+     "description": "URL directly to your item's landing page for dynamic remarketing campaigns."
+    },
+    "displayAdsSimilarIds": {
+     "type": "array",
+     "description": "Advertiser-specified recommendations.",
+     "items": {
+      "type": "string"
+     }
+    },
+    "displayAdsTitle": {
+     "type": "string",
+     "description": "Title of an item for dynamic remarketing campaigns."
+    },
+    "displayAdsValue": {
+     "type": "number",
+     "description": "Offer margin for dynamic remarketing campaigns.",
+     "format": "double"
     },
     "energyEfficiencyClass": {
      "type": "string",
@@ -2061,6 +2130,24 @@
      "items": {
       "$ref": "Error"
      }
+    }
+   }
+  },
+  "ProductAspect": {
+   "id": "ProductAspect",
+   "type": "object",
+   "properties": {
+    "aspectName": {
+     "type": "string",
+     "description": "The name of the aspect."
+    },
+    "destinationName": {
+     "type": "string",
+     "description": "The name of the destination. Leave out to apply to all destinations."
+    },
+    "intention": {
+     "type": "string",
+     "description": "Whether the aspect is required, excluded or should be validated."
     }
    }
   },
@@ -2266,6 +2353,10 @@
     "location": {
      "type": "string",
      "description": "The attribute name that is relevant for the issue."
+    },
+    "severity": {
+     "type": "string",
+     "description": "The severity of the data quality issue."
     },
     "timestamp": {
      "type": "string",
@@ -2595,6 +2686,18 @@
  "resources": {
   "accounts": {
    "methods": {
+    "authinfo": {
+     "id": "content.accounts.authinfo",
+     "path": "accounts/authinfo",
+     "httpMethod": "GET",
+     "description": "Returns information about the authenticated user.",
+     "response": {
+      "$ref": "AccountsAuthInfoResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/content"
+     ]
+    },
     "custombatch": {
      "id": "content.accounts.custombatch",
      "path": "accounts/batch",
@@ -2812,6 +2915,13 @@
      "path": "accountshipping/batch",
      "httpMethod": "POST",
      "description": "Retrieves and updates the shipping settings of multiple accounts in a single request.",
+     "parameters": {
+      "dryRun": {
+       "type": "boolean",
+       "description": "Flag to run the request in dry-run mode.",
+       "location": "query"
+      }
+     },
      "request": {
       "$ref": "AccountshippingCustomBatchRequest"
      },
@@ -2902,6 +3012,11 @@
        "format": "uint64",
        "location": "path"
       },
+      "dryRun": {
+       "type": "boolean",
+       "description": "Flag to run the request in dry-run mode.",
+       "location": "query"
+      },
       "merchantId": {
        "type": "string",
        "description": "The ID of the managing account.",
@@ -2936,6 +3051,11 @@
        "required": true,
        "format": "uint64",
        "location": "path"
+      },
+      "dryRun": {
+       "type": "boolean",
+       "description": "Flag to run the request in dry-run mode.",
+       "location": "query"
       },
       "merchantId": {
        "type": "string",
@@ -3053,6 +3173,13 @@
      "path": "accounttax/batch",
      "httpMethod": "POST",
      "description": "Retrieves and updates tax settings of multiple accounts in a single request.",
+     "parameters": {
+      "dryRun": {
+       "type": "boolean",
+       "description": "Flag to run the request in dry-run mode.",
+       "location": "query"
+      }
+     },
      "request": {
       "$ref": "AccounttaxCustomBatchRequest"
      },
@@ -3143,6 +3270,11 @@
        "format": "uint64",
        "location": "path"
       },
+      "dryRun": {
+       "type": "boolean",
+       "description": "Flag to run the request in dry-run mode.",
+       "location": "query"
+      },
       "merchantId": {
        "type": "string",
        "description": "The ID of the managing account.",
@@ -3177,6 +3309,11 @@
        "required": true,
        "format": "uint64",
        "location": "path"
+      },
+      "dryRun": {
+       "type": "boolean",
+       "description": "Flag to run the request in dry-run mode.",
+       "location": "query"
       },
       "merchantId": {
        "type": "string",

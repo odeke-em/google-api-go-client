@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Apis *ApisService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewApisService(s *Service) *ApisService {
@@ -222,7 +230,7 @@ type JsonSchemaVariant struct {
 type JsonSchemaVariantMap struct {
 	Ref string `json:"$ref,omitempty"`
 
-	Type_value string `json:"type_value,omitempty"`
+	TypeValue string `json:"type_value,omitempty"`
 }
 
 type RestDescription struct {
@@ -385,6 +393,11 @@ type RestMethod struct {
 
 	// SupportsSubscription: Whether this method supports subscriptions.
 	SupportsSubscription bool `json:"supportsSubscription,omitempty"`
+
+	// UseMediaDownloadService: Indicates that downloads from this method
+	// should use the download service URL (i.e. "/download"). Only applies
+	// if the method supports media download.
+	UseMediaDownloadService bool `json:"useMediaDownloadService,omitempty"`
 }
 
 type RestMethodMediaUpload struct {
@@ -410,7 +423,9 @@ type RestMethodMediaUploadProtocols struct {
 
 type RestMethodMediaUploadProtocolsResumable struct {
 	// Multipart: True if this endpoint supports uploading multipart media.
-	Multipart bool `json:"multipart,omitempty"`
+	//
+	// Default: true
+	Multipart *bool `json:"multipart,omitempty"`
 
 	// Path: The URI path to be used for upload. Should be used in
 	// conjunction with the basePath property at the api-level.
@@ -419,7 +434,9 @@ type RestMethodMediaUploadProtocolsResumable struct {
 
 type RestMethodMediaUploadProtocolsSimple struct {
 	// Multipart: True if this endpoint supports upload multipart media.
-	Multipart bool `json:"multipart,omitempty"`
+	//
+	// Default: true
+	Multipart *bool `json:"multipart,omitempty"`
 
 	// Path: The URI path to be used for upload. Should be used in
 	// conjunction with the basePath property at the api-level.
@@ -486,7 +503,7 @@ func (c *ApisGetRestCall) Do() (*RestDescription, error) {
 		"api":     c.api,
 		"version": c.version,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -582,7 +599,7 @@ func (c *ApisListCall) Do() (*DirectoryList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

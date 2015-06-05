@@ -108,8 +108,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	AccountActiveAdSummaries *AccountActiveAdSummariesService
 
@@ -206,6 +207,13 @@ type Service struct {
 	UserRolePermissions *UserRolePermissionsService
 
 	UserRoles *UserRolesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewAccountActiveAdSummariesService(s *Service) *AccountActiveAdSummariesService {
@@ -670,6 +678,10 @@ type Account struct {
 
 	// AccountProfile: Profile for this account. This is a read-only field
 	// that can be left blank.
+	//
+	// Possible values:
+	//   "ACCOUNT_PROFILE_BASIC"
+	//   "ACCOUNT_PROFILE_STANDARD"
 	AccountProfile string `json:"accountProfile,omitempty"`
 
 	// Active: Whether this account is active.
@@ -677,6 +689,13 @@ type Account struct {
 
 	// ActiveAdsLimitTier: Maximum number of active ads allowed for this
 	// account.
+	//
+	// Possible values:
+	//   "ACTIVE_ADS_TIER_100K"
+	//   "ACTIVE_ADS_TIER_200K"
+	//   "ACTIVE_ADS_TIER_300K"
+	//   "ACTIVE_ADS_TIER_40K"
+	//   "ACTIVE_ADS_TIER_75K"
 	ActiveAdsLimitTier string `json:"activeAdsLimitTier,omitempty"`
 
 	// ActiveViewOptOut: Whether to serve creatives with Active View tags.
@@ -700,45 +719,37 @@ type Account struct {
 	// Acceptable values are:
 	// - "1" for USD
 	// - "2" for GBP
-	//
 	// - "3" for ESP
 	// - "4" for SEK
 	// - "5" for CAD
 	// - "6" for JPY
-	// - "7"
-	// for DEM
+	// - "7" for DEM
 	// - "8" for AUD
 	// - "9" for FRF
 	// - "10" for ITL
 	// - "11" for DKK
-	//
 	// - "12" for NOK
 	// - "13" for FIM
 	// - "14" for ZAR
 	// - "15" for IEP
-	// -
-	// "16" for NLG
+	// - "16" for NLG
 	// - "17" for EUR
 	// - "18" for KRW
 	// - "19" for TWD
-	// - "20"
-	// for SGD
+	// - "20" for SGD
 	// - "21" for CNY
 	// - "22" for HKD
 	// - "23" for NZD
-	// - "24" for
-	// MYR
+	// - "24" for MYR
 	// - "25" for BRL
 	// - "26" for PTE
 	// - "27" for MXP
 	// - "28" for CLP
-	//
 	// - "29" for TRY
 	// - "30" for ARS
 	// - "31" for PEN
 	// - "32" for ILS
-	// -
-	// "33" for CHF
+	// - "33" for CHF
 	// - "34" for VEF
 	// - "35" for COP
 	// - "36" for GTQ
@@ -759,26 +770,21 @@ type Account struct {
 
 	// Locale: Locale of this account.
 	// Acceptable values are:
-	// - "cs"
-	// (Czech)
+	// - "cs" (Czech)
 	// - "de" (German)
 	// - "en" (English)
-	// - "en-GB" (English United
-	// Kingdom)
+	// - "en-GB" (English United Kingdom)
 	// - "es" (Spanish)
 	// - "fr" (French)
 	// - "it" (Italian)
-	// - "ja"
-	// (Japanese)
+	// - "ja" (Japanese)
 	// - "ko" (Korean)
 	// - "pl" (Polish)
-	// - "pt-BR" (Portuguese
-	// Brazil)
+	// - "pt-BR" (Portuguese Brazil)
 	// - "ru" (Russian)
 	// - "sv" (Swedish)
 	// - "tr" (Turkish)
-	// -
-	// "zh-CN" (Chinese Simplified)
+	// - "zh-CN" (Chinese Simplified)
 	// - "zh-TW" (Chinese Traditional)
 	Locale string `json:"locale,omitempty"`
 
@@ -810,6 +816,13 @@ type AccountActiveAdSummary struct {
 
 	// ActiveAdsLimitTier: Maximum number of active ads allowed for the
 	// account.
+	//
+	// Possible values:
+	//   "ACTIVE_ADS_TIER_100K"
+	//   "ACTIVE_ADS_TIER_200K"
+	//   "ACTIVE_ADS_TIER_300K"
+	//   "ACTIVE_ADS_TIER_40K"
+	//   "ACTIVE_ADS_TIER_75K"
 	ActiveAdsLimitTier string `json:"activeAdsLimitTier,omitempty"`
 
 	// AvailableAds: Ads that can be activated for the account.
@@ -826,8 +839,7 @@ type AccountPermission struct {
 	//
 	// Possible values are:
 	// - "ACCOUNT_PROFILE_BASIC"
-	// -
-	// "ACCOUNT_PROFILE_STANDARD"
+	// - "ACCOUNT_PROFILE_STANDARD"
 	AccountProfiles []string `json:"accountProfiles,omitempty"`
 
 	// Id: ID of this account permission.
@@ -839,6 +851,10 @@ type AccountPermission struct {
 
 	// Level: Administrative level required to enable this account
 	// permission.
+	//
+	// Possible values:
+	//   "ADMINISTRATOR"
+	//   "USER"
 	Level string `json:"level,omitempty"`
 
 	// Name: Name of this account permission.
@@ -861,7 +877,7 @@ type AccountPermissionGroup struct {
 }
 
 type AccountPermissionGroupsListResponse struct {
-	// AccountPermissionGroups: Account permission group collection
+	// AccountPermissionGroups: Account permission group collection.
 	AccountPermissionGroups []*AccountPermissionGroup `json:"accountPermissionGroups,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -870,7 +886,7 @@ type AccountPermissionGroupsListResponse struct {
 }
 
 type AccountPermissionsListResponse struct {
-	// AccountPermissions: Account permission collection
+	// AccountPermissions: Account permission collection.
 	AccountPermissions []*AccountPermission `json:"accountPermissions,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -916,24 +932,19 @@ type AccountUserProfile struct {
 	// Acceptable values are:
 	// - "cs" (Czech)
 	// - "de" (German)
-	// -
-	// "en" (English)
+	// - "en" (English)
 	// - "en-GB" (English United Kingdom)
 	// - "es" (Spanish)
-	//
 	// - "fr" (French)
 	// - "it" (Italian)
 	// - "ja" (Japanese)
-	// - "ko"
-	// (Korean)
+	// - "ko" (Korean)
 	// - "pl" (Polish)
 	// - "pt-BR" (Portuguese Brazil)
-	// - "ru"
-	// (Russian)
+	// - "ru" (Russian)
 	// - "sv" (Swedish)
 	// - "tr" (Turkish)
-	// - "zh-CN" (Chinese
-	// Simplified)
+	// - "zh-CN" (Chinese Simplified)
 	// - "zh-TW" (Chinese Traditional)
 	Locale string `json:"locale,omitempty"`
 
@@ -951,10 +962,20 @@ type AccountUserProfile struct {
 	SubaccountId int64 `json:"subaccountId,omitempty,string"`
 
 	// TraffickerType: Trafficker type of this user profile.
+	//
+	// Possible values:
+	//   "EXTERNAL_TRAFFICKER"
+	//   "INTERNAL_NON_TRAFFICKER"
+	//   "INTERNAL_TRAFFICKER"
 	TraffickerType string `json:"traffickerType,omitempty"`
 
 	// UserAccessType: User type of the user profile. This is a read-only
 	// field that can be left blank.
+	//
+	// Possible values:
+	//   "INTERNAL_ADMINISTRATOR"
+	//   "NORMAL_USER"
+	//   "SUPER_USER"
 	UserAccessType string `json:"userAccessType,omitempty"`
 
 	// UserRoleFilter: Filter that describes which user roles are visible to
@@ -967,7 +988,7 @@ type AccountUserProfile struct {
 }
 
 type AccountUserProfilesListResponse struct {
-	// AccountUserProfiles: Account user profile collection
+	// AccountUserProfiles: Account user profile collection.
 	AccountUserProfiles []*AccountUserProfile `json:"accountUserProfiles,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -980,7 +1001,7 @@ type AccountUserProfilesListResponse struct {
 }
 
 type AccountsListResponse struct {
-	// Accounts: Account collection
+	// Accounts: Account collection.
 	Accounts []*Account `json:"accounts,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1054,6 +1075,13 @@ type Ad struct {
 	// ads, respectively. APP and APP_INTERSTITIAL are for rendering in
 	// mobile apps. IN_STREAM_VIDEO refers to rendering an in-stream video
 	// ads developed with the VAST standard.
+	//
+	// Possible values:
+	//   "APP"
+	//   "APP_INTERSTITIAL"
+	//   "IN_STREAM_VIDEO"
+	//   "WEB"
+	//   "WEB_INTERSTITIAL"
 	Compatibility string `json:"compatibility,omitempty"`
 
 	// CreateInfo: Information about the creation of this ad.This is a
@@ -1129,10 +1157,10 @@ type Ad struct {
 	// PlacementAssignments: Placement assignments for this ad.
 	PlacementAssignments []*PlacementAssignment `json:"placementAssignments,omitempty"`
 
-	// Remarketing_list_expression: Applicable when type is
+	// RemarketingListExpression: Applicable when type is
 	// AD_SERVING_STANDARD_AD. Remarketing list targeting expression for
 	// this ad.
-	Remarketing_list_expression *ListTargetingExpression `json:"remarketing_list_expression,omitempty"`
+	RemarketingListExpression *ListTargetingExpression `json:"remarketing_list_expression,omitempty"`
 
 	// Size: Size of this ad. Applicable when type is AD_SERVING_DEFAULT_AD.
 	Size *Size `json:"size,omitempty"`
@@ -1161,11 +1189,17 @@ type Ad struct {
 	// Type: Type of ad. This is a required field on insertion. Note that
 	// default ads (AD_SERVING_DEFAULT_AD) cannot be created directly (see
 	// Creative resource).
+	//
+	// Possible values:
+	//   "AD_SERVING_CLICK_TRACKER"
+	//   "AD_SERVING_DEFAULT_AD"
+	//   "AD_SERVING_STANDARD_AD"
+	//   "AD_SERVING_TRACKING"
 	Type string `json:"type,omitempty"`
 }
 
 type AdsListResponse struct {
-	// Ads: Ad collection
+	// Ads: Ad collection.
 	Ads []*Ad `json:"ads,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1206,11 +1240,11 @@ type Advertiser struct {
 	// field can be set to another advertiser's floodlight configuration ID
 	// in order to share that advertiser's floodlight configuration with
 	// this advertiser, so long as:
-	// - This advertiser's original floodlight
-	// configuration is not already associated with floodlight activities or
-	// floodlight activity groups.
-	// - This advertiser's original floodlight
-	// configuration is not already shared with another advertiser.
+	// - This advertiser's original floodlight configuration is not already
+	// associated with floodlight activities or floodlight activity groups.
+	//
+	// - This advertiser's original floodlight configuration is not already
+	// shared with another advertiser.
 	FloodlightConfigurationId int64 `json:"floodlightConfigurationId,omitempty,string"`
 
 	// FloodlightConfigurationIdDimensionValue: Dimension value for the ID
@@ -1235,6 +1269,10 @@ type Advertiser struct {
 	Name string `json:"name,omitempty"`
 
 	// Status: Status of this advertiser.
+	//
+	// Possible values:
+	//   "APPROVED"
+	//   "ON_HOLD"
 	Status string `json:"status,omitempty"`
 
 	// SubaccountId: Subaccount ID of this advertiser.This is a read-only
@@ -1262,7 +1300,7 @@ type AdvertiserGroup struct {
 }
 
 type AdvertiserGroupsListResponse struct {
-	// AdvertiserGroups: Advertiser group collection
+	// AdvertiserGroups: Advertiser group collection.
 	AdvertiserGroups []*AdvertiserGroup `json:"advertiserGroups,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1275,7 +1313,7 @@ type AdvertiserGroupsListResponse struct {
 }
 
 type AdvertisersListResponse struct {
-	// Advertisers: Advertiser collection
+	// Advertisers: Advertiser collection.
 	Advertisers []*Advertiser `json:"advertisers,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1356,7 +1394,7 @@ type Browser struct {
 }
 
 type BrowsersListResponse struct {
-	// Browsers: Browser collection
+	// Browsers: Browser collection.
 	Browsers []*Browser `json:"browsers,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1505,7 +1543,7 @@ type CampaignCreativeAssociationsListResponse struct {
 }
 
 type CampaignsListResponse struct {
-	// Campaigns: Campaign collection
+	// Campaigns: Campaign collection.
 	Campaigns []*Campaign `json:"campaigns,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1567,7 +1605,7 @@ type ChangeLog struct {
 }
 
 type ChangeLogsListResponse struct {
-	// ChangeLogs: Change log collection
+	// ChangeLogs: Change log collection.
 	ChangeLogs []*ChangeLog `json:"changeLogs,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1580,7 +1618,7 @@ type ChangeLogsListResponse struct {
 }
 
 type CitiesListResponse struct {
-	// Cities: City collection
+	// Cities: City collection.
 	Cities []*City `json:"cities,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1711,7 +1749,8 @@ type ConnectionType struct {
 }
 
 type ConnectionTypesListResponse struct {
-	// ConnectionTypes: Connection Type Collection.
+	// ConnectionTypes: Collection of connection types such as broadband and
+	// mobile.
 	ConnectionTypes []*ConnectionType `json:"connectionTypes,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1720,7 +1759,7 @@ type ConnectionTypesListResponse struct {
 }
 
 type ContentCategoriesListResponse struct {
-	// ContentCategories: Content category collection
+	// ContentCategories: Content category collection.
 	ContentCategories []*ContentCategory `json:"contentCategories,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1733,7 +1772,7 @@ type ContentCategoriesListResponse struct {
 }
 
 type ContentCategory struct {
-	// AccountId: Account ID of this content category.This is a read-only
+	// AccountId: Account ID of this content category. This is a read-only
 	// field that can be left blank.
 	AccountId int64 `json:"accountId,omitempty,string"`
 
@@ -1755,7 +1794,7 @@ type ContentCategory struct {
 }
 
 type CountriesListResponse struct {
-	// Countries: Country collection
+	// Countries: Country collection.
 	Countries []*Country `json:"countries,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -1823,17 +1862,26 @@ type Creative struct {
 	// ArtworkType: Type of artwork used for the creative. This is a
 	// read-only field. Applicable to the following creative types: all
 	// RICH_MEDIA, and all VPAID.
+	//
+	// Possible values:
+	//   "ARTWORK_TYPE_FLASH"
+	//   "ARTWORK_TYPE_HTML5"
+	//   "ARTWORK_TYPE_MIXED"
 	ArtworkType string `json:"artworkType,omitempty"`
 
 	// AuthoringTool: Authoring tool for HTML5 banner creatives. This is a
 	// read-only field. Applicable to the following creative types:
 	// HTML5_BANNER.
+	//
+	// Possible values:
+	//   "NINJA"
+	//   "SWIFFY"
 	AuthoringTool string `json:"authoringTool,omitempty"`
 
-	// Auto_advance_images: Whether images are automatically advanced for
+	// AutoAdvanceImages: Whether images are automatically advanced for
 	// enhanced image creatives. Applicable to the following creative types:
 	// ENHANCED_IMAGE.
-	Auto_advance_images bool `json:"auto_advance_images,omitempty"`
+	AutoAdvanceImages bool `json:"auto_advance_images,omitempty"`
 
 	// BackgroundColor: The 6-character HTML color code, beginning with #,
 	// for the background of the window area where the Flash file is
@@ -1903,8 +1951,7 @@ type Creative struct {
 	// Acceptable values are:
 	// - "APP"
 	// - "APP_INTERSTITIAL"
-	// -
-	// "IN_STREAM_VIDEO"
+	// - "IN_STREAM_VIDEO"
 	// - "WEB"
 	// - "WEB_INTERSTITIAL"
 	Compatibility []string `json:"compatibility,omitempty"`
@@ -1949,7 +1996,7 @@ type Creative struct {
 	// and HTML5_BANNER, and all RICH_MEDIA.
 	HtmlCode string `json:"htmlCode,omitempty"`
 
-	// HtmlCodeLocked: Whether HTML code is DCM generated or manually
+	// HtmlCodeLocked: Whether HTML code is DCM-generated or manually
 	// entered. Set to true to ignore changes to htmlCode. Applicable to the
 	// following creative types: FLASH_INPAGE and HTML5_BANNER.
 	HtmlCodeLocked bool `json:"htmlCodeLocked,omitempty"`
@@ -2077,6 +2124,31 @@ type Creative struct {
 
 	// Type: Type of this creative.This is a required field. Applicable to
 	// all creative types.
+	//
+	// Possible values:
+	//   "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO"
+	//   "CUSTOM_INPAGE"
+	//   "CUSTOM_INTERSTITIAL"
+	//   "ENHANCED_BANNER"
+	//   "ENHANCED_IMAGE"
+	//   "FLASH_INPAGE"
+	//   "HTML5_BANNER"
+	//   "IMAGE"
+	//   "INSTREAM_VIDEO"
+	//   "INTERNAL_REDIRECT"
+	//   "INTERSTITIAL_INTERNAL_REDIRECT"
+	//   "REDIRECT"
+	//   "RICH_MEDIA_EXPANDING"
+	//   "RICH_MEDIA_IM_EXPAND"
+	//   "RICH_MEDIA_INPAGE"
+	//   "RICH_MEDIA_INPAGE_FLOATING"
+	//   "RICH_MEDIA_INTERSTITIAL_FLOAT"
+	//   "RICH_MEDIA_MOBILE_IN_APP"
+	//   "RICH_MEDIA_MULTI_FLOATING"
+	//   "RICH_MEDIA_PEEL_DOWN"
+	//   "TRACKING_TEXT"
+	//   "VPAID_LINEAR"
+	//   "VPAID_NON_LINEAR"
 	Type string `json:"type,omitempty"`
 
 	// Version: The version number helps you keep track of multiple versions
@@ -2113,10 +2185,21 @@ type CreativeAsset struct {
 	// Alignment: Possible alignments for an asset. This is a read-only
 	// field. Applicable to the following creative types:
 	// RICH_MEDIA_MULTI_FLOATING.
+	//
+	// Possible values:
+	//   "ALIGNMENT_BOTTOM"
+	//   "ALIGNMENT_LEFT"
+	//   "ALIGNMENT_RIGHT"
+	//   "ALIGNMENT_TOP"
 	Alignment string `json:"alignment,omitempty"`
 
 	// ArtworkType: Artwork type of rich media creative. This is a read-only
 	// field. Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ARTWORK_TYPE_FLASH"
+	//   "ARTWORK_TYPE_HTML5"
+	//   "ARTWORK_TYPE_MIXED"
 	ArtworkType string `json:"artworkType,omitempty"`
 
 	// AssetIdentifier: Identifier of this asset. This is the same
@@ -2136,6 +2219,12 @@ type CreativeAsset struct {
 
 	// ChildAssetType: Rich media child asset type. This is a read-only
 	// field. Applicable to the following creative types: all VPAID.
+	//
+	// Possible values:
+	//   "CHILD_ASSET_TYPE_DATA"
+	//   "CHILD_ASSET_TYPE_FLASH"
+	//   "CHILD_ASSET_TYPE_IMAGE"
+	//   "CHILD_ASSET_TYPE_VIDEO"
 	ChildAssetType string `json:"childAssetType,omitempty"`
 
 	// CollapsedSize: Size of an asset when collapsed. This is a read-only
@@ -2159,6 +2248,17 @@ type CreativeAsset struct {
 
 	// DisplayType: Type of rich media asset. This is a read-only field.
 	// Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ASSET_DISPLAY_TYPE_EXPANDING"
+	//   "ASSET_DISPLAY_TYPE_FLASH_IN_FLASH"
+	//   "ASSET_DISPLAY_TYPE_FLASH_IN_FLASH_EXPANDING"
+	//   "ASSET_DISPLAY_TYPE_FLOATING"
+	//   "ASSET_DISPLAY_TYPE_INPAGE"
+	//   "ASSET_DISPLAY_TYPE_OVERLAY"
+	//   "ASSET_DISPLAY_TYPE_PEEL_DOWN"
+	//   "ASSET_DISPLAY_TYPE_VPAID_LINEAR"
+	//   "ASSET_DISPLAY_TYPE_VPAID_NON_LINEAR"
 	DisplayType string `json:"displayType,omitempty"`
 
 	// Duration: Duration in seconds for which an asset will be displayed.
@@ -2168,6 +2268,11 @@ type CreativeAsset struct {
 
 	// DurationType: Duration type for which an asset will be displayed.
 	// Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ASSET_DURATION_TYPE_AUTO"
+	//   "ASSET_DURATION_TYPE_CUSTOM"
+	//   "ASSET_DURATION_TYPE_NONE"
 	DurationType string `json:"durationType,omitempty"`
 
 	// ExpandedDimension: Detected expanded dimension for video asset. This
@@ -2193,7 +2298,7 @@ type CreativeAsset struct {
 	// asset. Applicable to the following creative types: all RICH_MEDIA.
 	HideSelectionBoxes bool `json:"hideSelectionBoxes,omitempty"`
 
-	// HorizontallyLocked: Wheter the asset is horizontally locked. This is
+	// HorizontallyLocked: Whether the asset is horizontally locked. This is
 	// a read-only field. Applicable to the following creative types: all
 	// RICH_MEDIA.
 	HorizontallyLocked bool `json:"horizontallyLocked,omitempty"`
@@ -2226,11 +2331,21 @@ type CreativeAsset struct {
 
 	// PositionLeftUnit: Offset left unit for an asset. This is a read-only
 	// field. Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "OFFSET_UNIT_PERCENT"
+	//   "OFFSET_UNIT_PIXEL"
+	//   "OFFSET_UNIT_PIXEL_FROM_CENTER"
 	PositionLeftUnit string `json:"positionLeftUnit,omitempty"`
 
 	// PositionTopUnit: Offset top unit for an asset. This is a read-only
 	// field if the asset displayType is ASSET_DISPLAY_TYPE_OVERLAY.
 	// Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "OFFSET_UNIT_PERCENT"
+	//   "OFFSET_UNIT_PIXEL"
+	//   "OFFSET_UNIT_PIXEL_FROM_CENTER"
 	PositionTopUnit string `json:"positionTopUnit,omitempty"`
 
 	// ProgressiveServingUrl: Progressive URL for video asset. This is a
@@ -2255,32 +2370,39 @@ type CreativeAsset struct {
 	// Role: Role of the asset in relation to creative. Applicable to all
 	// but the following creative types: all REDIRECT and TRACKING_TEXT.
 	// This is a required field.
-	// PRIMARY applies to ENHANCED_BANNER,
-	// FLASH_INPAGE, HTML5_BANNER, IMAGE, IMAGE_GALLERY, all RICH_MEDIA
-	// (which may contain multiple primary assets), and all VPAID
+	// PRIMARY applies to ENHANCED_BANNER, FLASH_INPAGE, HTML5_BANNER,
+	// IMAGE, IMAGE_GALLERY, all RICH_MEDIA (which may contain multiple
+	// primary assets), and all VPAID creatives.
+	// BACKUP_IMAGE applies to ENHANCED_BANNER, FLASH_INPAGE, HTML5_BANNER,
+	// all RICH_MEDIA, and all VPAID creatives.
+	// ADDITIONAL_IMAGE and ADDITIONAL_FLASH apply to FLASH_INPAGE
 	// creatives.
-	// BACKUP_IMAGE applies to ENHANCED_BANNER, FLASH_INPAGE,
-	// HTML5_BANNER, all RICH_MEDIA, and all VPAID
+	// OTHER refers to assets from sources other than DCM, such as Studio
+	// uploaded assets, applicable to all RICH_MEDIA and all VPAID
 	// creatives.
-	// ADDITIONAL_IMAGE and ADDITIONAL_FLASH apply to
-	// FLASH_INPAGE creatives.
-	// OTHER refers to assets from sources other
-	// than DCM, such as Studio uploaded assets, applicable to all
-	// RICH_MEDIA and all VPAID creatives.
-	// PARENT_VIDEO refers to videos
-	// uploaded by the user in DCM and is applicable to INSTREAM_VIDEO and
-	// VPAID_LINEAR creatives.
-	// TRANSCODED_VIDEO refers to videos transcoded
-	// by DCM from PARENT_VIDEO assets and is applicable to INSTREAM_VIDEO
-	// and VPAID_LINEAR creatives.
-	// ALTERNATE_VIDEO refers to the DCM
-	// representation of child asset videos from Studio, and is applicable
-	// to VPAID_LINEAR creatives. These cannot be added or removed within
-	// DCM.
+	// PARENT_VIDEO refers to videos uploaded by the user in DCM and is
+	// applicable to INSTREAM_VIDEO and VPAID_LINEAR
+	// creatives.
+	// TRANSCODED_VIDEO refers to videos transcoded by DCM from PARENT_VIDEO
+	// assets and is applicable to INSTREAM_VIDEO and VPAID_LINEAR
+	// creatives.
+	// ALTERNATE_VIDEO refers to the DCM representation of child asset
+	// videos from Studio, and is applicable to VPAID_LINEAR creatives.
+	// These cannot be added or removed within DCM.
 	// For VPAID_LINEAR creatives, PARENT_VIDEO, TRANSCODED_VIDEO and
 	// ALTERNATE_VIDEO assets that are marked active serve as backup in case
 	// the VPAID creative cannot be served. Only PARENT_VIDEO assets can be
 	// added or removed for an INSTREAM_VIDEO or VPAID_LINEAR creative.
+	//
+	// Possible values:
+	//   "ADDITIONAL_FLASH"
+	//   "ADDITIONAL_IMAGE"
+	//   "ALTERNATE_VIDEO"
+	//   "BACKUP_IMAGE"
+	//   "OTHER"
+	//   "PARENT_VIDEO"
+	//   "PRIMARY"
+	//   "TRANSCODED_VIDEO"
 	Role string `json:"role,omitempty"`
 
 	// Size: Size associated with this creative asset. This is a required
@@ -2298,6 +2420,10 @@ type CreativeAsset struct {
 
 	// StartTimeType: Initial wait time type before making the asset
 	// visible. Applicable to the following creative types: all RICH_MEDIA.
+	//
+	// Possible values:
+	//   "ASSET_START_TIME_TYPE_CUSTOM"
+	//   "ASSET_START_TIME_TYPE_NONE"
 	StartTimeType string `json:"startTimeType,omitempty"`
 
 	// StreamingServingUrl: Streaming URL for video asset. This is a
@@ -2324,6 +2450,11 @@ type CreativeAsset struct {
 	// following creative types: FLASH_INPAGE, RICH_MEDIA_EXPANDING,
 	// RICH_MEDIA_IM_EXPAND, RICH_MEDIA_INPAGE, and
 	// RICH_MEDIA_INPAGE_FLOATING.
+	//
+	// Possible values:
+	//   "OPAQUE"
+	//   "TRANSPARENT"
+	//   "WINDOW"
 	WindowMode string `json:"windowMode,omitempty"`
 
 	// ZIndex: zIndex value of an asset. This is a read-only field.
@@ -2352,6 +2483,13 @@ type CreativeAssetId struct {
 	// Type: Type of asset to upload. This is a required field. IMAGE is
 	// solely used for IMAGE creatives. Other image assets should use
 	// HTML_IMAGE.
+	//
+	// Possible values:
+	//   "FLASH"
+	//   "HTML"
+	//   "HTML_IMAGE"
+	//   "IMAGE"
+	//   "VIDEO"
 	Type string `json:"type,omitempty"`
 }
 
@@ -2379,35 +2517,26 @@ type CreativeAssetMetadata struct {
 	//
 	// Possible values are:
 	// - "CLICK_TAG_NON_TOP_LEVEL"
-	// -
-	// "CLICK_TAG_MISSING"
+	// - "CLICK_TAG_MISSING"
 	// - "CLICK_TAG_MORE_THAN_ONE"
-	// -
-	// "CLICK_TAG_INVALID"
+	// - "CLICK_TAG_INVALID"
 	// - "ORPHANED_ASSET"
 	// - "PRIMARY_HTML_MISSING"
-	// -
-	// "EXTERNAL_FILE_REFERENCED"
+	// - "EXTERNAL_FILE_REFERENCED"
 	// - "MRAID_REFERENCED"
-	// -
-	// "ADMOB_REFERENCED"
+	// - "ADMOB_REFERENCED"
 	// - "FILE_TYPE_INVALID"
 	// - "ZIP_INVALID"
-	// -
-	// "LINKED_FILE_NOT_FOUND"
+	// - "LINKED_FILE_NOT_FOUND"
 	// - "MAX_FLASH_VERSION_11"
-	// -
-	// "NOT_SSL_COMPLIANT"
+	// - "NOT_SSL_COMPLIANT"
 	// - "FILE_DETAIL_EMPTY"
 	// - "ASSET_INVALID"
-	// -
-	// "GWD_PROPERTIES_INVALID"
+	// - "GWD_PROPERTIES_INVALID"
 	// - "ENABLER_UNSUPPORTED_METHOD_DCM"
-	// -
-	// "ASSET_FORMAT_UNSUPPORTED_DCM"
+	// - "ASSET_FORMAT_UNSUPPORTED_DCM"
 	// - "COMPONENT_UNSUPPORTED_DCM"
-	// -
-	// "HTML5_FEATURE_UNSUPPORTED' "
+	// - "HTML5_FEATURE_UNSUPPORTED' "
 	WarnedValidationRules []string `json:"warnedValidationRules,omitempty"`
 }
 
@@ -2449,22 +2578,17 @@ type CreativeAssignment struct {
 
 	// RichMediaExitOverrides: Rich media exit overrides for this creative
 	// assignment.
-	// Applicable when the creative type is any of the
-	// following:
+	// Applicable when the creative type is any of the following:
 	// - RICH_MEDIA_INPAGE
 	// - RICH_MEDIA_INPAGE_FLOATING
-	// -
-	// RICH_MEDIA_IM_EXPAND
+	// - RICH_MEDIA_IM_EXPAND
 	// - RICH_MEDIA_EXPANDING
-	// -
-	// RICH_MEDIA_INTERSTITIAL_FLOAT
+	// - RICH_MEDIA_INTERSTITIAL_FLOAT
 	// - RICH_MEDIA_MOBILE_IN_APP
-	// -
-	// RICH_MEDIA_MULTI_FLOATING
+	// - RICH_MEDIA_MULTI_FLOATING
 	// - RICH_MEDIA_PEEL_DOWN
 	// - ADVANCED_BANNER
-	// -
-	// VPAID_LINEAR
+	// - VPAID_LINEAR
 	// - VPAID_NON_LINEAR
 	RichMediaExitOverrides []*RichMediaExitOverride `json:"richMediaExitOverrides,omitempty"`
 
@@ -2495,6 +2619,11 @@ type CreativeCustomEvent struct {
 
 	// AdvertiserCustomEventType: Type of the event. This is a read-only
 	// field.
+	//
+	// Possible values:
+	//   "ADVERTISER_EVENT_COUNTER"
+	//   "ADVERTISER_EVENT_EXIT"
+	//   "ADVERTISER_EVENT_TIMER"
 	AdvertiserCustomEventType string `json:"advertiserCustomEventType,omitempty"`
 
 	// ArtworkLabel: Artwork label column, used to link events in DCM back
@@ -2504,6 +2633,11 @@ type CreativeCustomEvent struct {
 
 	// ArtworkType: Artwork type used by the creative.This is a read-only
 	// field.
+	//
+	// Possible values:
+	//   "ARTWORK_TYPE_FLASH"
+	//   "ARTWORK_TYPE_HTML5"
+	//   "ARTWORK_TYPE_MIXED"
 	ArtworkType string `json:"artworkType,omitempty"`
 
 	// ExitUrl: Exit URL of the event. This field is used only for exit
@@ -2514,11 +2648,18 @@ type CreativeCustomEvent struct {
 	// modified after insertion.
 	Id int64 `json:"id,omitempty,string"`
 
-	// PopupWindowProperties: Properties for rich media pop-up windows. This
+	// PopupWindowProperties: Properties for rich media popup windows. This
 	// field is used only for exit events.
 	PopupWindowProperties *PopupWindowProperties `json:"popupWindowProperties,omitempty"`
 
 	// TargetType: Target type used by the event.
+	//
+	// Possible values:
+	//   "TARGET_BLANK"
+	//   "TARGET_PARENT"
+	//   "TARGET_POPUP"
+	//   "TARGET_SELF"
+	//   "TARGET_TOP"
 	TargetType string `json:"targetType,omitempty"`
 
 	// VideoReportingId: Reporting ID, used to differentiate multiple videos
@@ -2580,7 +2721,7 @@ type CreativeFieldValue struct {
 }
 
 type CreativeFieldValuesListResponse struct {
-	// CreativeFieldValues: Creative field value collection
+	// CreativeFieldValues: Creative field value collection.
 	CreativeFieldValues []*CreativeFieldValue `json:"creativeFieldValues,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -2593,7 +2734,7 @@ type CreativeFieldValuesListResponse struct {
 }
 
 type CreativeFieldsListResponse struct {
-	// CreativeFields: Creative field collection
+	// CreativeFields: Creative field collection.
 	CreativeFields []*CreativeField `json:"creativeFields,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -2651,11 +2792,15 @@ type CreativeGroupAssignment struct {
 
 	// CreativeGroupNumber: Creative group number of the creative group
 	// assignment.
+	//
+	// Possible values:
+	//   "CREATIVE_GROUP_ONE"
+	//   "CREATIVE_GROUP_TWO"
 	CreativeGroupNumber string `json:"creativeGroupNumber,omitempty"`
 }
 
 type CreativeGroupsListResponse struct {
-	// CreativeGroups: Creative group collection
+	// CreativeGroups: Creative group collection.
 	CreativeGroups []*CreativeGroup `json:"creativeGroups,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -2682,6 +2827,12 @@ type CreativeOptimizationConfiguration struct {
 	OptimizationActivitys []*OptimizationActivity `json:"optimizationActivitys,omitempty"`
 
 	// OptimizationModel: Optimization model for this configuration.
+	//
+	// Possible values:
+	//   "CLICK"
+	//   "POST_CLICK"
+	//   "POST_CLICK_AND_IMPRESSION"
+	//   "POST_IMPRESSION"
 	OptimizationModel string `json:"optimizationModel,omitempty"`
 }
 
@@ -2698,10 +2849,20 @@ type CreativeRotation struct {
 
 	// Type: Type of creative rotation. Can be used to specify whether to
 	// use sequential or random rotation.
+	//
+	// Possible values:
+	//   "CREATIVE_ROTATION_TYPE_RANDOM"
+	//   "CREATIVE_ROTATION_TYPE_SEQUENTIAL"
 	Type string `json:"type,omitempty"`
 
 	// WeightCalculationStrategy: Strategy for calculating weights. Used
 	// with CREATIVE_ROTATION_TYPE_RANDOM.
+	//
+	// Possible values:
+	//   "WEIGHT_STRATEGY_CUSTOM"
+	//   "WEIGHT_STRATEGY_EQUAL"
+	//   "WEIGHT_STRATEGY_HIGHEST_CTR"
+	//   "WEIGHT_STRATEGY_OPTIMIZED"
 	WeightCalculationStrategy string `json:"weightCalculationStrategy,omitempty"`
 }
 
@@ -2716,7 +2877,7 @@ type CreativeSettings struct {
 }
 
 type CreativesListResponse struct {
-	// Creatives: Creative collection
+	// Creatives: Creative collection.
 	Creatives []*Creative `json:"creatives,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -2771,6 +2932,23 @@ type DateRange struct {
 
 	// RelativeDateRange: The date range relative to the date of when the
 	// report is run.
+	//
+	// Possible values:
+	//   "LAST_24_MONTHS"
+	//   "LAST_30_DAYS"
+	//   "LAST_365_DAYS"
+	//   "LAST_7_DAYS"
+	//   "LAST_90_DAYS"
+	//   "MONTH_TO_DATE"
+	//   "PREVIOUS_MONTH"
+	//   "PREVIOUS_QUARTER"
+	//   "PREVIOUS_WEEK"
+	//   "PREVIOUS_YEAR"
+	//   "QUARTER_TO_DATE"
+	//   "TODAY"
+	//   "WEEK_TO_DATE"
+	//   "YEAR_TO_DATE"
+	//   "YESTERDAY"
 	RelativeDateRange string `json:"relativeDateRange,omitempty"`
 
 	// StartDate: The start date of the date range, inclusive. A string of
@@ -2781,14 +2959,12 @@ type DateRange struct {
 type DayPartTargeting struct {
 	// DaysOfWeek: Days of the week when the ad will serve.
 	//
-	// Acceptable
-	// values are:
+	// Acceptable values are:
 	// - "SUNDAY"
 	// - "MONDAY"
 	// - "TUESDAY"
 	// - "WEDNESDAY"
-	// -
-	// "THURSDAY"
+	// - "THURSDAY"
 	// - "FRIDAY"
 	// - "SATURDAY"
 	DaysOfWeek []string `json:"daysOfWeek,omitempty"`
@@ -2837,15 +3013,33 @@ type DeliverySchedule struct {
 	// Priority: Serving priority of an ad, with respect to other ads. The
 	// lower the priority number, the greater the priority with which it is
 	// served.
+	//
+	// Possible values:
+	//   "AD_PRIORITY_01"
+	//   "AD_PRIORITY_02"
+	//   "AD_PRIORITY_03"
+	//   "AD_PRIORITY_04"
+	//   "AD_PRIORITY_05"
+	//   "AD_PRIORITY_06"
+	//   "AD_PRIORITY_07"
+	//   "AD_PRIORITY_08"
+	//   "AD_PRIORITY_09"
+	//   "AD_PRIORITY_10"
+	//   "AD_PRIORITY_11"
+	//   "AD_PRIORITY_12"
+	//   "AD_PRIORITY_13"
+	//   "AD_PRIORITY_14"
+	//   "AD_PRIORITY_15"
+	//   "AD_PRIORITY_16"
 	Priority string `json:"priority,omitempty"`
 }
 
 type DfpSettings struct {
-	// Dfp_network_code: DFP network code for this directory site.
-	Dfp_network_code string `json:"dfp_network_code,omitempty"`
+	// DfpNetworkCode: DFP network code for this directory site.
+	DfpNetworkCode string `json:"dfp_network_code,omitempty"`
 
-	// Dfp_network_name: DFP network name for this directory site.
-	Dfp_network_name string `json:"dfp_network_name,omitempty"`
+	// DfpNetworkName: DFP network name for this directory site.
+	DfpNetworkName string `json:"dfp_network_name,omitempty"`
 
 	// ProgrammaticPlacementAccepted: Whether this directory site accepts
 	// programmatic placements.
@@ -2856,7 +3050,7 @@ type DfpSettings struct {
 	PubPaidPlacementAccepted bool `json:"pubPaidPlacementAccepted,omitempty"`
 
 	// PublisherPortalOnly: Whether this directory site is available only
-	// via Publisher Portal.
+	// via DoubleClick Publisher Portal.
 	PublisherPortalOnly bool `json:"publisherPortalOnly,omitempty"`
 }
 
@@ -2901,6 +3095,12 @@ type DimensionValue struct {
 	// length character sequences, and it can be escaped with a backslash.
 	// Note, only paid search dimensions ('dfa:paidSearch*') allow a
 	// matchType other than EXACT.
+	//
+	// Possible values:
+	//   "BEGINS_WITH"
+	//   "CONTAINS"
+	//   "EXACT"
+	//   "WILDCARD_EXPRESSION"
 	MatchType string `json:"matchType,omitempty"`
 
 	// Value: The value of the dimension.
@@ -2959,50 +3159,41 @@ type DirectorySite struct {
 
 	// CurrencyId: Currency ID of this directory site.
 	// Possible values are:
-	//
 	// - "1" for USD
 	// - "2" for GBP
 	// - "3" for ESP
 	// - "4" for SEK
-	// - "5"
-	// for CAD
+	// - "5" for CAD
 	// - "6" for JPY
 	// - "7" for DEM
 	// - "8" for AUD
 	// - "9" for FRF
-	//
 	// - "10" for ITL
 	// - "11" for DKK
 	// - "12" for NOK
 	// - "13" for FIM
-	// -
-	// "14" for ZAR
+	// - "14" for ZAR
 	// - "15" for IEP
 	// - "16" for NLG
 	// - "17" for EUR
-	// - "18"
-	// for KRW
+	// - "18" for KRW
 	// - "19" for TWD
 	// - "20" for SGD
 	// - "21" for CNY
-	// - "22" for
-	// HKD
+	// - "22" for HKD
 	// - "23" for NZD
 	// - "24" for MYR
 	// - "25" for BRL
 	// - "26" for PTE
-	//
 	// - "27" for MXP
 	// - "28" for CLP
 	// - "29" for TRY
 	// - "30" for ARS
-	// -
-	// "31" for PEN
+	// - "31" for PEN
 	// - "32" for ILS
 	// - "33" for CHF
 	// - "34" for VEF
-	// - "35"
-	// for COP
+	// - "35" for COP
 	// - "36" for GTQ
 	CurrencyId int64 `json:"currencyId,omitempty,string"`
 
@@ -3019,12 +3210,10 @@ type DirectorySite struct {
 
 	// InpageTagFormats: Tag types for regular placements.
 	//
-	// Acceptable
-	// values are:
+	// Acceptable values are:
 	// - "STANDARD"
 	// - "IFRAME_JAVASCRIPT_INPAGE"
-	// -
-	// "INTERNAL_REDIRECT_INPAGE"
+	// - "INTERNAL_REDIRECT_INPAGE"
 	// - "JAVASCRIPT_INPAGE"
 	InpageTagFormats []string `json:"inpageTagFormats,omitempty"`
 
@@ -3032,11 +3221,9 @@ type DirectorySite struct {
 	// placements.
 	//
 	// Acceptable values are:
-	// -
-	// "IFRAME_JAVASCRIPT_INTERSTITIAL"
+	// - "IFRAME_JAVASCRIPT_INTERSTITIAL"
 	// - "INTERNAL_REDIRECT_INTERSTITIAL"
-	// -
-	// "JAVASCRIPT_INTERSTITIAL"
+	// - "JAVASCRIPT_INTERSTITIAL"
 	InterstitialTagFormats []string `json:"interstitialTagFormats,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -3075,9 +3262,20 @@ type DirectorySiteContact struct {
 	LastName string `json:"lastName,omitempty"`
 
 	// Role: Directory site contact role.
+	//
+	// Possible values:
+	//   "ADMIN"
+	//   "EDIT"
+	//   "VIEW"
 	Role string `json:"role,omitempty"`
 
 	// Type: Directory site contact type.
+	//
+	// Possible values:
+	//   "BILLING"
+	//   "OTHER"
+	//   "SALES"
+	//   "TECHNICAL"
 	Type string `json:"type,omitempty"`
 }
 
@@ -3089,6 +3287,10 @@ type DirectorySiteContactAssignment struct {
 	// Visibility: Visibility of this directory site contact assignment.
 	// When set to PUBLIC this contact assignment is visible to all account
 	// and agency users; when set to PRIVATE it is visible only to the site.
+	//
+	// Possible values:
+	//   "PRIVATE"
+	//   "PUBLIC"
 	Visibility string `json:"visibility,omitempty"`
 }
 
@@ -3110,12 +3312,12 @@ type DirectorySiteSettings struct {
 	// view creatives.
 	ActiveViewOptOut bool `json:"activeViewOptOut,omitempty"`
 
-	// Dfp_settings: Directory site DFP settings.
-	Dfp_settings *DfpSettings `json:"dfp_settings,omitempty"`
+	// DfpSettings: Directory site DFP settings.
+	DfpSettings *DfpSettings `json:"dfp_settings,omitempty"`
 
-	// Instream_video_placement_accepted: Whether this site accepts
-	// in-stream video ads.
-	Instream_video_placement_accepted bool `json:"instream_video_placement_accepted,omitempty"`
+	// InstreamVideoPlacementAccepted: Whether this site accepts in-stream
+	// video ads.
+	InstreamVideoPlacementAccepted bool `json:"instream_video_placement_accepted,omitempty"`
 
 	// InterstitialPlacementAccepted: Whether this site accepts interstitial
 	// ads.
@@ -3126,7 +3328,7 @@ type DirectorySiteSettings struct {
 	NielsenOcrOptOut bool `json:"nielsenOcrOptOut,omitempty"`
 
 	// VerificationTagOptOut: Whether this directory site has disabled
-	// generation of Verification tags.
+	// generation of Verification ins tags.
 	VerificationTagOptOut bool `json:"verificationTagOptOut,omitempty"`
 
 	// VideoActiveViewOptOut: Whether this directory site has disabled
@@ -3135,7 +3337,7 @@ type DirectorySiteSettings struct {
 }
 
 type DirectorySitesListResponse struct {
-	// DirectorySites: Directory site collection
+	// DirectorySites: Directory site collection.
 	DirectorySites []*DirectorySite `json:"directorySites,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -3185,6 +3387,10 @@ type EventTag struct {
 
 	// SiteFilterType: Site filter type for this event tag. If no type is
 	// specified then the event tag will be applied to all sites.
+	//
+	// Possible values:
+	//   "BLACKLIST"
+	//   "WHITELIST"
 	SiteFilterType string `json:"siteFilterType,omitempty"`
 
 	// SiteIds: Filter list of site IDs associated with this event tag. The
@@ -3197,6 +3403,10 @@ type EventTag struct {
 
 	// Status: Status of this event tag. Must be ENABLED for this event tag
 	// to fire. This is a required field.
+	//
+	// Possible values:
+	//   "DISABLED"
+	//   "ENABLED"
 	Status string `json:"status,omitempty"`
 
 	// SubaccountId: Subaccount ID of this event tag. This is a read-only
@@ -3207,6 +3417,11 @@ type EventTag struct {
 	// third-party pixel, a third-party JavaScript URL, or a third-party
 	// click-through URL for either impression or click tracking. This is a
 	// required field.
+	//
+	// Possible values:
+	//   "CLICK_THROUGH_EVENT_TAG"
+	//   "IMPRESSION_IMAGE_EVENT_TAG"
+	//   "IMPRESSION_JAVASCRIPT_EVENT_TAG"
 	Type string `json:"type,omitempty"`
 
 	// Url: Payload URL for this event tag. The URL on a click-through event
@@ -3231,7 +3446,7 @@ type EventTagOverride struct {
 }
 
 type EventTagsListResponse struct {
-	// EventTags: Event tag collection
+	// EventTags: Event tag collection.
 	EventTags []*EventTag `json:"eventTags,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -3253,6 +3468,10 @@ type File struct {
 
 	// Format: The output format of the report. Only available once the file
 	// is available.
+	//
+	// Possible values:
+	//   "CSV"
+	//   "EXCEL"
 	Format string `json:"format,omitempty"`
 
 	// Id: The unique ID of this report file.
@@ -3269,6 +3488,12 @@ type File struct {
 	ReportId int64 `json:"reportId,omitempty,string"`
 
 	// Status: The status of the report file.
+	//
+	// Possible values:
+	//   "CANCELLED"
+	//   "FAILED"
+	//   "PROCESSING"
+	//   "REPORT_AVAILABLE"
 	Status string `json:"status,omitempty"`
 
 	// Urls: The URLs where the completed report file can be downloaded.
@@ -3311,7 +3536,7 @@ type FloodlightActivitiesGenerateTagResponse struct {
 }
 
 type FloodlightActivitiesListResponse struct {
-	// FloodlightActivities: Floodlight activity collection
+	// FloodlightActivities: Floodlight activity collection.
 	FloodlightActivities []*FloodlightActivity `json:"floodlightActivities,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -3324,8 +3549,8 @@ type FloodlightActivitiesListResponse struct {
 }
 
 type FloodlightActivity struct {
-	// AccountId: Account ID of this floodlight activity.This is a read-only
-	// field that can be left blank.
+	// AccountId: Account ID of this floodlight activity. This is a
+	// read-only field that can be left blank.
 	AccountId int64 `json:"accountId,omitempty,string"`
 
 	// AdvertiserId: Advertiser ID of this floodlight activity. If this
@@ -3339,10 +3564,24 @@ type FloodlightActivity struct {
 
 	// CacheBustingType: Code type used for cache busting in the generated
 	// tag.
+	//
+	// Possible values:
+	//   "ACTIVE_SERVER_PAGE"
+	//   "COLD_FUSION"
+	//   "JAVASCRIPT"
+	//   "JSP"
+	//   "PHP"
 	CacheBustingType string `json:"cacheBustingType,omitempty"`
 
 	// CountingMethod: Counting method for conversions for this floodlight
 	// activity. This is a required field.
+	//
+	// Possible values:
+	//   "ITEMS_SOLD_COUNTING"
+	//   "SESSION_COUNTING"
+	//   "STANDARD_COUNTING"
+	//   "TRANSACTIONS_COUNTING"
+	//   "UNIQUE_COUNTING"
 	CountingMethod string `json:"countingMethod,omitempty"`
 
 	// DefaultTags: Dynamic floodlight tags.
@@ -3366,6 +3605,10 @@ type FloodlightActivity struct {
 
 	// FloodlightActivityGroupType: Type of the associated floodlight
 	// activity group. This is a read-only field.
+	//
+	// Possible values:
+	//   "COUNTER"
+	//   "SALE"
 	FloodlightActivityGroupType string `json:"floodlightActivityGroupType,omitempty"`
 
 	// FloodlightConfigurationId: Floodlight configuration ID of this
@@ -3387,7 +3630,7 @@ type FloodlightActivity struct {
 	Id int64 `json:"id,omitempty,string"`
 
 	// IdDimensionValue: Dimension value for the ID of this floodlight
-	// activity.This is a read-only, auto-generated field.
+	// activity. This is a read-only, auto-generated field.
 	IdDimensionValue *DimensionValue `json:"idDimensionValue,omitempty"`
 
 	// ImageTagEnabled: Whether the image tag is enabled for this activity.
@@ -3418,12 +3661,16 @@ type FloodlightActivity struct {
 	// SslRequired: Whether this floodlight activity must be SSL-compliant.
 	SslRequired bool `json:"sslRequired,omitempty"`
 
-	// SubaccountId: Subaccount ID of this floodlight activity.This is a
+	// SubaccountId: Subaccount ID of this floodlight activity. This is a
 	// read-only field that can be left blank.
 	SubaccountId int64 `json:"subaccountId,omitempty,string"`
 
 	// TagFormat: Tag format type for the floodlight activity. If left
 	// blank, the tag format will default to HTML.
+	//
+	// Possible values:
+	//   "HTML"
+	//   "XHTML"
 	TagFormat string `json:"tagFormat,omitempty"`
 
 	// TagString: Value of the cat= paramter in the floodlight tag, which
@@ -3440,8 +3687,7 @@ type FloodlightActivity struct {
 	// these can have a user defined type.
 	// Acceptable values are:
 	// - "U1"
-	// -
-	// "U2"
+	// - "U2"
 	// - "U3"
 	// - "U4"
 	// - "U5"
@@ -3450,8 +3696,7 @@ type FloodlightActivity struct {
 	// - "U8"
 	// - "U9"
 	// - "U10"
-	// -
-	// "U11"
+	// - "U11"
 	// - "U12"
 	// - "U13"
 	// - "U14"
@@ -3459,8 +3704,7 @@ type FloodlightActivity struct {
 	// - "U16"
 	// - "U17"
 	// - "U18"
-	// -
-	// "U19"
+	// - "U19"
 	// - "U20"
 	UserDefinedVariableTypes []string `json:"userDefinedVariableTypes,omitempty"`
 }
@@ -3478,7 +3722,7 @@ type FloodlightActivityDynamicTag struct {
 }
 
 type FloodlightActivityGroup struct {
-	// AccountId: Account ID of this floodlight activity group.This is a
+	// AccountId: Account ID of this floodlight activity group. This is a
 	// read-only field that can be left blank.
 	AccountId int64 `json:"accountId,omitempty,string"`
 
@@ -3531,13 +3775,17 @@ type FloodlightActivityGroup struct {
 	// configuration. This field is read-only after insertion.
 	TagString string `json:"tagString,omitempty"`
 
-	// Type: The type of floodlight activity group. This is a required field
+	// Type: Type of the floodlight activity group. This is a required field
 	// that is read-only after insertion.
+	//
+	// Possible values:
+	//   "COUNTER"
+	//   "SALE"
 	Type string `json:"type,omitempty"`
 }
 
 type FloodlightActivityGroupsListResponse struct {
-	// FloodlightActivityGroups: Floodlight activity group collection
+	// FloodlightActivityGroups: Floodlight activity group collection.
 	FloodlightActivityGroups []*FloodlightActivityGroup `json:"floodlightActivityGroups,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -3590,7 +3838,7 @@ type FloodlightConfiguration struct {
 	// Google Analytics.
 	AnalyticsDataSharingEnabled bool `json:"analyticsDataSharingEnabled,omitempty"`
 
-	// ExposureToConversionEnabled: Whether the exposure to conversion
+	// ExposureToConversionEnabled: Whether the exposure-to-conversion
 	// report is enabled. This report shows detailed pathway information on
 	// up to 10 of the most recent ad exposures seen by a user before
 	// converting.
@@ -3598,6 +3846,10 @@ type FloodlightConfiguration struct {
 
 	// FirstDayOfWeek: Day that will be counted as the first day of the week
 	// in reports. This is a required field.
+	//
+	// Possible values:
+	//   "MONDAY"
+	//   "SUNDAY"
 	FirstDayOfWeek string `json:"firstDayOfWeek,omitempty"`
 
 	// Id: ID of this floodlight configuration. This is a read-only,
@@ -3618,6 +3870,11 @@ type FloodlightConfiguration struct {
 
 	// NaturalSearchConversionAttributionOption: Types of attribution
 	// options for natural search conversions.
+	//
+	// Possible values:
+	//   "EXCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION"
+	//   "INCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION"
+	//   "INCLUDE_NATURAL_SEARCH_TIERED_CONVERSION_ATTRIBUTION"
 	NaturalSearchConversionAttributionOption string `json:"naturalSearchConversionAttributionOption,omitempty"`
 
 	// OmnitureSettings: Settings for DCM Omniture integration.
@@ -3649,7 +3906,7 @@ type FloodlightConfiguration struct {
 }
 
 type FloodlightConfigurationsListResponse struct {
-	// FloodlightConfigurations: Floodlight configuration collection
+	// FloodlightConfigurations: Floodlight configuration collection.
 	FloodlightConfigurations []*FloodlightConfiguration `json:"floodlightConfigurations,omitempty"`
 
 	// Kind: Identifies what kind of resource this is. Value: the fixed
@@ -3691,6 +3948,10 @@ type FsCommand struct {
 	Left int64 `json:"left,omitempty"`
 
 	// PositionOption: Position in the browser where the window will open.
+	//
+	// Possible values:
+	//   "CENTERED"
+	//   "DISTANCE_FROM_TOP_LEFT_CORNER"
 	PositionOption string `json:"positionOption,omitempty"`
 
 	// Top: Distance from the top of the browser. Applicable when
@@ -3762,7 +4023,7 @@ type LandingPage struct {
 	// string "dfareporting#landingPage".
 	Kind string `json:"kind,omitempty"`
 
-	// Name: Name of this landing page. This is a required field. Must be
+	// Name: Name of this landing page. This is a required field. It must be
 	// less than 256 characters long, and must be unique among landing pages
 	// of the same campaign.
 	Name string `json:"name,omitempty"`
@@ -3847,7 +4108,7 @@ type MetrosListResponse struct {
 	// string "dfareporting#metrosListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// Metros: Metro collection
+	// Metros: Metro collection.
 	Metros []*Metro `json:"metros,omitempty"`
 }
 
@@ -3876,7 +4137,7 @@ type MobileCarriersListResponse struct {
 	// string "dfareporting#mobileCarriersListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// MobileCarriers: Mobile carrier collection
+	// MobileCarriers: Mobile carrier collection.
 	MobileCarriers []*MobileCarrier `json:"mobileCarriers,omitempty"`
 }
 
@@ -3893,6 +4154,11 @@ type ObjectFilter struct {
 	// of the objects. ALL means the user has access to all objects.
 	// ASSIGNED means the user has access to the objects with IDs in the
 	// objectIds list.
+	//
+	// Possible values:
+	//   "ALL"
+	//   "ASSIGNED"
+	//   "NONE"
 	Status string `json:"status,omitempty"`
 }
 
@@ -3947,8 +4213,8 @@ type OperatingSystemVersion struct {
 	// system version.
 	MajorVersion string `json:"majorVersion,omitempty"`
 
-	// MinorVersion: Minor version (number after first dot on the left) of
-	// this operating system version.
+	// MinorVersion: Minor version (number after the first dot) of this
+	// operating system version.
 	MinorVersion string `json:"minorVersion,omitempty"`
 
 	// Name: Name of this operating system version.
@@ -3963,7 +4229,7 @@ type OperatingSystemVersionsListResponse struct {
 	// string "dfareporting#operatingSystemVersionsListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// OperatingSystemVersions: Operating system version collection
+	// OperatingSystemVersions: Operating system version collection.
 	OperatingSystemVersions []*OperatingSystemVersion `json:"operatingSystemVersions,omitempty"`
 }
 
@@ -3972,7 +4238,7 @@ type OperatingSystemsListResponse struct {
 	// string "dfareporting#operatingSystemsListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// OperatingSystems: Operating system collection
+	// OperatingSystems: Operating system collection.
 	OperatingSystems []*OperatingSystem `json:"operatingSystems,omitempty"`
 }
 
@@ -4048,6 +4314,13 @@ type Placement struct {
 	// rendering in mobile apps.IN_STREAM_VIDEO refers to rendering in
 	// in-stream video ads developed with the VAST standard. This field is
 	// required on insertion.
+	//
+	// Possible values:
+	//   "APP"
+	//   "APP_INTERSTITIAL"
+	//   "IN_STREAM_VIDEO"
+	//   "WEB"
+	//   "WEB_INTERSTITIAL"
 	Compatibility string `json:"compatibility,omitempty"`
 
 	// ContentCategoryId: ID of the content category assigned to this
@@ -4103,6 +4376,10 @@ type Placement struct {
 
 	// PaymentSource: Payment source for this placement. This is a required
 	// field that is read-only after insertion.
+	//
+	// Possible values:
+	//   "PLACEMENT_AGENCY_PAID"
+	//   "PLACEMENT_PUBLISHER_PAID"
 	PaymentSource string `json:"paymentSource,omitempty"`
 
 	// PlacementGroupId: ID of this placement's group, if applicable.
@@ -4153,6 +4430,14 @@ type Placement struct {
 	SslRequired bool `json:"sslRequired,omitempty"`
 
 	// Status: Third-party placement status.
+	//
+	// Possible values:
+	//   "ACKNOWLEDGE_ACCEPTANCE"
+	//   "ACKNOWLEDGE_REJECTION"
+	//   "DRAFT"
+	//   "PAYMENT_ACCEPTED"
+	//   "PAYMENT_REJECTED"
+	//   "PENDING_REVIEW"
 	Status string `json:"status,omitempty"`
 
 	// SubaccountId: Subaccount ID of this placement. This field can be left
@@ -4162,27 +4447,18 @@ type Placement struct {
 	// TagFormats: Tag formats to generate for this placement. This field is
 	// required on insertion.
 	// Acceptable values are:
-	// -
-	// "PLACEMENT_TAG_STANDARD"
+	// - "PLACEMENT_TAG_STANDARD"
 	// - "PLACEMENT_TAG_IFRAME_JAVASCRIPT"
-	// -
-	// "PLACEMENT_TAG_IFRAME_ILAYER"
+	// - "PLACEMENT_TAG_IFRAME_ILAYER"
 	// - "PLACEMENT_TAG_INTERNAL_REDIRECT"
-	// -
-	// "PLACEMENT_TAG_JAVASCRIPT"
-	// -
-	// "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT"
-	// -
-	// "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT"
-	// -
-	// "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT"
-	// -
-	// "PLACEMENT_TAG_CLICK_COMMANDS"
-	// -
-	// "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH"
+	// - "PLACEMENT_TAG_JAVASCRIPT"
+	// - "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT"
+	// - "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT"
+	// - "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT"
+	// - "PLACEMENT_TAG_CLICK_COMMANDS"
+	// - "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH"
 	// - "PLACEMENT_TAG_TRACKING"
-	// -
-	// "PLACEMENT_TAG_TRACKING_IFRAME"
+	// - "PLACEMENT_TAG_TRACKING_IFRAME"
 	// - "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
 	TagFormats []string `json:"tagFormats,omitempty"`
 
@@ -4288,6 +4564,10 @@ type PlacementGroup struct {
 	// it will be served at the same time. A roadblock requires one of its
 	// assigned placements to be marked as primary for reporting. This field
 	// is required on insertion.
+	//
+	// Possible values:
+	//   "PLACEMENT_PACKAGE"
+	//   "PLACEMENT_ROADBLOCK"
 	PlacementGroupType string `json:"placementGroupType,omitempty"`
 
 	// PlacementStrategyId: ID of the placement strategy assigned to this
@@ -4335,7 +4615,7 @@ type PlacementGroupsListResponse struct {
 	// operation.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// PlacementGroups: Placement group collection
+	// PlacementGroups: Placement group collection.
 	PlacementGroups []*PlacementGroup `json:"placementGroups,omitempty"`
 }
 
@@ -4348,7 +4628,7 @@ type PlacementStrategiesListResponse struct {
 	// operation.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// PlacementStrategies: Placement strategy collection
+	// PlacementStrategies: Placement strategy collection.
 	PlacementStrategies []*PlacementStrategy `json:"placementStrategies,omitempty"`
 }
 
@@ -4365,8 +4645,8 @@ type PlacementStrategy struct {
 	// string "dfareporting#placementStrategy".
 	Kind string `json:"kind,omitempty"`
 
-	// Name: Name of this placement strategy. This is a required field. Must
-	// be less than 256 characters long and unique among placement
+	// Name: Name of this placement strategy. This is a required field. It
+	// must be less than 256 characters long and unique among placement
 	// strategies of the same account.
 	Name string `json:"name,omitempty"`
 }
@@ -4397,7 +4677,7 @@ type PlacementsListResponse struct {
 	// operation.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// Placements: Placement collection
+	// Placements: Placement collection.
 	Placements []*Placement `json:"placements,omitempty"`
 }
 
@@ -4418,7 +4698,7 @@ type PlatformTypesListResponse struct {
 	// string "dfareporting#platformTypesListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// PlatformTypes: Platform type collection
+	// PlatformTypes: Platform type collection.
 	PlatformTypes []*PlatformType `json:"platformTypes,omitempty"`
 }
 
@@ -4434,6 +4714,10 @@ type PopupWindowProperties struct {
 
 	// PositionType: Popup window position either centered or at specific
 	// coordinate.
+	//
+	// Possible values:
+	//   "CENTER"
+	//   "COORDINATES"
 	PositionType string `json:"positionType,omitempty"`
 
 	// ShowAddressBar: Whether to display the browser address bar.
@@ -4477,24 +4761,29 @@ type PostalCodesListResponse struct {
 	// string "dfareporting#postalCodesListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// PostalCodes: Postal code collection
+	// PostalCodes: Postal code collection.
 	PostalCodes []*PostalCode `json:"postalCodes,omitempty"`
 }
 
 type PricingSchedule struct {
 	// CapCostOption: Placement cap cost option.
+	//
+	// Possible values:
+	//   "CAP_COST_CUMULATIVE"
+	//   "CAP_COST_MONTHLY"
+	//   "CAP_COST_NONE"
 	CapCostOption string `json:"capCostOption,omitempty"`
 
 	// DisregardOverdelivery: Whether cap costs are ignored by ad serving.
 	DisregardOverdelivery bool `json:"disregardOverdelivery,omitempty"`
 
-	// EndDate: Placement end date. This date must be later than or be the
-	// same day as the placement start date, but not later than the campaign
-	// end date. If, for example, you set 6/25/2015 as both the start and
-	// end dates, the effective placement date is just that day only,
-	// 6/25/2015. The hours, minutes, and seconds of the end date should not
-	// be set, as doing so will result in an error. This field is required
-	// on insertion.
+	// EndDate: Placement end date. This date must be later than, or the
+	// same day as, the placement start date, but not later than the
+	// campaign end date. If, for example, you set 6/25/2015 as both the
+	// start and end dates, the effective placement date is just that day
+	// only, 6/25/2015. The hours, minutes, and seconds of the end date
+	// should not be set, as doing so will result in an error. This field is
+	// required on insertion.
 	EndDate string `json:"endDate,omitempty"`
 
 	// Flighted: Whether this placement is flighted. If true, pricing
@@ -4511,12 +4800,19 @@ type PricingSchedule struct {
 
 	// PricingType: Placement pricing type. This field is required on
 	// insertion.
+	//
+	// Possible values:
+	//   "PRICING_TYPE_CPA"
+	//   "PRICING_TYPE_CPC"
+	//   "PRICING_TYPE_CPM"
+	//   "PRICING_TYPE_FLAT_RATE_CLICKS"
+	//   "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
 	PricingType string `json:"pricingType,omitempty"`
 
-	// StartDate: Placement start date. This date cannot be earlier than the
-	// campaign start date. The hours, minutes, and seconds of the start
-	// date should not be set, as doing so will result in an error. This
-	// field is required on insertion.
+	// StartDate: Placement start date. This date must be later than, or the
+	// same day as, the campaign start date. The hours, minutes, and seconds
+	// of the start date should not be set, as doing so will result in an
+	// error. This field is required on insertion.
 	StartDate string `json:"startDate,omitempty"`
 
 	// TestingStartDate: Testing start date of this placement. The hours,
@@ -4526,10 +4822,10 @@ type PricingSchedule struct {
 }
 
 type PricingSchedulePricingPeriod struct {
-	// EndDate: Pricing period end date. This date must be later than or be
-	// the same day as the pricing period start date, but not later than the
-	// placement end date. The period end date can be the same date as the
-	// period start date. If, for example, you set 6/25/2015 as both the
+	// EndDate: Pricing period end date. This date must be later than, or
+	// the same day as, the pricing period start date, but not later than
+	// the placement end date. The period end date can be the same date as
+	// the period start date. If, for example, you set 6/25/2015 as both the
 	// start and end dates, the effective pricing period date is just that
 	// day only, 6/25/2015. The hours, minutes, and seconds of the end date
 	// should not be set, as doing so will result in an error.
@@ -4541,9 +4837,10 @@ type PricingSchedulePricingPeriod struct {
 	// RateOrCostNanos: Rate or cost of this pricing period.
 	RateOrCostNanos int64 `json:"rateOrCostNanos,omitempty,string"`
 
-	// StartDate: Pricing period start date. This date cannot be earlier
-	// than the placement start date. The hours, minutes, and seconds of the
-	// start date should not be set, as doing so will result in an error.
+	// StartDate: Pricing period start date. This date must be later than,
+	// or the same day as, the placement start date. The hours, minutes, and
+	// seconds of the start date should not be set, as doing so will result
+	// in an error.
 	StartDate string `json:"startDate,omitempty"`
 
 	// Units: Units of this pricing period.
@@ -4600,6 +4897,10 @@ type ReachReportCompatibleFields struct {
 
 type Recipient struct {
 	// DeliveryType: The delivery type for the recipient.
+	//
+	// Possible values:
+	//   "ATTACHMENT"
+	//   "LINK"
 	DeliveryType string `json:"deliveryType,omitempty"`
 
 	// Email: The email address of the recipient.
@@ -4637,7 +4938,7 @@ type RegionsListResponse struct {
 	// string "dfareporting#regionsListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// Regions: Region Collection.
+	// Regions: Region collection.
 	Regions []*Region `json:"regions,omitempty"`
 }
 
@@ -4670,6 +4971,10 @@ type Report struct {
 	// format is "CSV". Note that the actual format in the completed report
 	// file might differ if for instance the report's size exceeds the
 	// format's capabilities. "CSV" will then be the fallback format.
+	//
+	// Possible values:
+	//   "CSV"
+	//   "EXCEL"
 	Format string `json:"format,omitempty"`
 
 	// Id: The unique ID identifying this report resource.
@@ -4705,6 +5010,13 @@ type Report struct {
 	SubAccountId int64 `json:"subAccountId,omitempty,string"`
 
 	// Type: The type of the report.
+	//
+	// Possible values:
+	//   "CROSS_DIMENSION_REACH"
+	//   "FLOODLIGHT"
+	//   "PATH_TO_CONVERSION"
+	//   "REACH"
+	//   "STANDARD"
 	Type string `json:"type,omitempty"`
 }
 
@@ -4720,8 +5032,8 @@ type ReportCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of standard dimensions the report should
@@ -4740,6 +5052,12 @@ type ReportCrossDimensionReachCriteria struct {
 	DateRange *DateRange `json:"dateRange,omitempty"`
 
 	// Dimension: The dimension option.
+	//
+	// Possible values:
+	//   "ADVERTISER"
+	//   "CAMPAIGN"
+	//   "SITE_BY_ADVERTISER"
+	//   "SITE_BY_CAMPAIGN"
 	Dimension string `json:"dimension,omitempty"`
 
 	// DimensionFilters: The list of filters on which dimensions are
@@ -4763,6 +5081,10 @@ type ReportDelivery struct {
 
 	// EmailOwnerDeliveryType: The type of delivery for the owner to
 	// receive, if enabled.
+	//
+	// Possible values:
+	//   "ATTACHMENT"
+	//   "LINK"
 	EmailOwnerDeliveryType string `json:"emailOwnerDeliveryType,omitempty"`
 
 	// Message: The message to be sent with each email.
@@ -4782,8 +5104,8 @@ type ReportFloodlightCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of dimensions the report should include.
@@ -4921,8 +5243,8 @@ type ReportReachCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of dimensions the report should include.
@@ -4956,12 +5278,10 @@ type ReportSchedule struct {
 	ExpirationDate string `json:"expirationDate,omitempty"`
 
 	// Repeats: The interval for which the report is repeated. Note:
-	// -
-	// "DAILY" also requires field "every" to be set.
-	// - "WEEKLY" also
-	// requires fields "every" and "repeatsOnWeekDays" to be set.
-	// -
-	// "MONTHLY" also requires fields "every" and "runsOnDayOfMonth" to be
+	// - "DAILY" also requires field "every" to be set.
+	// - "WEEKLY" also requires fields "every" and "repeatsOnWeekDays" to be
+	// set.
+	// - "MONTHLY" also requires fields "every" and "runsOnDayOfMonth" to be
 	// set.
 	Repeats string `json:"repeats,omitempty"`
 
@@ -4972,11 +5292,14 @@ type ReportSchedule struct {
 	// RunsOnDayOfMonth: Enum to define for "MONTHLY" scheduled reports
 	// whether reports should be repeated on the same day of the month as
 	// "startDate" or the same day of the week of the month.
-	// Example: If
-	// 'startDate' is Monday, April 2nd 2012 (2012-04-02), "DAY_OF_MONTH"
-	// would run subsequent reports on the 2nd of every Month, and
-	// "WEEK_OF_MONTH" would run subsequent reports on the first Monday of
-	// the month.
+	// Example: If 'startDate' is Monday, April 2nd 2012 (2012-04-02),
+	// "DAY_OF_MONTH" would run subsequent reports on the 2nd of every
+	// Month, and "WEEK_OF_MONTH" would run subsequent reports on the first
+	// Monday of the month.
+	//
+	// Possible values:
+	//   "DAY_OF_MONTH"
+	//   "WEEK_OF_MONTH"
 	RunsOnDayOfMonth string `json:"runsOnDayOfMonth,omitempty"`
 
 	// StartDate: Start date of date range for which scheduled reports
@@ -5041,24 +5364,18 @@ type ReportsConfiguration struct {
 	// Acceptable values are:
 	//
 	// - "1" for "America/New_York"
-	// -
-	// "2" for "Europe/London"
+	// - "2" for "Europe/London"
 	// - "3" for "Europe/Paris"
-	// - "4" for
-	// "Africa/Johannesburg"
+	// - "4" for "Africa/Johannesburg"
 	// - "5" for "Asia/Jerusalem"
-	// - "6" for
-	// "Asia/Shanghai"
+	// - "6" for "Asia/Shanghai"
 	// - "7" for "Asia/Hong_Kong"
 	// - "8" for "Asia/Tokyo"
-	//
 	// - "9" for "Australia/Sydney"
 	// - "10" for "Asia/Dubai"
-	// - "11" for
-	// "America/Los_Angeles"
+	// - "11" for "America/Los_Angeles"
 	// - "12" for "Pacific/Auckland"
-	// - "13" for
-	// "America/Sao_Paulo"
+	// - "13" for "America/Sao_Paulo"
 	ReportGenerationTimeZoneId int64 `json:"reportGenerationTimeZoneId,omitempty,string"`
 }
 
@@ -5126,6 +5443,10 @@ type Site struct {
 
 type SiteContact struct {
 	// ContactType: Site contact type.
+	//
+	// Possible values:
+	//   "SALES_PERSON"
+	//   "TRAFFICKER"
 	ContactType string `json:"contactType,omitempty"`
 
 	// Email: Email address of this site contact. This is a required field.
@@ -5201,7 +5522,7 @@ type SizesListResponse struct {
 	// string "dfareporting#sizesListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// Sizes: Size collection
+	// Sizes: Size collection.
 	Sizes []*Size `json:"sizes,omitempty"`
 }
 
@@ -5214,6 +5535,10 @@ type SortedDimension struct {
 	Name string `json:"name,omitempty"`
 
 	// SortOrder: An optional sort order for the dimension column.
+	//
+	// Possible values:
+	//   "ASCENDING"
+	//   "DESCENDING"
 	SortOrder string `json:"sortOrder,omitempty"`
 }
 
@@ -5248,7 +5573,7 @@ type SubaccountsListResponse struct {
 	// operation.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// Subaccounts: Subaccount collection
+	// Subaccounts: Subaccount collection.
 	Subaccounts []*Subaccount `json:"subaccounts,omitempty"`
 }
 
@@ -5263,6 +5588,21 @@ type TagData struct {
 	CreativeId int64 `json:"creativeId,omitempty,string"`
 
 	// Format: TagData tag format of this tag.
+	//
+	// Possible values:
+	//   "PLACEMENT_TAG_CLICK_COMMANDS"
+	//   "PLACEMENT_TAG_IFRAME_ILAYER"
+	//   "PLACEMENT_TAG_IFRAME_JAVASCRIPT"
+	//   "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH"
+	//   "PLACEMENT_TAG_INTERNAL_REDIRECT"
+	//   "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT"
+	//   "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT"
+	//   "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT"
+	//   "PLACEMENT_TAG_JAVASCRIPT"
+	//   "PLACEMENT_TAG_STANDARD"
+	//   "PLACEMENT_TAG_TRACKING"
+	//   "PLACEMENT_TAG_TRACKING_IFRAME"
+	//   "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
 	Format string `json:"format,omitempty"`
 
 	// ImpressionTag: Tag string for serving an ad.
@@ -5288,6 +5628,11 @@ type TagSetting struct {
 	// tags. This setting can be used to specify whether keyword
 	// placeholders are inserted in placement tags for this site. Publishers
 	// can then add keywords to those placeholders.
+	//
+	// Possible values:
+	//   "GENERATE_SEPARATE_TAG_FOR_EACH_KEYWORD"
+	//   "IGNORE"
+	//   "PLACEHOLDER_WITH_LIST_OF_KEYWORDS"
 	KeywordOption string `json:"keywordOption,omitempty"`
 }
 
@@ -5305,6 +5650,11 @@ type TargetWindow struct {
 
 	// TargetWindowOption: Type of browser window for which the backup image
 	// of the flash creative can be displayed.
+	//
+	// Possible values:
+	//   "CURRENT_WINDOW"
+	//   "CUSTOM"
+	//   "NEW_WINDOW"
 	TargetWindowOption string `json:"targetWindowOption,omitempty"`
 }
 
@@ -5352,6 +5702,25 @@ type TechnologyTargeting struct {
 type ThirdPartyTrackingUrl struct {
 	// ThirdPartyUrlType: Third-party URL type for in-stream video
 	// creatives.
+	//
+	// Possible values:
+	//   "CLICK_TRACKING"
+	//   "IMPRESSION"
+	//   "RICH_MEDIA_BACKUP_IMPRESSION"
+	//   "RICH_MEDIA_IMPRESSION"
+	//   "RICH_MEDIA_RM_IMPRESSION"
+	//   "SURVEY"
+	//   "VIDEO_COMPLETE"
+	//   "VIDEO_CUSTOM"
+	//   "VIDEO_FIRST_QUARTILE"
+	//   "VIDEO_FULLSCREEN"
+	//   "VIDEO_MIDPOINT"
+	//   "VIDEO_MUTE"
+	//   "VIDEO_PAUSE"
+	//   "VIDEO_REWIND"
+	//   "VIDEO_START"
+	//   "VIDEO_STOP"
+	//   "VIDEO_THIRD_QUARTILE"
 	ThirdPartyUrlType string `json:"thirdPartyUrlType,omitempty"`
 
 	// Url: URL for the specified third-party URL type.
@@ -5360,14 +5729,120 @@ type ThirdPartyTrackingUrl struct {
 
 type UserDefinedVariableConfiguration struct {
 	// DataType: Data type for the variable. This is a required field.
+	//
+	// Possible values:
+	//   "NUMBER"
+	//   "STRING"
 	DataType string `json:"dataType,omitempty"`
 
 	// ReportName: User-friendly name for the variable which will appear in
-	// reports. This is a required field, must be less than 65 characters
-	// long, and cannot contain the following characters: """.
+	// reports. This is a required field, must be less than 64 characters
+	// long, and cannot contain the following characters: ""<>".
 	ReportName string `json:"reportName,omitempty"`
 
 	// VariableType: Variable name in the tag. This is a required field.
+	//
+	// Possible values:
+	//   "U1"
+	//   "U10"
+	//   "U100"
+	//   "U11"
+	//   "U12"
+	//   "U13"
+	//   "U14"
+	//   "U15"
+	//   "U16"
+	//   "U17"
+	//   "U18"
+	//   "U19"
+	//   "U2"
+	//   "U20"
+	//   "U21"
+	//   "U22"
+	//   "U23"
+	//   "U24"
+	//   "U25"
+	//   "U26"
+	//   "U27"
+	//   "U28"
+	//   "U29"
+	//   "U3"
+	//   "U30"
+	//   "U31"
+	//   "U32"
+	//   "U33"
+	//   "U34"
+	//   "U35"
+	//   "U36"
+	//   "U37"
+	//   "U38"
+	//   "U39"
+	//   "U4"
+	//   "U40"
+	//   "U41"
+	//   "U42"
+	//   "U43"
+	//   "U44"
+	//   "U45"
+	//   "U46"
+	//   "U47"
+	//   "U48"
+	//   "U49"
+	//   "U5"
+	//   "U50"
+	//   "U51"
+	//   "U52"
+	//   "U53"
+	//   "U54"
+	//   "U55"
+	//   "U56"
+	//   "U57"
+	//   "U58"
+	//   "U59"
+	//   "U6"
+	//   "U60"
+	//   "U61"
+	//   "U62"
+	//   "U63"
+	//   "U64"
+	//   "U65"
+	//   "U66"
+	//   "U67"
+	//   "U68"
+	//   "U69"
+	//   "U7"
+	//   "U70"
+	//   "U71"
+	//   "U72"
+	//   "U73"
+	//   "U74"
+	//   "U75"
+	//   "U76"
+	//   "U77"
+	//   "U78"
+	//   "U79"
+	//   "U8"
+	//   "U80"
+	//   "U81"
+	//   "U82"
+	//   "U83"
+	//   "U84"
+	//   "U85"
+	//   "U86"
+	//   "U87"
+	//   "U88"
+	//   "U89"
+	//   "U9"
+	//   "U90"
+	//   "U91"
+	//   "U92"
+	//   "U93"
+	//   "U94"
+	//   "U95"
+	//   "U96"
+	//   "U97"
+	//   "U98"
+	//   "U99"
 	VariableType string `json:"variableType,omitempty"`
 }
 
@@ -5451,6 +5926,13 @@ type UserRole struct {
 
 type UserRolePermission struct {
 	// Availability: Levels of availability for a user role permission.
+	//
+	// Possible values:
+	//   "ACCOUNT_ALWAYS"
+	//   "ACCOUNT_BY_DEFAULT"
+	//   "NOT_AVAILABLE_BY_DEFAULT"
+	//   "SUBACCOUNT_AND_ACCOUNT_ALWAYS"
+	//   "SUBACCOUNT_AND_ACCOUNT_BY_DEFAULT"
 	Availability string `json:"availability,omitempty"`
 
 	// Id: ID of this user role permission.
@@ -5485,7 +5967,7 @@ type UserRolePermissionGroupsListResponse struct {
 	// string "dfareporting#userRolePermissionGroupsListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// UserRolePermissionGroups: User role permission group collection
+	// UserRolePermissionGroups: User role permission group collection.
 	UserRolePermissionGroups []*UserRolePermissionGroup `json:"userRolePermissionGroups,omitempty"`
 }
 
@@ -5494,7 +5976,7 @@ type UserRolePermissionsListResponse struct {
 	// string "dfareporting#userRolePermissionsListResponse".
 	Kind string `json:"kind,omitempty"`
 
-	// UserRolePermissions: User role permission collection
+	// UserRolePermissions: User role permission collection.
 	UserRolePermissions []*UserRolePermission `json:"userRolePermissions,omitempty"`
 }
 
@@ -5507,7 +5989,7 @@ type UserRolesListResponse struct {
 	// operation.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// UserRoles: User role collection
+	// UserRoles: User role collection.
 	UserRoles []*UserRole `json:"userRoles,omitempty"`
 }
 
@@ -5550,7 +6032,7 @@ func (c *AccountActiveAdSummariesGetCall) Do() (*AccountActiveAdSummary, error) 
 		"profileId":        strconv.FormatInt(c.profileId, 10),
 		"summaryAccountId": strconv.FormatInt(c.summaryAccountId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5638,7 +6120,7 @@ func (c *AccountPermissionGroupsGetCall) Do() (*AccountPermissionGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5723,7 +6205,7 @@ func (c *AccountPermissionGroupsListCall) Do() (*AccountPermissionGroupsListResp
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5803,7 +6285,7 @@ func (c *AccountPermissionsGetCall) Do() (*AccountPermission, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5888,7 +6370,7 @@ func (c *AccountPermissionsListCall) Do() (*AccountPermissionsListResponse, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5968,7 +6450,7 @@ func (c *AccountUserProfilesGetCall) Do() (*AccountUserProfile, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6063,11 +6545,12 @@ func (c *AccountUserProfilesListCall) PageToken(pageToken string) *AccountUserPr
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name, ID or email. Wildcards (*) are
 // allowed. For example, "user profile*2015" will return objects with
-// names like "user profile June 2015", "user profile April 2015" or
+// names like "user profile June 2015", "user profile April 2015", or
 // simply "user profile 2015". Most of the searches also add wildcards
 // implicitly at the start and the end of the search string. For
 // example, a search string of "user profile" will match objects with
-// name "my user profile", "user profile 2015" or simply "user profile".
+// name "my user profile", "user profile 2015", or simply "user
+// profile".
 func (c *AccountUserProfilesListCall) SearchString(searchString string) *AccountUserProfilesListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -6075,6 +6558,10 @@ func (c *AccountUserProfilesListCall) SearchString(searchString string) *Account
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AccountUserProfilesListCall) SortField(sortField string) *AccountUserProfilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -6082,6 +6569,10 @@ func (c *AccountUserProfilesListCall) SortField(sortField string) *AccountUserPr
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AccountUserProfilesListCall) SortOrder(sortOrder string) *AccountUserProfilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -6149,7 +6640,7 @@ func (c *AccountUserProfilesListCall) Do() (*AccountUserProfilesListResponse, er
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6202,7 +6693,7 @@ func (c *AccountUserProfilesListCall) Do() (*AccountUserProfilesListResponse, er
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"user profile*2015\" will return objects with names like \"user profile June 2015\", \"user profile April 2015\" or simply \"user profile 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"user profile\" will match objects with name \"my user profile\", \"user profile 2015\" or simply \"user profile\".",
+	//       "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"user profile*2015\" will return objects with names like \"user profile June 2015\", \"user profile April 2015\", or simply \"user profile 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"user profile\" will match objects with name \"my user profile\", \"user profile 2015\", or simply \"user profile\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -6304,7 +6795,7 @@ func (c *AccountUserProfilesPatchCall) Do() (*AccountUserProfile, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6400,7 +6891,7 @@ func (c *AccountUserProfilesUpdateCall) Do() (*AccountUserProfile, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6483,7 +6974,7 @@ func (c *AccountsGetCall) Do() (*Account, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6579,10 +7070,10 @@ func (c *AccountsListCall) PageToken(pageToken string) *AccountsListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "account*2015" will return objects with names like "account
-// June 2015", "account April 2015" or simply "account 2015". Most of
+// June 2015", "account April 2015", or simply "account 2015". Most of
 // the searches also add wildcards implicitly at the start and the end
 // of the search string. For example, a search string of "account" will
-// match objects with name "my account", "account 2015" or simply
+// match objects with name "my account", "account 2015", or simply
 // "account".
 func (c *AccountsListCall) SearchString(searchString string) *AccountsListCall {
 	c.opt_["searchString"] = searchString
@@ -6591,6 +7082,10 @@ func (c *AccountsListCall) SearchString(searchString string) *AccountsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AccountsListCall) SortField(sortField string) *AccountsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -6598,6 +7093,10 @@ func (c *AccountsListCall) SortField(sortField string) *AccountsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AccountsListCall) SortOrder(sortOrder string) *AccountsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -6645,7 +7144,7 @@ func (c *AccountsListCall) Do() (*AccountsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6698,7 +7197,7 @@ func (c *AccountsListCall) Do() (*AccountsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"account*2015\" will return objects with names like \"account June 2015\", \"account April 2015\" or simply \"account 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"account\" will match objects with name \"my account\", \"account 2015\" or simply \"account\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"account*2015\" will return objects with names like \"account June 2015\", \"account April 2015\", or simply \"account 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"account\" will match objects with name \"my account\", \"account 2015\", or simply \"account\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -6788,7 +7287,7 @@ func (c *AccountsPatchCall) Do() (*Account, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6884,7 +7383,7 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6967,7 +7466,7 @@ func (c *AdsGetCall) Do() (*Ad, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7060,7 +7559,7 @@ func (c *AdsInsertCall) Do() (*Ad, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7160,6 +7659,13 @@ func (c *AdsListCall) CampaignIds(campaignIds int64) *AdsListCall {
 // ads, respectively. APP and APP_INTERSTITIAL are for rendering in
 // mobile apps. IN_STREAM_VIDEO refers to rendering an in-stream video
 // ads developed with the VAST standard.
+//
+// Possible values:
+//   "APP"
+//   "APP_INTERSTITIAL"
+//   "IN_STREAM_VIDEO"
+//   "WEB"
+//   "WEB_INTERSTITIAL"
 func (c *AdsListCall) Compatibility(compatibility string) *AdsListCall {
 	c.opt_["compatibility"] = compatibility
 	return c
@@ -7182,6 +7688,31 @@ func (c *AdsListCall) CreativeOptimizationConfigurationIds(creativeOptimizationC
 
 // CreativeType sets the optional parameter "creativeType": Select only
 // ads with the specified creativeType.
+//
+// Possible values:
+//   "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO"
+//   "CUSTOM_INPAGE"
+//   "CUSTOM_INTERSTITIAL"
+//   "ENHANCED_BANNER"
+//   "ENHANCED_IMAGE"
+//   "FLASH_INPAGE"
+//   "HTML5_BANNER"
+//   "IMAGE"
+//   "INSTREAM_VIDEO"
+//   "INTERNAL_REDIRECT"
+//   "INTERSTITIAL_INTERNAL_REDIRECT"
+//   "REDIRECT"
+//   "RICH_MEDIA_EXPANDING"
+//   "RICH_MEDIA_IM_EXPAND"
+//   "RICH_MEDIA_INPAGE"
+//   "RICH_MEDIA_INPAGE_FLOATING"
+//   "RICH_MEDIA_INTERSTITIAL_FLOAT"
+//   "RICH_MEDIA_MOBILE_IN_APP"
+//   "RICH_MEDIA_MULTI_FLOATING"
+//   "RICH_MEDIA_PEEL_DOWN"
+//   "TRACKING_TEXT"
+//   "VPAID_LINEAR"
+//   "VPAID_NON_LINEAR"
 func (c *AdsListCall) CreativeType(creativeType string) *AdsListCall {
 	c.opt_["creativeType"] = creativeType
 	return c
@@ -7251,10 +7782,10 @@ func (c *AdsListCall) RemarketingListIds(remarketingListIds int64) *AdsListCall 
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "ad*2015" will return objects with names like "ad June
-// 2015", "ad April 2015" or simply "ad 2015". Most of the searches also
-// add wildcards implicitly at the start and the end of the search
+// 2015", "ad April 2015", or simply "ad 2015". Most of the searches
+// also add wildcards implicitly at the start and the end of the search
 // string. For example, a search string of "ad" will match objects with
-// name "my ad", "ad 2015" or simply "ad".
+// name "my ad", "ad 2015", or simply "ad".
 func (c *AdsListCall) SearchString(searchString string) *AdsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -7269,6 +7800,10 @@ func (c *AdsListCall) SizeIds(sizeIds int64) *AdsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AdsListCall) SortField(sortField string) *AdsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -7276,6 +7811,10 @@ func (c *AdsListCall) SortField(sortField string) *AdsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AdsListCall) SortOrder(sortOrder string) *AdsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -7297,6 +7836,12 @@ func (c *AdsListCall) SslRequired(sslRequired bool) *AdsListCall {
 
 // Type sets the optional parameter "type": Select only ads with these
 // types.
+//
+// Possible values:
+//   "AD_SERVING_CLICK_TRACKER"
+//   "AD_SERVING_DEFAULT_AD"
+//   "AD_SERVING_STANDARD_AD"
+//   "AD_SERVING_TRACKING"
 func (c *AdsListCall) Type(type_ string) *AdsListCall {
 	c.opt_["type"] = type_
 	return c
@@ -7395,7 +7940,7 @@ func (c *AdsListCall) Do() (*AdsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7593,7 +8138,7 @@ func (c *AdsListCall) Do() (*AdsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"ad*2015\" will return objects with names like \"ad June 2015\", \"ad April 2015\" or simply \"ad 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"ad\" will match objects with name \"my ad\", \"ad 2015\" or simply \"ad\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"ad*2015\" will return objects with names like \"ad June 2015\", \"ad April 2015\", or simply \"ad 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"ad\" will match objects with name \"my ad\", \"ad 2015\", or simply \"ad\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7717,7 +8262,7 @@ func (c *AdsPatchCall) Do() (*Ad, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7813,7 +8358,7 @@ func (c *AdsUpdateCall) Do() (*Ad, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -7896,7 +8441,7 @@ func (c *AdvertiserGroupsDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -7977,7 +8522,7 @@ func (c *AdvertiserGroupsGetCall) Do() (*AdvertiserGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8070,7 +8615,7 @@ func (c *AdvertiserGroupsInsertCall) Do() (*AdvertiserGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8153,11 +8698,11 @@ func (c *AdvertiserGroupsListCall) PageToken(pageToken string) *AdvertiserGroups
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "advertiser*2015" will return objects with names like
-// "advertiser group June 2015", "advertiser group April 2015" or simply
-// "advertiser group 2015". Most of the searches also add wildcards
-// implicitly at the start and the end of the search string. For
-// example, a search string of "advertisergroup" will match objects with
-// name "my advertisergroup", "advertisergroup 2015" or simply
+// "advertiser group June 2015", "advertiser group April 2015", or
+// simply "advertiser group 2015". Most of the searches also add
+// wildcards implicitly at the start and the end of the search string.
+// For example, a search string of "advertisergroup" will match objects
+// with name "my advertisergroup", "advertisergroup 2015", or simply
 // "advertisergroup".
 func (c *AdvertiserGroupsListCall) SearchString(searchString string) *AdvertiserGroupsListCall {
 	c.opt_["searchString"] = searchString
@@ -8166,6 +8711,10 @@ func (c *AdvertiserGroupsListCall) SearchString(searchString string) *Advertiser
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AdvertiserGroupsListCall) SortField(sortField string) *AdvertiserGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -8173,6 +8722,10 @@ func (c *AdvertiserGroupsListCall) SortField(sortField string) *AdvertiserGroups
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AdvertiserGroupsListCall) SortOrder(sortOrder string) *AdvertiserGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -8217,7 +8770,7 @@ func (c *AdvertiserGroupsListCall) Do() (*AdvertiserGroupsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8265,7 +8818,7 @@ func (c *AdvertiserGroupsListCall) Do() (*AdvertiserGroupsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser group June 2015\", \"advertiser group April 2015\" or simply \"advertiser group 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertisergroup\" will match objects with name \"my advertisergroup\", \"advertisergroup 2015\" or simply \"advertisergroup\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser group June 2015\", \"advertiser group April 2015\", or simply \"advertiser group 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertisergroup\" will match objects with name \"my advertisergroup\", \"advertisergroup 2015\", or simply \"advertisergroup\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -8355,7 +8908,7 @@ func (c *AdvertiserGroupsPatchCall) Do() (*AdvertiserGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8451,7 +9004,7 @@ func (c *AdvertiserGroupsUpdateCall) Do() (*AdvertiserGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8534,7 +9087,7 @@ func (c *AdvertisersGetCall) Do() (*Advertiser, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8627,7 +9180,7 @@ func (c *AdvertisersInsertCall) Do() (*Advertiser, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8740,11 +9293,11 @@ func (c *AdvertisersListCall) PageToken(pageToken string) *AdvertisersListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "advertiser*2015" will return objects with names like
-// "advertiser June 2015", "advertiser April 2015" or simply "advertiser
-// 2015". Most of the searches also add wildcards implicitly at the
-// start and the end of the search string. For example, a search string
-// of "advertiser" will match objects with name "my advertiser",
-// "advertiser 2015" or simply "advertiser".
+// "advertiser June 2015", "advertiser April 2015", or simply
+// "advertiser 2015". Most of the searches also add wildcards implicitly
+// at the start and the end of the search string. For example, a search
+// string of "advertiser" will match objects with name "my advertiser",
+// "advertiser 2015", or simply "advertiser".
 func (c *AdvertisersListCall) SearchString(searchString string) *AdvertisersListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -8752,6 +9305,10 @@ func (c *AdvertisersListCall) SearchString(searchString string) *AdvertisersList
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *AdvertisersListCall) SortField(sortField string) *AdvertisersListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -8759,6 +9316,10 @@ func (c *AdvertisersListCall) SortField(sortField string) *AdvertisersListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *AdvertisersListCall) SortOrder(sortOrder string) *AdvertisersListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -8766,6 +9327,10 @@ func (c *AdvertisersListCall) SortOrder(sortOrder string) *AdvertisersListCall {
 
 // Status sets the optional parameter "status": Select only advertisers
 // with the specified status.
+//
+// Possible values:
+//   "APPROVED"
+//   "ON_HOLD"
 func (c *AdvertisersListCall) Status(status string) *AdvertisersListCall {
 	c.opt_["status"] = status
 	return c
@@ -8835,7 +9400,7 @@ func (c *AdvertisersListCall) Do() (*AdvertisersListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -8907,7 +9472,7 @@ func (c *AdvertisersListCall) Do() (*AdvertisersListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser June 2015\", \"advertiser April 2015\" or simply \"advertiser 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertiser\" will match objects with name \"my advertiser\", \"advertiser 2015\" or simply \"advertiser\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser June 2015\", \"advertiser April 2015\", or simply \"advertiser 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertiser\" will match objects with name \"my advertiser\", \"advertiser 2015\", or simply \"advertiser\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -9016,7 +9581,7 @@ func (c *AdvertisersPatchCall) Do() (*Advertiser, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9112,7 +9677,7 @@ func (c *AdvertisersUpdateCall) Do() (*Advertiser, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9192,7 +9757,7 @@ func (c *BrowsersListCall) Do() (*BrowsersListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9282,7 +9847,7 @@ func (c *CampaignCreativeAssociationsInsertCall) Do() (*CampaignCreativeAssociat
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9368,6 +9933,10 @@ func (c *CampaignCreativeAssociationsListCall) PageToken(pageToken string) *Camp
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CampaignCreativeAssociationsListCall) SortOrder(sortOrder string) *CampaignCreativeAssociationsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -9404,7 +9973,7 @@ func (c *CampaignCreativeAssociationsListCall) Do() (*CampaignCreativeAssociatio
 		"profileId":  strconv.FormatInt(c.profileId, 10),
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9516,7 +10085,7 @@ func (c *CampaignsGetCall) Do() (*Campaign, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9615,7 +10184,7 @@ func (c *CampaignsInsertCall) Do() (*Campaign, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9758,11 +10327,11 @@ func (c *CampaignsListCall) PageToken(pageToken string) *CampaignsListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for campaigns by name or ID. Wildcards (*) are allowed. For
 // example, "campaign*2015" will return campaigns with names like
-// "campaign June 2015", "campaign April 2015" or simply "campaign
+// "campaign June 2015", "campaign April 2015", or simply "campaign
 // 2015". Most of the searches also add wildcards implicitly at the
 // start and the end of the search string. For example, a search string
 // of "campaign" will match campaigns with name "my campaign", "campaign
-// 2015" or simply "campaign".
+// 2015", or simply "campaign".
 func (c *CampaignsListCall) SearchString(searchString string) *CampaignsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -9770,6 +10339,10 @@ func (c *CampaignsListCall) SearchString(searchString string) *CampaignsListCall
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CampaignsListCall) SortField(sortField string) *CampaignsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -9777,6 +10350,10 @@ func (c *CampaignsListCall) SortField(sortField string) *CampaignsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CampaignsListCall) SortOrder(sortOrder string) *CampaignsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -9849,7 +10426,7 @@ func (c *CampaignsListCall) Do() (*CampaignsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -9934,7 +10511,7 @@ func (c *CampaignsListCall) Do() (*CampaignsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for campaigns by name or ID. Wildcards (*) are allowed. For example, \"campaign*2015\" will return campaigns with names like \"campaign June 2015\", \"campaign April 2015\" or simply \"campaign 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"campaign\" will match campaigns with name \"my campaign\", \"campaign 2015\" or simply \"campaign\".",
+	//       "description": "Allows searching for campaigns by name or ID. Wildcards (*) are allowed. For example, \"campaign*2015\" will return campaigns with names like \"campaign June 2015\", \"campaign April 2015\", or simply \"campaign 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"campaign\" will match campaigns with name \"my campaign\", \"campaign 2015\", or simply \"campaign\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -10030,7 +10607,7 @@ func (c *CampaignsPatchCall) Do() (*Campaign, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10126,7 +10703,7 @@ func (c *CampaignsUpdateCall) Do() (*Campaign, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10209,7 +10786,7 @@ func (c *ChangeLogsGetCall) Do() (*ChangeLog, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10275,6 +10852,24 @@ func (r *ChangeLogsService) List(profileId int64) *ChangeLogsListCall {
 
 // Action sets the optional parameter "action": Select only change logs
 // with the specified action.
+//
+// Possible values:
+//   "ACTION_ADD"
+//   "ACTION_ASSIGN"
+//   "ACTION_ASSOCIATE"
+//   "ACTION_CREATE"
+//   "ACTION_DELETE"
+//   "ACTION_DISABLE"
+//   "ACTION_EMAIL_TAGS"
+//   "ACTION_ENABLE"
+//   "ACTION_LINK"
+//   "ACTION_MARK_AS_DEFAULT"
+//   "ACTION_PUSH"
+//   "ACTION_REMOVE"
+//   "ACTION_SEND"
+//   "ACTION_UNASSIGN"
+//   "ACTION_UNLINK"
+//   "ACTION_UPDATE"
 func (c *ChangeLogsListCall) Action(action string) *ChangeLogsListCall {
 	c.opt_["action"] = action
 	return c
@@ -10329,6 +10924,44 @@ func (c *ChangeLogsListCall) ObjectIds(objectIds int64) *ChangeLogsListCall {
 
 // ObjectType sets the optional parameter "objectType": Select only
 // change logs with the specified object type.
+//
+// Possible values:
+//   "OBJECT_ACCOUNT"
+//   "OBJECT_ACCOUNT_BILLING_FEATURE"
+//   "OBJECT_AD"
+//   "OBJECT_ADVERTISER"
+//   "OBJECT_ADVERTISER_GROUP"
+//   "OBJECT_BILLING_ACCOUNT_GROUP"
+//   "OBJECT_BILLING_FEATURE"
+//   "OBJECT_BILLING_MINIMUM_FEE"
+//   "OBJECT_BILLING_PROFILE"
+//   "OBJECT_CAMPAIGN"
+//   "OBJECT_CONTENT_CATEGORY"
+//   "OBJECT_CREATIVE"
+//   "OBJECT_CREATIVE_ASSET"
+//   "OBJECT_CREATIVE_BUNDLE"
+//   "OBJECT_CREATIVE_FIELD"
+//   "OBJECT_CREATIVE_GROUP"
+//   "OBJECT_DFA_SITE"
+//   "OBJECT_EVENT_TAG"
+//   "OBJECT_FLOODLIGHT_ACTIVITY_GROUP"
+//   "OBJECT_FLOODLIGHT_ACTVITY"
+//   "OBJECT_FLOODLIGHT_CONFIGURATION"
+//   "OBJECT_INSTREAM_CREATIVE"
+//   "OBJECT_LANDING_PAGE"
+//   "OBJECT_MEDIA_ORDER"
+//   "OBJECT_PLACEMENT"
+//   "OBJECT_PLACEMENT_STRATEGY"
+//   "OBJECT_PROVIDED_LIST_CLIENT"
+//   "OBJECT_RATE_CARD"
+//   "OBJECT_REMARKETING_LIST"
+//   "OBJECT_RICHMEDIA_CREATIVE"
+//   "OBJECT_SD_SITE"
+//   "OBJECT_SIZE"
+//   "OBJECT_SUBACCOUNT"
+//   "OBJECT_USER_PROFILE"
+//   "OBJECT_USER_PROFILE_FILTER"
+//   "OBJECT_USER_ROLE"
 func (c *ChangeLogsListCall) ObjectType(objectType string) *ChangeLogsListCall {
 	c.opt_["objectType"] = objectType
 	return c
@@ -10407,7 +11040,7 @@ func (c *ChangeLogsListCall) Do() (*ChangeLogsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10693,7 +11326,7 @@ func (c *CitiesListCall) Do() (*CitiesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10796,7 +11429,7 @@ func (c *ConnectionTypesListCall) Do() (*ConnectionTypesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -10876,7 +11509,7 @@ func (c *ContentCategoriesDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -10957,7 +11590,7 @@ func (c *ContentCategoriesGetCall) Do() (*ContentCategory, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11050,7 +11683,7 @@ func (c *ContentCategoriesInsertCall) Do() (*ContentCategory, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11133,11 +11766,11 @@ func (c *ContentCategoriesListCall) PageToken(pageToken string) *ContentCategori
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "contentcategory*2015" will return objects with names like
-// "contentcategory June 2015", "contentcategory April 2015" or simply
+// "contentcategory June 2015", "contentcategory April 2015", or simply
 // "contentcategory 2015". Most of the searches also add wildcards
 // implicitly at the start and the end of the search string. For
 // example, a search string of "contentcategory" will match objects with
-// name "my contentcategory", "contentcategory 2015" or simply
+// name "my contentcategory", "contentcategory 2015", or simply
 // "contentcategory".
 func (c *ContentCategoriesListCall) SearchString(searchString string) *ContentCategoriesListCall {
 	c.opt_["searchString"] = searchString
@@ -11146,6 +11779,10 @@ func (c *ContentCategoriesListCall) SearchString(searchString string) *ContentCa
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *ContentCategoriesListCall) SortField(sortField string) *ContentCategoriesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -11153,6 +11790,10 @@ func (c *ContentCategoriesListCall) SortField(sortField string) *ContentCategori
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *ContentCategoriesListCall) SortOrder(sortOrder string) *ContentCategoriesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -11197,7 +11838,7 @@ func (c *ContentCategoriesListCall) Do() (*ContentCategoriesListResponse, error)
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11245,7 +11886,7 @@ func (c *ContentCategoriesListCall) Do() (*ContentCategoriesListResponse, error)
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"contentcategory*2015\" will return objects with names like \"contentcategory June 2015\", \"contentcategory April 2015\" or simply \"contentcategory 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"contentcategory\" will match objects with name \"my contentcategory\", \"contentcategory 2015\" or simply \"contentcategory\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"contentcategory*2015\" will return objects with names like \"contentcategory June 2015\", \"contentcategory April 2015\", or simply \"contentcategory 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"contentcategory\" will match objects with name \"my contentcategory\", \"contentcategory 2015\", or simply \"contentcategory\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -11335,7 +11976,7 @@ func (c *ContentCategoriesPatchCall) Do() (*ContentCategory, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11431,7 +12072,7 @@ func (c *ContentCategoriesUpdateCall) Do() (*ContentCategory, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11514,7 +12155,7 @@ func (c *CountriesGetCall) Do() (*Country, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"dartId":    strconv.FormatInt(c.dartId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11599,7 +12240,7 @@ func (c *CountriesListCall) Do() (*CountriesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11743,13 +12384,10 @@ func (c *CreativeAssetsInsertCall) Do() (*CreativeAssetMetadata, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -11762,6 +12400,7 @@ func (c *CreativeAssetsInsertCall) Do() (*CreativeAssetMetadata, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -11876,7 +12515,7 @@ func (c *CreativeFieldValuesDeleteCall) Do() error {
 		"creativeFieldId": strconv.FormatInt(c.creativeFieldId, 10),
 		"id":              strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -11968,7 +12607,7 @@ func (c *CreativeFieldValuesGetCall) Do() (*CreativeFieldValue, error) {
 		"creativeFieldId": strconv.FormatInt(c.creativeFieldId, 10),
 		"id":              strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12072,7 +12711,7 @@ func (c *CreativeFieldValuesInsertCall) Do() (*CreativeFieldValue, error) {
 		"creativeFieldId": strconv.FormatInt(c.creativeFieldId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12172,6 +12811,10 @@ func (c *CreativeFieldValuesListCall) SearchString(searchString string) *Creativ
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "VALUE"
 func (c *CreativeFieldValuesListCall) SortField(sortField string) *CreativeFieldValuesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -12179,6 +12822,10 @@ func (c *CreativeFieldValuesListCall) SortField(sortField string) *CreativeField
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativeFieldValuesListCall) SortOrder(sortOrder string) *CreativeFieldValuesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -12224,7 +12871,7 @@ func (c *CreativeFieldValuesListCall) Do() (*CreativeFieldValuesListResponse, er
 		"profileId":       strconv.FormatInt(c.profileId, 10),
 		"creativeFieldId": strconv.FormatInt(c.creativeFieldId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12373,7 +13020,7 @@ func (c *CreativeFieldValuesPatchCall) Do() (*CreativeFieldValue, error) {
 		"creativeFieldId": strconv.FormatInt(c.creativeFieldId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12480,7 +13127,7 @@ func (c *CreativeFieldValuesUpdateCall) Do() (*CreativeFieldValue, error) {
 		"creativeFieldId": strconv.FormatInt(c.creativeFieldId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12571,7 +13218,7 @@ func (c *CreativeFieldsDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -12652,7 +13299,7 @@ func (c *CreativeFieldsGetCall) Do() (*CreativeField, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12745,7 +13392,7 @@ func (c *CreativeFieldsInsertCall) Do() (*CreativeField, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12836,11 +13483,11 @@ func (c *CreativeFieldsListCall) PageToken(pageToken string) *CreativeFieldsList
 // searching for creative fields by name or ID. Wildcards (*) are
 // allowed. For example, "creativefield*2015" will return creative
 // fields with names like "creativefield June 2015", "creativefield
-// April 2015" or simply "creativefield 2015". Most of the searches also
-// add wild-cards implicitly at the start and the end of the search
+// April 2015", or simply "creativefield 2015". Most of the searches
+// also add wild-cards implicitly at the start and the end of the search
 // string. For example, a search string of "creativefield" will match
 // creative fields with the name "my creativefield", "creativefield
-// 2015" or simply "creativefield".
+// 2015", or simply "creativefield".
 func (c *CreativeFieldsListCall) SearchString(searchString string) *CreativeFieldsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -12848,6 +13495,10 @@ func (c *CreativeFieldsListCall) SearchString(searchString string) *CreativeFiel
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CreativeFieldsListCall) SortField(sortField string) *CreativeFieldsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -12855,6 +13506,10 @@ func (c *CreativeFieldsListCall) SortField(sortField string) *CreativeFieldsList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativeFieldsListCall) SortOrder(sortOrder string) *CreativeFieldsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -12902,7 +13557,7 @@ func (c *CreativeFieldsListCall) Do() (*CreativeFieldsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -12957,7 +13612,7 @@ func (c *CreativeFieldsListCall) Do() (*CreativeFieldsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for creative fields by name or ID. Wildcards (*) are allowed. For example, \"creativefield*2015\" will return creative fields with names like \"creativefield June 2015\", \"creativefield April 2015\" or simply \"creativefield 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativefield\" will match creative fields with the name \"my creativefield\", \"creativefield 2015\" or simply \"creativefield\".",
+	//       "description": "Allows searching for creative fields by name or ID. Wildcards (*) are allowed. For example, \"creativefield*2015\" will return creative fields with names like \"creativefield June 2015\", \"creativefield April 2015\", or simply \"creativefield 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativefield\" will match creative fields with the name \"my creativefield\", \"creativefield 2015\", or simply \"creativefield\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -13047,7 +13702,7 @@ func (c *CreativeFieldsPatchCall) Do() (*CreativeField, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13143,7 +13798,7 @@ func (c *CreativeFieldsUpdateCall) Do() (*CreativeField, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13226,7 +13881,7 @@ func (c *CreativeGroupsGetCall) Do() (*CreativeGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13319,7 +13974,7 @@ func (c *CreativeGroupsInsertCall) Do() (*CreativeGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13417,11 +14072,11 @@ func (c *CreativeGroupsListCall) PageToken(pageToken string) *CreativeGroupsList
 // searching for creative groups by name or ID. Wildcards (*) are
 // allowed. For example, "creativegroup*2015" will return creative
 // groups with names like "creativegroup June 2015", "creativegroup
-// April 2015" or simply "creativegroup 2015". Most of the searches also
-// add wild-cards implicitly at the start and the end of the search
+// April 2015", or simply "creativegroup 2015". Most of the searches
+// also add wild-cards implicitly at the start and the end of the search
 // string. For example, a search string of "creativegroup" will match
 // creative groups with the name "my creativegroup", "creativegroup
-// 2015" or simply "creativegroup".
+// 2015", or simply "creativegroup".
 func (c *CreativeGroupsListCall) SearchString(searchString string) *CreativeGroupsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -13429,6 +14084,10 @@ func (c *CreativeGroupsListCall) SearchString(searchString string) *CreativeGrou
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CreativeGroupsListCall) SortField(sortField string) *CreativeGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -13436,6 +14095,10 @@ func (c *CreativeGroupsListCall) SortField(sortField string) *CreativeGroupsList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativeGroupsListCall) SortOrder(sortOrder string) *CreativeGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -13486,7 +14149,7 @@ func (c *CreativeGroupsListCall) Do() (*CreativeGroupsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13547,7 +14210,7 @@ func (c *CreativeGroupsListCall) Do() (*CreativeGroupsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for creative groups by name or ID. Wildcards (*) are allowed. For example, \"creativegroup*2015\" will return creative groups with names like \"creativegroup June 2015\", \"creativegroup April 2015\" or simply \"creativegroup 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativegroup\" will match creative groups with the name \"my creativegroup\", \"creativegroup 2015\" or simply \"creativegroup\".",
+	//       "description": "Allows searching for creative groups by name or ID. Wildcards (*) are allowed. For example, \"creativegroup*2015\" will return creative groups with names like \"creativegroup June 2015\", \"creativegroup April 2015\", or simply \"creativegroup 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativegroup\" will match creative groups with the name \"my creativegroup\", \"creativegroup 2015\", or simply \"creativegroup\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -13637,7 +14300,7 @@ func (c *CreativeGroupsPatchCall) Do() (*CreativeGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13733,7 +14396,7 @@ func (c *CreativeGroupsUpdateCall) Do() (*CreativeGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13816,7 +14479,7 @@ func (c *CreativesGetCall) Do() (*Creative, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -13909,7 +14572,7 @@ func (c *CreativesInsertCall) Do() (*Creative, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14042,11 +14705,11 @@ func (c *CreativesListCall) RenderingIds(renderingIds int64) *CreativesListCall 
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "creative*2015" will return objects with names like
-// "creative June 2015", "creative April 2015" or simply "creative
+// "creative June 2015", "creative April 2015", or simply "creative
 // 2015". Most of the searches also add wildcards implicitly at the
 // start and the end of the search string. For example, a search string
 // of "creative" will match objects with name "my creative", "creative
-// 2015" or simply "creative".
+// 2015", or simply "creative".
 func (c *CreativesListCall) SearchString(searchString string) *CreativesListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -14061,6 +14724,10 @@ func (c *CreativesListCall) SizeIds(sizeIds int64) *CreativesListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *CreativesListCall) SortField(sortField string) *CreativesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -14068,6 +14735,10 @@ func (c *CreativesListCall) SortField(sortField string) *CreativesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *CreativesListCall) SortOrder(sortOrder string) *CreativesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -14082,6 +14753,31 @@ func (c *CreativesListCall) StudioCreativeId(studioCreativeId int64) *CreativesL
 
 // Types sets the optional parameter "types": Select only creatives with
 // these creative types.
+//
+// Possible values:
+//   "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO"
+//   "CUSTOM_INPAGE"
+//   "CUSTOM_INTERSTITIAL"
+//   "ENHANCED_BANNER"
+//   "ENHANCED_IMAGE"
+//   "FLASH_INPAGE"
+//   "HTML5_BANNER"
+//   "IMAGE"
+//   "INSTREAM_VIDEO"
+//   "INTERNAL_REDIRECT"
+//   "INTERSTITIAL_INTERNAL_REDIRECT"
+//   "REDIRECT"
+//   "RICH_MEDIA_EXPANDING"
+//   "RICH_MEDIA_IM_EXPAND"
+//   "RICH_MEDIA_INPAGE"
+//   "RICH_MEDIA_INPAGE_FLOATING"
+//   "RICH_MEDIA_INTERSTITIAL_FLOAT"
+//   "RICH_MEDIA_MOBILE_IN_APP"
+//   "RICH_MEDIA_MULTI_FLOATING"
+//   "RICH_MEDIA_PEEL_DOWN"
+//   "TRACKING_TEXT"
+//   "VPAID_LINEAR"
+//   "VPAID_NON_LINEAR"
 func (c *CreativesListCall) Types(types string) *CreativesListCall {
 	c.opt_["types"] = types
 	return c
@@ -14156,7 +14852,7 @@ func (c *CreativesListCall) Do() (*CreativesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14247,7 +14943,7 @@ func (c *CreativesListCall) Do() (*CreativesListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"creative*2015\" will return objects with names like \"creative June 2015\", \"creative April 2015\" or simply \"creative 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"creative\" will match objects with name \"my creative\", \"creative 2015\" or simply \"creative\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"creative*2015\" will return objects with names like \"creative June 2015\", \"creative April 2015\", or simply \"creative 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"creative\" will match objects with name \"my creative\", \"creative 2015\", or simply \"creative\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -14406,7 +15102,7 @@ func (c *CreativesPatchCall) Do() (*Creative, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14502,7 +15198,7 @@ func (c *CreativesUpdateCall) Do() (*Creative, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14611,7 +15307,7 @@ func (c *DimensionValuesQueryCall) Do() (*DimensionValueList, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14707,7 +15403,7 @@ func (c *DirectorySiteContactsGetCall) Do() (*DirectorySiteContact, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14804,11 +15500,11 @@ func (c *DirectorySiteContactsListCall) PageToken(pageToken string) *DirectorySi
 // searching for objects by name, ID or email. Wildcards (*) are
 // allowed. For example, "directory site contact*2015" will return
 // objects with names like "directory site contact June 2015",
-// "directory site contact April 2015" or simply "directory site contact
-// 2015". Most of the searches also add wildcards implicitly at the
-// start and the end of the search string. For example, a search string
-// of "directory site contact" will match objects with name "my
-// directory site contact", "directory site contact 2015" or simply
+// "directory site contact April 2015", or simply "directory site
+// contact 2015". Most of the searches also add wildcards implicitly at
+// the start and the end of the search string. For example, a search
+// string of "directory site contact" will match objects with name "my
+// directory site contact", "directory site contact 2015", or simply
 // "directory site contact".
 func (c *DirectorySiteContactsListCall) SearchString(searchString string) *DirectorySiteContactsListCall {
 	c.opt_["searchString"] = searchString
@@ -14817,6 +15513,10 @@ func (c *DirectorySiteContactsListCall) SearchString(searchString string) *Direc
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *DirectorySiteContactsListCall) SortField(sortField string) *DirectorySiteContactsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -14824,6 +15524,10 @@ func (c *DirectorySiteContactsListCall) SortField(sortField string) *DirectorySi
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *DirectorySiteContactsListCall) SortOrder(sortOrder string) *DirectorySiteContactsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -14871,7 +15575,7 @@ func (c *DirectorySiteContactsListCall) Do() (*DirectorySiteContactsListResponse
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -14926,7 +15630,7 @@ func (c *DirectorySiteContactsListCall) Do() (*DirectorySiteContactsListResponse
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"directory site contact*2015\" will return objects with names like \"directory site contact June 2015\", \"directory site contact April 2015\" or simply \"directory site contact 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site contact\" will match objects with name \"my directory site contact\", \"directory site contact 2015\" or simply \"directory site contact\".",
+	//       "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"directory site contact*2015\" will return objects with names like \"directory site contact June 2015\", \"directory site contact April 2015\", or simply \"directory site contact 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site contact\" will match objects with name \"my directory site contact\", \"directory site contact 2015\", or simply \"directory site contact\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -15007,7 +15711,7 @@ func (c *DirectorySitesGetCall) Do() (*DirectorySite, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -15110,10 +15814,10 @@ func (c *DirectorySitesListCall) CountryId(countryId int64) *DirectorySitesListC
 	return c
 }
 
-// Dfp_network_code sets the optional parameter "dfp_network_code":
-// Select only directory sites with this DFP network code.
-func (c *DirectorySitesListCall) Dfp_network_code(dfp_network_code string) *DirectorySitesListCall {
-	c.opt_["dfp_network_code"] = dfp_network_code
+// DfpNetworkCode sets the optional parameter "dfp_network_code": Select
+// only directory sites with this DFP network code.
+func (c *DirectorySitesListCall) DfpNetworkCode(dfpNetworkCode string) *DirectorySitesListCall {
+	c.opt_["dfp_network_code"] = dfpNetworkCode
 	return c
 }
 
@@ -15148,11 +15852,11 @@ func (c *DirectorySitesListCall) ParentId(parentId int64) *DirectorySitesListCal
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name, ID or URL. Wildcards (*) are allowed.
 // For example, "directory site*2015" will return objects with names
-// like "directory site June 2015", "directory site April 2015" or
+// like "directory site June 2015", "directory site April 2015", or
 // simply "directory site 2015". Most of the searches also add wildcards
 // implicitly at the start and the end of the search string. For
 // example, a search string of "directory site" will match objects with
-// name "my directory site", "directory site 2015" or simply "directory
+// name "my directory site", "directory site 2015" or simply, "directory
 // site".
 func (c *DirectorySitesListCall) SearchString(searchString string) *DirectorySitesListCall {
 	c.opt_["searchString"] = searchString
@@ -15161,6 +15865,10 @@ func (c *DirectorySitesListCall) SearchString(searchString string) *DirectorySit
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *DirectorySitesListCall) SortField(sortField string) *DirectorySitesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -15168,6 +15876,10 @@ func (c *DirectorySitesListCall) SortField(sortField string) *DirectorySitesList
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *DirectorySitesListCall) SortOrder(sortOrder string) *DirectorySitesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -15233,7 +15945,7 @@ func (c *DirectorySitesListCall) Do() (*DirectorySitesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -15318,7 +16030,7 @@ func (c *DirectorySitesListCall) Do() (*DirectorySitesListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name, ID or URL. Wildcards (*) are allowed. For example, \"directory site*2015\" will return objects with names like \"directory site June 2015\", \"directory site April 2015\" or simply \"directory site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site\" will match objects with name \"my directory site\", \"directory site 2015\" or simply \"directory site\".",
+	//       "description": "Allows searching for objects by name, ID or URL. Wildcards (*) are allowed. For example, \"directory site*2015\" will return objects with names like \"directory site June 2015\", \"directory site April 2015\", or simply \"directory site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site\" will match objects with name \"my directory site\", \"directory site 2015\" or simply, \"directory site\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -15399,7 +16111,7 @@ func (c *EventTagsDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -15480,7 +16192,7 @@ func (c *EventTagsGetCall) Do() (*EventTag, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -15573,7 +16285,7 @@ func (c *EventTagsInsertCall) Do() (*EventTag, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -15680,6 +16392,11 @@ func (c *EventTagsListCall) Enabled(enabled bool) *EventTagsListCall {
 // can be used to specify whether to use a third-party pixel, a
 // third-party JavaScript URL, or a third-party click-through URL for
 // either impression or click tracking.
+//
+// Possible values:
+//   "CLICK_THROUGH_EVENT_TAG"
+//   "IMPRESSION_IMAGE_EVENT_TAG"
+//   "IMPRESSION_JAVASCRIPT_EVENT_TAG"
 func (c *EventTagsListCall) EventTagTypes(eventTagTypes string) *EventTagsListCall {
 	c.opt_["eventTagTypes"] = eventTagTypes
 	return c
@@ -15695,11 +16412,11 @@ func (c *EventTagsListCall) Ids(ids int64) *EventTagsListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "eventtag*2015" will return objects with names like
-// "eventtag June 2015", "eventtag April 2015" or simply "eventtag
+// "eventtag June 2015", "eventtag April 2015", or simply "eventtag
 // 2015". Most of the searches also add wildcards implicitly at the
 // start and the end of the search string. For example, a search string
 // of "eventtag" will match objects with name "my eventtag", "eventtag
-// 2015" or simply "eventtag".
+// 2015", or simply "eventtag".
 func (c *EventTagsListCall) SearchString(searchString string) *EventTagsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -15707,6 +16424,10 @@ func (c *EventTagsListCall) SearchString(searchString string) *EventTagsListCall
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *EventTagsListCall) SortField(sortField string) *EventTagsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -15714,6 +16435,10 @@ func (c *EventTagsListCall) SortField(sortField string) *EventTagsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *EventTagsListCall) SortOrder(sortOrder string) *EventTagsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -15770,7 +16495,7 @@ func (c *EventTagsListCall) Do() (*EventTagsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -15851,7 +16576,7 @@ func (c *EventTagsListCall) Do() (*EventTagsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"eventtag*2015\" will return objects with names like \"eventtag June 2015\", \"eventtag April 2015\" or simply \"eventtag 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"eventtag\" will match objects with name \"my eventtag\", \"eventtag 2015\" or simply \"eventtag\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"eventtag*2015\" will return objects with names like \"eventtag June 2015\", \"eventtag April 2015\", or simply \"eventtag 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"eventtag\" will match objects with name \"my eventtag\", \"eventtag 2015\", or simply \"eventtag\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -15941,7 +16666,7 @@ func (c *EventTagsPatchCall) Do() (*EventTag, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16037,7 +16762,7 @@ func (c *EventTagsUpdateCall) Do() (*EventTag, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16120,7 +16845,7 @@ func (c *FilesGetCall) Do() (*File, error) {
 		"reportId": strconv.FormatInt(c.reportId, 10),
 		"fileId":   strconv.FormatInt(c.fileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16201,6 +16926,11 @@ func (c *FilesListCall) PageToken(pageToken string) *FilesListCall {
 
 // Scope sets the optional parameter "scope": The scope that defines
 // which results are returned, default is 'MINE'.
+//
+// Possible values:
+//   "ALL" - All files in account.
+//   "MINE" (default) - My files.
+//   "SHARED_WITH_ME" - Files shared with me.
 func (c *FilesListCall) Scope(scope string) *FilesListCall {
 	c.opt_["scope"] = scope
 	return c
@@ -16208,6 +16938,10 @@ func (c *FilesListCall) Scope(scope string) *FilesListCall {
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by file ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastmodifiedAt' field.
 func (c *FilesListCall) SortField(sortField string) *FilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -16215,6 +16949,10 @@ func (c *FilesListCall) SortField(sortField string) *FilesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *FilesListCall) SortOrder(sortOrder string) *FilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -16256,7 +16994,7 @@ func (c *FilesListCall) Do() (*FileList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16393,7 +17131,7 @@ func (c *FloodlightActivitiesDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -16482,7 +17220,7 @@ func (c *FloodlightActivitiesGeneratetagCall) Do() (*FloodlightActivitiesGenerat
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16568,7 +17306,7 @@ func (c *FloodlightActivitiesGetCall) Do() (*FloodlightActivity, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16661,7 +17399,7 @@ func (c *FloodlightActivitiesInsertCall) Do() (*FloodlightActivity, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16756,6 +17494,10 @@ func (c *FloodlightActivitiesListCall) FloodlightActivityGroupTagString(floodlig
 // FloodlightActivityGroupType sets the optional parameter
 // "floodlightActivityGroupType": Select only floodlight activities with
 // the specified floodlight activity group type.
+//
+// Possible values:
+//   "COUNTER"
+//   "SALE"
 func (c *FloodlightActivitiesListCall) FloodlightActivityGroupType(floodlightActivityGroupType string) *FloodlightActivitiesListCall {
 	c.opt_["floodlightActivityGroupType"] = floodlightActivityGroupType
 	return c
@@ -16795,12 +17537,12 @@ func (c *FloodlightActivitiesListCall) PageToken(pageToken string) *FloodlightAc
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "floodlightactivity*2015" will return objects with names
-// like "floodlightactivity June 2015", "floodlightactivity April 2015"
+// like "floodlightactivity June 2015", "floodlightactivity April 2015",
 // or simply "floodlightactivity 2015". Most of the searches also add
 // wildcards implicitly at the start and the end of the search string.
 // For example, a search string of "floodlightactivity" will match
 // objects with name "my floodlightactivity activity",
-// "floodlightactivity 2015" or simply "floodlightactivity".
+// "floodlightactivity 2015", or simply "floodlightactivity".
 func (c *FloodlightActivitiesListCall) SearchString(searchString string) *FloodlightActivitiesListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -16808,6 +17550,10 @@ func (c *FloodlightActivitiesListCall) SearchString(searchString string) *Floodl
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *FloodlightActivitiesListCall) SortField(sortField string) *FloodlightActivitiesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -16815,6 +17561,10 @@ func (c *FloodlightActivitiesListCall) SortField(sortField string) *FloodlightAc
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *FloodlightActivitiesListCall) SortOrder(sortOrder string) *FloodlightActivitiesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -16887,7 +17637,7 @@ func (c *FloodlightActivitiesListCall) Do() (*FloodlightActivitiesListResponse, 
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -16977,7 +17727,7 @@ func (c *FloodlightActivitiesListCall) Do() (*FloodlightActivitiesListResponse, 
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivity*2015\" will return objects with names like \"floodlightactivity June 2015\", \"floodlightactivity April 2015\" or simply \"floodlightactivity 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivity\" will match objects with name \"my floodlightactivity activity\", \"floodlightactivity 2015\" or simply \"floodlightactivity\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivity*2015\" will return objects with names like \"floodlightactivity June 2015\", \"floodlightactivity April 2015\", or simply \"floodlightactivity 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivity\" will match objects with name \"my floodlightactivity activity\", \"floodlightactivity 2015\", or simply \"floodlightactivity\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -17072,7 +17822,7 @@ func (c *FloodlightActivitiesPatchCall) Do() (*FloodlightActivity, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17168,7 +17918,7 @@ func (c *FloodlightActivitiesUpdateCall) Do() (*FloodlightActivity, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17251,7 +18001,7 @@ func (c *FloodlightActivityGroupsDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -17332,7 +18082,7 @@ func (c *FloodlightActivityGroupsGetCall) Do() (*FloodlightActivityGroup, error)
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17425,7 +18175,7 @@ func (c *FloodlightActivityGroupsInsertCall) Do() (*FloodlightActivityGroup, err
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17487,7 +18237,7 @@ func (r *FloodlightActivityGroupsService) List(profileId int64) *FloodlightActiv
 
 // AdvertiserId sets the optional parameter "advertiserId": Select only
 // floodlight activity groups with the specified advertiser ID. Must
-// specify either ids, advertiserId, or floodlightConfigurationId for a
+// specify either advertiserId or floodlightConfigurationId for a
 // non-empty result.
 func (c *FloodlightActivityGroupsListCall) AdvertiserId(advertiserId int64) *FloodlightActivityGroupsListCall {
 	c.opt_["advertiserId"] = advertiserId
@@ -17497,16 +18247,15 @@ func (c *FloodlightActivityGroupsListCall) AdvertiserId(advertiserId int64) *Flo
 // FloodlightConfigurationId sets the optional parameter
 // "floodlightConfigurationId": Select only floodlight activity groups
 // with the specified floodlight configuration ID. Must specify either
-// ids, advertiserId, or floodlightConfigurationId for a non-empty
-// result.
+// advertiserId, or floodlightConfigurationId for a non-empty result.
 func (c *FloodlightActivityGroupsListCall) FloodlightConfigurationId(floodlightConfigurationId int64) *FloodlightActivityGroupsListCall {
 	c.opt_["floodlightConfigurationId"] = floodlightConfigurationId
 	return c
 }
 
 // Ids sets the optional parameter "ids": Select only floodlight
-// activity groups with the specified IDs. Must specify either ids,
-// advertiserId, or floodlightConfigurationId for a non-empty result.
+// activity groups with the specified IDs. Must specify either
+// advertiserId or floodlightConfigurationId for a non-empty result.
 func (c *FloodlightActivityGroupsListCall) Ids(ids int64) *FloodlightActivityGroupsListCall {
 	c.opt_["ids"] = ids
 	return c
@@ -17530,12 +18279,12 @@ func (c *FloodlightActivityGroupsListCall) PageToken(pageToken string) *Floodlig
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "floodlightactivitygroup*2015" will return objects with
 // names like "floodlightactivitygroup June 2015",
-// "floodlightactivitygroup April 2015" or simply
+// "floodlightactivitygroup April 2015", or simply
 // "floodlightactivitygroup 2015". Most of the searches also add
 // wildcards implicitly at the start and the end of the search string.
 // For example, a search string of "floodlightactivitygroup" will match
 // objects with name "my floodlightactivitygroup activity",
-// "floodlightactivitygroup 2015" or simply "floodlightactivitygroup".
+// "floodlightactivitygroup 2015", or simply "floodlightactivitygroup".
 func (c *FloodlightActivityGroupsListCall) SearchString(searchString string) *FloodlightActivityGroupsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -17543,6 +18292,10 @@ func (c *FloodlightActivityGroupsListCall) SearchString(searchString string) *Fl
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *FloodlightActivityGroupsListCall) SortField(sortField string) *FloodlightActivityGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -17550,6 +18303,10 @@ func (c *FloodlightActivityGroupsListCall) SortField(sortField string) *Floodlig
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *FloodlightActivityGroupsListCall) SortOrder(sortOrder string) *FloodlightActivityGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -17557,6 +18314,10 @@ func (c *FloodlightActivityGroupsListCall) SortOrder(sortOrder string) *Floodlig
 
 // Type sets the optional parameter "type": Select only floodlight
 // activity groups with the specified floodlight activity group type.
+//
+// Possible values:
+//   "COUNTER"
+//   "SALE"
 func (c *FloodlightActivityGroupsListCall) Type(type_ string) *FloodlightActivityGroupsListCall {
 	c.opt_["type"] = type_
 	return c
@@ -17610,7 +18371,7 @@ func (c *FloodlightActivityGroupsListCall) Do() (*FloodlightActivityGroupsListRe
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17633,19 +18394,19 @@ func (c *FloodlightActivityGroupsListCall) Do() (*FloodlightActivityGroupsListRe
 	//   ],
 	//   "parameters": {
 	//     "advertiserId": {
-	//       "description": "Select only floodlight activity groups with the specified advertiser ID. Must specify either ids, advertiserId, or floodlightConfigurationId for a non-empty result.",
+	//       "description": "Select only floodlight activity groups with the specified advertiser ID. Must specify either advertiserId or floodlightConfigurationId for a non-empty result.",
 	//       "format": "int64",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "floodlightConfigurationId": {
-	//       "description": "Select only floodlight activity groups with the specified floodlight configuration ID. Must specify either ids, advertiserId, or floodlightConfigurationId for a non-empty result.",
+	//       "description": "Select only floodlight activity groups with the specified floodlight configuration ID. Must specify either advertiserId, or floodlightConfigurationId for a non-empty result.",
 	//       "format": "int64",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "ids": {
-	//       "description": "Select only floodlight activity groups with the specified IDs. Must specify either ids, advertiserId, or floodlightConfigurationId for a non-empty result.",
+	//       "description": "Select only floodlight activity groups with the specified IDs. Must specify either advertiserId or floodlightConfigurationId for a non-empty result.",
 	//       "format": "int64",
 	//       "location": "query",
 	//       "repeated": true,
@@ -17670,7 +18431,7 @@ func (c *FloodlightActivityGroupsListCall) Do() (*FloodlightActivityGroupsListRe
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivitygroup*2015\" will return objects with names like \"floodlightactivitygroup June 2015\", \"floodlightactivitygroup April 2015\" or simply \"floodlightactivitygroup 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivitygroup\" will match objects with name \"my floodlightactivitygroup activity\", \"floodlightactivitygroup 2015\" or simply \"floodlightactivitygroup\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivitygroup*2015\" will return objects with names like \"floodlightactivitygroup June 2015\", \"floodlightactivitygroup April 2015\", or simply \"floodlightactivitygroup 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivitygroup\" will match objects with name \"my floodlightactivitygroup activity\", \"floodlightactivitygroup 2015\", or simply \"floodlightactivitygroup\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -17773,7 +18534,7 @@ func (c *FloodlightActivityGroupsPatchCall) Do() (*FloodlightActivityGroup, erro
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17869,7 +18630,7 @@ func (c *FloodlightActivityGroupsUpdateCall) Do() (*FloodlightActivityGroup, err
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -17952,7 +18713,7 @@ func (c *FloodlightConfigurationsGetCall) Do() (*FloodlightConfiguration, error)
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18049,7 +18810,7 @@ func (c *FloodlightConfigurationsListCall) Do() (*FloodlightConfigurationsListRe
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18145,7 +18906,7 @@ func (c *FloodlightConfigurationsPatchCall) Do() (*FloodlightConfiguration, erro
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18241,7 +19002,7 @@ func (c *FloodlightConfigurationsUpdateCall) Do() (*FloodlightConfiguration, err
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18327,7 +19088,7 @@ func (c *LandingPagesDeleteCall) Do() error {
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 		"id":         strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -18419,7 +19180,7 @@ func (c *LandingPagesGetCall) Do() (*LandingPage, error) {
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 		"id":         strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18523,7 +19284,7 @@ func (c *LandingPagesInsertCall) Do() (*LandingPage, error) {
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18614,7 +19375,7 @@ func (c *LandingPagesListCall) Do() (*LandingPagesListResponse, error) {
 		"profileId":  strconv.FormatInt(c.profileId, 10),
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18714,7 +19475,7 @@ func (c *LandingPagesPatchCall) Do() (*LandingPage, error) {
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18821,7 +19582,7 @@ func (c *LandingPagesUpdateCall) Do() (*LandingPage, error) {
 		"campaignId": strconv.FormatInt(c.campaignId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18909,7 +19670,7 @@ func (c *MetrosListCall) Do() (*MetrosListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -18986,7 +19747,7 @@ func (c *MobileCarriersListCall) Do() (*MobileCarriersListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19063,7 +19824,7 @@ func (c *OperatingSystemVersionsListCall) Do() (*OperatingSystemVersionsListResp
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19140,7 +19901,7 @@ func (c *OperatingSystemsListCall) Do() (*OperatingSystemsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19220,7 +19981,7 @@ func (c *PlacementGroupsGetCall) Do() (*PlacementGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19313,7 +20074,7 @@ func (c *PlacementGroupsInsertCall) Do() (*PlacementGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19438,6 +20199,10 @@ func (c *PlacementGroupsListCall) PageToken(pageToken string) *PlacementGroupsLi
 // not only acts as a single pricing point but also assumes that all the
 // tags in it will be served at the same time. A roadblock requires one
 // of its assigned placements to be marked as primary for reporting.
+//
+// Possible values:
+//   "PLACEMENT_PACKAGE"
+//   "PLACEMENT_ROADBLOCK"
 func (c *PlacementGroupsListCall) PlacementGroupType(placementGroupType string) *PlacementGroupsListCall {
 	c.opt_["placementGroupType"] = placementGroupType
 	return c
@@ -19453,6 +20218,13 @@ func (c *PlacementGroupsListCall) PlacementStrategyIds(placementStrategyIds int6
 
 // PricingTypes sets the optional parameter "pricingTypes": Select only
 // placement groups with these pricing types.
+//
+// Possible values:
+//   "PRICING_TYPE_CPA"
+//   "PRICING_TYPE_CPC"
+//   "PRICING_TYPE_CPM"
+//   "PRICING_TYPE_FLAT_RATE_CLICKS"
+//   "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
 func (c *PlacementGroupsListCall) PricingTypes(pricingTypes string) *PlacementGroupsListCall {
 	c.opt_["pricingTypes"] = pricingTypes
 	return c
@@ -19462,11 +20234,11 @@ func (c *PlacementGroupsListCall) PricingTypes(pricingTypes string) *PlacementGr
 // searching for placement groups by name or ID. Wildcards (*) are
 // allowed. For example, "placement*2015" will return placement groups
 // with names like "placement group June 2015", "placement group May
-// 2015" or simply "placements 2015". Most of the searches also add
+// 2015", or simply "placements 2015". Most of the searches also add
 // wildcards implicitly at the start and the end of the search string.
 // For example, a search string of "placementgroup" will match placement
-// groups with name "my placementgroup", "placementgroup 2015" or simply
-// "placementgroup".
+// groups with name "my placementgroup", "placementgroup 2015", or
+// simply "placementgroup".
 func (c *PlacementGroupsListCall) SearchString(searchString string) *PlacementGroupsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -19481,6 +20253,10 @@ func (c *PlacementGroupsListCall) SiteIds(siteIds int64) *PlacementGroupsListCal
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *PlacementGroupsListCall) SortField(sortField string) *PlacementGroupsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -19488,6 +20264,10 @@ func (c *PlacementGroupsListCall) SortField(sortField string) *PlacementGroupsLi
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *PlacementGroupsListCall) SortOrder(sortOrder string) *PlacementGroupsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -19559,7 +20339,7 @@ func (c *PlacementGroupsListCall) Do() (*PlacementGroupsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19680,7 +20460,7 @@ func (c *PlacementGroupsListCall) Do() (*PlacementGroupsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for placement groups by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placement groups with names like \"placement group June 2015\", \"placement group May 2015\" or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementgroup\" will match placement groups with name \"my placementgroup\", \"placementgroup 2015\" or simply \"placementgroup\".",
+	//       "description": "Allows searching for placement groups by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placement groups with names like \"placement group June 2015\", \"placement group May 2015\", or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementgroup\" will match placement groups with name \"my placementgroup\", \"placementgroup 2015\", or simply \"placementgroup\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -19777,7 +20557,7 @@ func (c *PlacementGroupsPatchCall) Do() (*PlacementGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19873,7 +20653,7 @@ func (c *PlacementGroupsUpdateCall) Do() (*PlacementGroup, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -19956,7 +20736,7 @@ func (c *PlacementStrategiesDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -20037,7 +20817,7 @@ func (c *PlacementStrategiesGetCall) Do() (*PlacementStrategy, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20130,7 +20910,7 @@ func (c *PlacementStrategiesInsertCall) Do() (*PlacementStrategy, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20213,12 +20993,12 @@ func (c *PlacementStrategiesListCall) PageToken(pageToken string) *PlacementStra
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "placementstrategy*2015" will return objects with names like
-// "placementstrategy June 2015", "placementstrategy April 2015" or
+// "placementstrategy June 2015", "placementstrategy April 2015", or
 // simply "placementstrategy 2015". Most of the searches also add
 // wildcards implicitly at the start and the end of the search string.
 // For example, a search string of "placementstrategy" will match
-// objects with name "my placementstrategy", "placementstrategy 2015" or
-// simply "placementstrategy".
+// objects with name "my placementstrategy", "placementstrategy 2015",
+// or simply "placementstrategy".
 func (c *PlacementStrategiesListCall) SearchString(searchString string) *PlacementStrategiesListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -20226,6 +21006,10 @@ func (c *PlacementStrategiesListCall) SearchString(searchString string) *Placeme
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *PlacementStrategiesListCall) SortField(sortField string) *PlacementStrategiesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -20233,6 +21017,10 @@ func (c *PlacementStrategiesListCall) SortField(sortField string) *PlacementStra
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *PlacementStrategiesListCall) SortOrder(sortOrder string) *PlacementStrategiesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -20277,7 +21065,7 @@ func (c *PlacementStrategiesListCall) Do() (*PlacementStrategiesListResponse, er
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20325,7 +21113,7 @@ func (c *PlacementStrategiesListCall) Do() (*PlacementStrategiesListResponse, er
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"placementstrategy*2015\" will return objects with names like \"placementstrategy June 2015\", \"placementstrategy April 2015\" or simply \"placementstrategy 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementstrategy\" will match objects with name \"my placementstrategy\", \"placementstrategy 2015\" or simply \"placementstrategy\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"placementstrategy*2015\" will return objects with names like \"placementstrategy June 2015\", \"placementstrategy April 2015\", or simply \"placementstrategy 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementstrategy\" will match objects with name \"my placementstrategy\", \"placementstrategy 2015\", or simply \"placementstrategy\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -20415,7 +21203,7 @@ func (c *PlacementStrategiesPatchCall) Do() (*PlacementStrategy, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20511,7 +21299,7 @@ func (c *PlacementStrategiesUpdateCall) Do() (*PlacementStrategy, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20586,6 +21374,21 @@ func (c *PlacementsGeneratetagsCall) PlacementIds(placementIds int64) *Placement
 
 // TagFormats sets the optional parameter "tagFormats": Tag formats to
 // generate for these placements.
+//
+// Possible values:
+//   "PLACEMENT_TAG_CLICK_COMMANDS"
+//   "PLACEMENT_TAG_IFRAME_ILAYER"
+//   "PLACEMENT_TAG_IFRAME_JAVASCRIPT"
+//   "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH"
+//   "PLACEMENT_TAG_INTERNAL_REDIRECT"
+//   "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT"
+//   "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT"
+//   "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT"
+//   "PLACEMENT_TAG_JAVASCRIPT"
+//   "PLACEMENT_TAG_STANDARD"
+//   "PLACEMENT_TAG_TRACKING"
+//   "PLACEMENT_TAG_TRACKING_IFRAME"
+//   "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
 func (c *PlacementsGeneratetagsCall) TagFormats(tagFormats string) *PlacementsGeneratetagsCall {
 	c.opt_["tagFormats"] = tagFormats
 	return c
@@ -20621,7 +21424,7 @@ func (c *PlacementsGeneratetagsCall) Do() (*PlacementsGenerateTagsResponse, erro
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20750,7 +21553,7 @@ func (c *PlacementsGetCall) Do() (*Placement, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20843,7 +21646,7 @@ func (c *PlacementsInsertCall) Do() (*Placement, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -20931,6 +21734,13 @@ func (c *PlacementsListCall) CampaignIds(campaignIds int64) *PlacementsListCall 
 // APP_INTERSTITIAL are for rendering in mobile apps.IN_STREAM_VIDEO
 // refers to rendering in in-stream video ads developed with the VAST
 // standard.
+//
+// Possible values:
+//   "APP"
+//   "APP_INTERSTITIAL"
+//   "IN_STREAM_VIDEO"
+//   "WEB"
+//   "WEB_INTERSTITIAL"
 func (c *PlacementsListCall) Compatibilities(compatibilities string) *PlacementsListCall {
 	c.opt_["compatibilities"] = compatibilities
 	return c
@@ -20982,6 +21792,10 @@ func (c *PlacementsListCall) PageToken(pageToken string) *PlacementsListCall {
 
 // PaymentSource sets the optional parameter "paymentSource": Select
 // only placements with this payment source.
+//
+// Possible values:
+//   "PLACEMENT_AGENCY_PAID"
+//   "PLACEMENT_PUBLISHER_PAID"
 func (c *PlacementsListCall) PaymentSource(paymentSource string) *PlacementsListCall {
 	c.opt_["paymentSource"] = paymentSource
 	return c
@@ -20997,6 +21811,13 @@ func (c *PlacementsListCall) PlacementStrategyIds(placementStrategyIds int64) *P
 
 // PricingTypes sets the optional parameter "pricingTypes": Select only
 // placements with these pricing types.
+//
+// Possible values:
+//   "PRICING_TYPE_CPA"
+//   "PRICING_TYPE_CPC"
+//   "PRICING_TYPE_CPM"
+//   "PRICING_TYPE_FLAT_RATE_CLICKS"
+//   "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
 func (c *PlacementsListCall) PricingTypes(pricingTypes string) *PlacementsListCall {
 	c.opt_["pricingTypes"] = pricingTypes
 	return c
@@ -21005,11 +21826,11 @@ func (c *PlacementsListCall) PricingTypes(pricingTypes string) *PlacementsListCa
 // SearchString sets the optional parameter "searchString": Allows
 // searching for placements by name or ID. Wildcards (*) are allowed.
 // For example, "placement*2015" will return placements with names like
-// "placement June 2015", "placement May 2015" or simply "placements
+// "placement June 2015", "placement May 2015", or simply "placements
 // 2015". Most of the searches also add wildcards implicitly at the
 // start and the end of the search string. For example, a search string
 // of "placement" will match placements with name "my placement",
-// "placement 2015" or simply "placement".
+// "placement 2015", or simply "placement".
 func (c *PlacementsListCall) SearchString(searchString string) *PlacementsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -21031,6 +21852,10 @@ func (c *PlacementsListCall) SizeIds(sizeIds int64) *PlacementsListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *PlacementsListCall) SortField(sortField string) *PlacementsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -21038,6 +21863,10 @@ func (c *PlacementsListCall) SortField(sortField string) *PlacementsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *PlacementsListCall) SortOrder(sortOrder string) *PlacementsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -21118,7 +21947,7 @@ func (c *PlacementsListCall) Do() (*PlacementsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21266,7 +22095,7 @@ func (c *PlacementsListCall) Do() (*PlacementsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for placements by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placements with names like \"placement June 2015\", \"placement May 2015\" or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placement\" will match placements with name \"my placement\", \"placement 2015\" or simply \"placement\".",
+	//       "description": "Allows searching for placements by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placements with names like \"placement June 2015\", \"placement May 2015\", or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placement\" will match placements with name \"my placement\", \"placement 2015\", or simply \"placement\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -21370,7 +22199,7 @@ func (c *PlacementsPatchCall) Do() (*Placement, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21466,7 +22295,7 @@ func (c *PlacementsUpdateCall) Do() (*Placement, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21546,7 +22375,7 @@ func (c *PlatformTypesListCall) Do() (*PlatformTypesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21623,7 +22452,7 @@ func (c *PostalCodesListCall) Do() (*PostalCodesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21700,7 +22529,7 @@ func (c *RegionsListCall) Do() (*RegionsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21780,7 +22609,7 @@ func (c *ReportsDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -21861,7 +22690,7 @@ func (c *ReportsGetCall) Do() (*Report, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -21954,7 +22783,7 @@ func (c *ReportsInsertCall) Do() (*Report, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22029,6 +22858,10 @@ func (c *ReportsListCall) PageToken(pageToken string) *ReportsListCall {
 
 // Scope sets the optional parameter "scope": The scope that defines
 // which results are returned, default is 'MINE'.
+//
+// Possible values:
+//   "ALL" - All reports in account.
+//   "MINE" (default) - My reports.
 func (c *ReportsListCall) Scope(scope string) *ReportsListCall {
 	c.opt_["scope"] = scope
 	return c
@@ -22036,6 +22869,11 @@ func (c *ReportsListCall) Scope(scope string) *ReportsListCall {
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by report ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastModifiedTime' field.
+//   "NAME" - Sort by name of reports.
 func (c *ReportsListCall) SortField(sortField string) *ReportsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -22043,6 +22881,10 @@ func (c *ReportsListCall) SortField(sortField string) *ReportsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *ReportsListCall) SortOrder(sortOrder string) *ReportsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -22084,7 +22926,7 @@ func (c *ReportsListCall) Do() (*ReportList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22229,7 +23071,7 @@ func (c *ReportsPatchCall) Do() (*Report, error) {
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22330,7 +23172,7 @@ func (c *ReportsRunCall) Do() (*File, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22431,7 +23273,7 @@ func (c *ReportsUpdateCall) Do() (*Report, error) {
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22529,7 +23371,7 @@ func (c *ReportsCompatibleFieldsQueryCall) Do() (*CompatibleFields, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22615,7 +23457,7 @@ func (c *ReportsFilesGetCall) Do() (*File, error) {
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 		"fileId":    strconv.FormatInt(c.fileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22706,6 +23548,10 @@ func (c *ReportsFilesListCall) PageToken(pageToken string) *ReportsFilesListCall
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by file ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastmodifiedAt' field.
 func (c *ReportsFilesListCall) SortField(sortField string) *ReportsFilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -22713,6 +23559,10 @@ func (c *ReportsFilesListCall) SortField(sortField string) *ReportsFilesListCall
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *ReportsFilesListCall) SortOrder(sortOrder string) *ReportsFilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -22752,7 +23602,7 @@ func (c *ReportsFilesListCall) Do() (*FileList, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22881,7 +23731,7 @@ func (c *SitesGetCall) Do() (*Site, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -22974,7 +23824,7 @@ func (c *SitesInsertCall) Do() (*Site, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23109,10 +23959,10 @@ func (c *SitesListCall) PageToken(pageToken string) *SitesListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name, ID or keyName. Wildcards (*) are
 // allowed. For example, "site*2015" will return objects with names like
-// "site June 2015", "site April 2015" or simply "site 2015". Most of
+// "site June 2015", "site April 2015", or simply "site 2015". Most of
 // the searches also add wildcards implicitly at the start and the end
 // of the search string. For example, a search string of "site" will
-// match objects with name "my site", "site 2015" or simply "site".
+// match objects with name "my site", "site 2015", or simply "site".
 func (c *SitesListCall) SearchString(searchString string) *SitesListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -23120,6 +23970,10 @@ func (c *SitesListCall) SearchString(searchString string) *SitesListCall {
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *SitesListCall) SortField(sortField string) *SitesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -23127,6 +23981,10 @@ func (c *SitesListCall) SortField(sortField string) *SitesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *SitesListCall) SortOrder(sortOrder string) *SitesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -23212,7 +24070,7 @@ func (c *SitesListCall) Do() (*SitesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23299,7 +24157,7 @@ func (c *SitesListCall) Do() (*SitesListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name, ID or keyName. Wildcards (*) are allowed. For example, \"site*2015\" will return objects with names like \"site June 2015\", \"site April 2015\" or simply \"site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"site\" will match objects with name \"my site\", \"site 2015\" or simply \"site\".",
+	//       "description": "Allows searching for objects by name, ID or keyName. Wildcards (*) are allowed. For example, \"site*2015\" will return objects with names like \"site June 2015\", \"site April 2015\", or simply \"site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"site\" will match objects with name \"my site\", \"site 2015\", or simply \"site\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -23400,7 +24258,7 @@ func (c *SitesPatchCall) Do() (*Site, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23496,7 +24354,7 @@ func (c *SitesUpdateCall) Do() (*Site, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23579,7 +24437,7 @@ func (c *SizesGetCall) Do() (*Size, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23672,7 +24530,7 @@ func (c *SizesInsertCall) Do() (*Size, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23792,7 +24650,7 @@ func (c *SizesListCall) Do() (*SizesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23896,7 +24754,7 @@ func (c *SubaccountsGetCall) Do() (*Subaccount, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -23989,7 +24847,7 @@ func (c *SubaccountsInsertCall) Do() (*Subaccount, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24072,11 +24930,11 @@ func (c *SubaccountsListCall) PageToken(pageToken string) *SubaccountsListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "subaccount*2015" will return objects with names like
-// "subaccount June 2015", "subaccount April 2015" or simply "subaccount
-// 2015". Most of the searches also add wildcards implicitly at the
-// start and the end of the search string. For example, a search string
-// of "subaccount" will match objects with name "my subaccount",
-// "subaccount 2015" or simply "subaccount".
+// "subaccount June 2015", "subaccount April 2015", or simply
+// "subaccount 2015". Most of the searches also add wildcards implicitly
+// at the start and the end of the search string. For example, a search
+// string of "subaccount" will match objects with name "my subaccount",
+// "subaccount 2015", or simply "subaccount".
 func (c *SubaccountsListCall) SearchString(searchString string) *SubaccountsListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -24084,6 +24942,10 @@ func (c *SubaccountsListCall) SearchString(searchString string) *SubaccountsList
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *SubaccountsListCall) SortField(sortField string) *SubaccountsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -24091,6 +24953,10 @@ func (c *SubaccountsListCall) SortField(sortField string) *SubaccountsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *SubaccountsListCall) SortOrder(sortOrder string) *SubaccountsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -24135,7 +25001,7 @@ func (c *SubaccountsListCall) Do() (*SubaccountsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24183,7 +25049,7 @@ func (c *SubaccountsListCall) Do() (*SubaccountsListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"subaccount*2015\" will return objects with names like \"subaccount June 2015\", \"subaccount April 2015\" or simply \"subaccount 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"subaccount\" will match objects with name \"my subaccount\", \"subaccount 2015\" or simply \"subaccount\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"subaccount*2015\" will return objects with names like \"subaccount June 2015\", \"subaccount April 2015\", or simply \"subaccount 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"subaccount\" will match objects with name \"my subaccount\", \"subaccount 2015\", or simply \"subaccount\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -24273,7 +25139,7 @@ func (c *SubaccountsPatchCall) Do() (*Subaccount, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24369,7 +25235,7 @@ func (c *SubaccountsUpdateCall) Do() (*Subaccount, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24449,7 +25315,7 @@ func (c *UserProfilesGetCall) Do() (*UserProfile, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24523,7 +25389,7 @@ func (c *UserProfilesListCall) Do() (*UserProfileList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24592,7 +25458,7 @@ func (c *UserRolePermissionGroupsGetCall) Do() (*UserRolePermissionGroup, error)
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24677,7 +25543,7 @@ func (c *UserRolePermissionGroupsListCall) Do() (*UserRolePermissionGroupsListRe
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24757,7 +25623,7 @@ func (c *UserRolePermissionsGetCall) Do() (*UserRolePermission, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24852,7 +25718,7 @@ func (c *UserRolePermissionsListCall) Do() (*UserRolePermissionsListResponse, er
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -24939,7 +25805,7 @@ func (c *UserRolesDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -25020,7 +25886,7 @@ func (c *UserRolesGetCall) Do() (*UserRole, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"id":        strconv.FormatInt(c.id, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -25113,7 +25979,7 @@ func (c *UserRolesInsertCall) Do() (*UserRole, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -25204,11 +26070,11 @@ func (c *UserRolesListCall) PageToken(pageToken string) *UserRolesListCall {
 // SearchString sets the optional parameter "searchString": Allows
 // searching for objects by name or ID. Wildcards (*) are allowed. For
 // example, "userrole*2015" will return objects with names like
-// "userrole June 2015", "userrole April 2015" or simply "userrole
+// "userrole June 2015", "userrole April 2015", or simply "userrole
 // 2015". Most of the searches also add wildcards implicitly at the
 // start and the end of the search string. For example, a search string
 // of "userrole" will match objects with name "my userrole", "userrole
-// 2015" or simply "userrole".
+// 2015", or simply "userrole".
 func (c *UserRolesListCall) SearchString(searchString string) *UserRolesListCall {
 	c.opt_["searchString"] = searchString
 	return c
@@ -25216,6 +26082,10 @@ func (c *UserRolesListCall) SearchString(searchString string) *UserRolesListCall
 
 // SortField sets the optional parameter "sortField": Field by which to
 // sort the list.
+//
+// Possible values:
+//   "ID"
+//   "NAME"
 func (c *UserRolesListCall) SortField(sortField string) *UserRolesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -25223,6 +26093,10 @@ func (c *UserRolesListCall) SortField(sortField string) *UserRolesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is ASCENDING.
+//
+// Possible values:
+//   "ASCENDING"
+//   "DESCENDING"
 func (c *UserRolesListCall) SortOrder(sortOrder string) *UserRolesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -25280,7 +26154,7 @@ func (c *UserRolesListCall) Do() (*UserRolesListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -25333,7 +26207,7 @@ func (c *UserRolesListCall) Do() (*UserRolesListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "searchString": {
-	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"userrole*2015\" will return objects with names like \"userrole June 2015\", \"userrole April 2015\" or simply \"userrole 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"userrole\" will match objects with name \"my userrole\", \"userrole 2015\" or simply \"userrole\".",
+	//       "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"userrole*2015\" will return objects with names like \"userrole June 2015\", \"userrole April 2015\", or simply \"userrole 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"userrole\" will match objects with name \"my userrole\", \"userrole 2015\", or simply \"userrole\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -25429,7 +26303,7 @@ func (c *UserRolesPatchCall) Do() (*UserRole, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -25525,7 +26399,7 @@ func (c *UserRolesUpdateCall) Do() (*UserRole, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

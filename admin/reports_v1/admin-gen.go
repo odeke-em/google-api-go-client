@@ -63,8 +63,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Activities *ActivitiesService
 
@@ -73,6 +74,13 @@ type Service struct {
 	CustomerUsageReports *CustomerUsageReportsService
 
 	UserUsageReport *UserUsageReportService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewActivitiesService(s *Service) *ActivitiesService {
@@ -289,7 +297,7 @@ type UsageReportParameters struct {
 	IntValue int64 `json:"intValue,omitempty,string"`
 
 	// MsgValue: Nested message value of the parameter.
-	MsgValue []*UsageReportParametersMsgValue `json:"msgValue,omitempty"`
+	MsgValue []UsageReportParametersMsgValue `json:"msgValue,omitempty"`
 
 	// Name: The name of the parameter.
 	Name string `json:"name,omitempty"`
@@ -298,8 +306,7 @@ type UsageReportParameters struct {
 	StringValue string `json:"stringValue,omitempty"`
 }
 
-type UsageReportParametersMsgValue struct {
-}
+type UsageReportParametersMsgValue interface{}
 
 type UsageReports struct {
 	// Etag: ETag of the resource.
@@ -461,7 +468,7 @@ func (c *ActivitiesListCall) Do() (*Activities, error) {
 		"userKey":         c.userKey,
 		"applicationName": c.applicationName,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -492,7 +499,7 @@ func (c *ActivitiesListCall) Do() (*Activities, error) {
 	//     "applicationName": {
 	//       "description": "Application name for which the events are to be retrieved.",
 	//       "location": "path",
-	//       "pattern": "(admin)|(calendar)|(docs)|(drive)|(login)|(token)",
+	//       "pattern": "(admin)|(calendar)|(drive)|(login)|(token)",
 	//       "required": true,
 	//       "type": "string"
 	//     },
@@ -686,7 +693,7 @@ func (c *ActivitiesWatchCall) Do() (*Channel, error) {
 		"applicationName": c.applicationName,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -717,7 +724,7 @@ func (c *ActivitiesWatchCall) Do() (*Channel, error) {
 	//     "applicationName": {
 	//       "description": "Application name for which the events are to be retrieved.",
 	//       "location": "path",
-	//       "pattern": "(admin)|(calendar)|(docs)|(drive)|(login)|(token)",
+	//       "pattern": "(admin)|(calendar)|(drive)|(login)|(token)",
 	//       "required": true,
 	//       "type": "string"
 	//     },
@@ -826,7 +833,7 @@ func (c *ChannelsStopCall) Do() error {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -920,7 +927,7 @@ func (c *CustomerUsageReportsGetCall) Do() (*UsageReports, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"date": c.date,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1069,7 +1076,7 @@ func (c *UserUsageReportGetCall) Do() (*UsageReports, error) {
 		"userKey": c.userKey,
 		"date":    c.date,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

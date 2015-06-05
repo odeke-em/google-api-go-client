@@ -60,8 +60,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	DimensionValues *DimensionValuesService
 
@@ -70,6 +71,13 @@ type Service struct {
 	Reports *ReportsService
 
 	UserProfiles *UserProfilesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewDimensionValuesService(s *Service) *DimensionValuesService {
@@ -157,20 +165,16 @@ type DateRange struct {
 	// - "TODAY"
 	// - "YESTERDAY"
 	// - "WEEK_TO_DATE"
-	//
 	// - "MONTH_TO_DATE"
 	// - "QUARTER_TO_DATE"
 	// - "YEAR_TO_DATE"
-	// -
-	// "PREVIOUS_WEEK"
+	// - "PREVIOUS_WEEK"
 	// - "PREVIOUS_MONTH"
 	// - "PREVIOUS_QUARTER"
-	// -
-	// "PREVIOUS_YEAR"
+	// - "PREVIOUS_YEAR"
 	// - "LAST_7_DAYS"
 	// - "LAST_30_DAYS"
 	// - "LAST_90_DAYS"
-	//
 	// - "LAST_365_DAYS"
 	// - "LAST_24_MONTHS"
 	RelativeDateRange string `json:"relativeDateRange,omitempty"`
@@ -281,8 +285,7 @@ type File struct {
 
 	// Status: The status of the report file, one of:
 	// - "PROCESSING"
-	// -
-	// "REPORT_AVAILABLE"
+	// - "REPORT_AVAILABLE"
 	// - "FAILED"
 	// - "CANCELLED"
 	Status string `json:"status,omitempty"`
@@ -319,8 +322,7 @@ type FileList struct {
 
 type Recipient struct {
 	// DeliveryType: The delivery type for the recipient, one of:
-	// -
-	// "ATTACHMENT"
+	// - "ATTACHMENT"
 	// - "LINK"
 	DeliveryType string `json:"deliveryType,omitempty"`
 
@@ -363,11 +365,10 @@ type Report struct {
 
 	// Format: The output format of the report, one of:
 	// - "CSV"
-	// - "EXCEL"
-	//  If not specified, default format is "CSV". Note that the actual
-	// format in the completed report file might differ if for instance the
-	// report's size exceeds the format's capabilities. "CSV" will then be
-	// the fallback format.
+	// - "EXCEL"  If not specified, default format is "CSV". Note that the
+	// actual format in the completed report file might differ if for
+	// instance the report's size exceeds the format's capabilities. "CSV"
+	// will then be the fallback format.
 	Format string `json:"format,omitempty"`
 
 	// Id: The unique ID identifying this report resource.
@@ -405,12 +406,10 @@ type Report struct {
 	// Type: The type of the report, one of:
 	// - STANDARD
 	// - REACH
-	// -
-	// ACTIVE_GRP
+	// - ACTIVE_GRP
 	// - PATH_TO_CONVERSION
 	// - FLOODLIGHT
-	// -
-	// CROSS_DIMENSION_REACH
+	// - CROSS_DIMENSION_REACH
 	Type string `json:"type,omitempty"`
 }
 
@@ -420,11 +419,11 @@ type ReportActiveGrpCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
-	// A valid active GRP
-	// report needs to have exactly one DimensionValue for the United States
-	// in addition to any advertiser or campaign dimension values.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
+	// A valid active GRP report needs to have exactly one DimensionValue
+	// for the United States in addition to any advertiser or campaign
+	// dimension values.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of dimensions the report should include.
@@ -446,8 +445,8 @@ type ReportCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of standard dimensions the report should
@@ -467,8 +466,7 @@ type ReportCrossDimensionReachCriteria struct {
 
 	// Dimension: The dimension option, one of:
 	// - "ADVERTISER"
-	// -
-	// "CAMPAIGN"
+	// - "CAMPAIGN"
 	// - "SITE_BY_ADVERTISER"
 	// - "SITE_BY_CAMPAIGN"
 	Dimension string `json:"dimension,omitempty"`
@@ -511,8 +509,8 @@ type ReportFloodlightCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of dimensions the report should include.
@@ -647,8 +645,8 @@ type ReportReachCriteria struct {
 
 	// DimensionFilters: The list of filters on which dimensions are
 	// filtered.
-	// Filters for different dimensions are ANDed, filters for the
-	// same dimension are grouped together and ORed.
+	// Filters for different dimensions are ANDed, filters for the same
+	// dimension are grouped together and ORed.
 	DimensionFilters []*DimensionValue `json:"dimensionFilters,omitempty"`
 
 	// Dimensions: The list of dimensions the report should include.
@@ -677,14 +675,12 @@ type ReportSchedule struct {
 	ExpirationDate string `json:"expirationDate,omitempty"`
 
 	// Repeats: The interval for which the report is repeated, one of:
-	// -
-	// "DAILY", also requires field "every" to be set.
-	// - "WEEKLY", also
-	// requires fields "every" and "repeatsOnWeekDays" to be set.
-	// -
-	// "TWICE_A_MONTH"
-	// - "MONTHLY", also requires fields "every" and
-	// "runsOnDayOfMonth" to be set.
+	// - "DAILY", also requires field "every" to be set.
+	// - "WEEKLY", also requires fields "every" and "repeatsOnWeekDays" to
+	// be set.
+	// - "TWICE_A_MONTH"
+	// - "MONTHLY", also requires fields "every" and "runsOnDayOfMonth" to
+	// be set.
 	// - "QUARTERLY"
 	// - "YEARLY"
 	Repeats string `json:"repeats,omitempty"`
@@ -699,10 +695,10 @@ type ReportSchedule struct {
 	// are:
 	// - DAY_OF_MONTH
 	// - WEEK_OF_MONTH
-	// Example: If 'startDate' is
-	// Monday, April 2nd 2012 (2012-04-02), "DAY_OF_MONTH" would run
-	// subsequent reports on the 2nd of every Month, and "WEEK_OF_MONTH"
-	// would run subsequent reports on the first Monday of the month.
+	// Example: If 'startDate' is Monday, April 2nd 2012 (2012-04-02),
+	// "DAY_OF_MONTH" would run subsequent reports on the 2nd of every
+	// Month, and "WEEK_OF_MONTH" would run subsequent reports on the first
+	// Monday of the month.
 	RunsOnDayOfMonth string `json:"runsOnDayOfMonth,omitempty"`
 
 	// StartDate: Start date of date range for which scheduled reports
@@ -848,7 +844,7 @@ func (c *DimensionValuesQueryCall) Do() (*DimensionValueList, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -936,6 +932,10 @@ func (c *FilesListCall) PageToken(pageToken string) *FilesListCall {
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by file ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastmodifiedAt' field.
 func (c *FilesListCall) SortField(sortField string) *FilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -943,6 +943,10 @@ func (c *FilesListCall) SortField(sortField string) *FilesListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *FilesListCall) SortOrder(sortOrder string) *FilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -981,7 +985,7 @@ func (c *FilesListCall) Do() (*FileList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1102,7 +1106,7 @@ func (c *ReportsDeleteCall) Do() error {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1183,7 +1187,7 @@ func (c *ReportsGetCall) Do() (*Report, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1276,7 +1280,7 @@ func (c *ReportsInsertCall) Do() (*Report, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1351,6 +1355,11 @@ func (c *ReportsListCall) PageToken(pageToken string) *ReportsListCall {
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by report ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastModifiedTime' field.
+//   "NAME" - Sort by name of reports.
 func (c *ReportsListCall) SortField(sortField string) *ReportsListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -1358,6 +1367,10 @@ func (c *ReportsListCall) SortField(sortField string) *ReportsListCall {
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *ReportsListCall) SortOrder(sortOrder string) *ReportsListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -1396,7 +1409,7 @@ func (c *ReportsListCall) Do() (*ReportList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1527,7 +1540,7 @@ func (c *ReportsPatchCall) Do() (*Report, error) {
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1628,7 +1641,7 @@ func (c *ReportsRunCall) Do() (*File, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1729,7 +1742,7 @@ func (c *ReportsUpdateCall) Do() (*Report, error) {
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1823,7 +1836,7 @@ func (c *ReportsFilesGetCall) Do() (*File, error) {
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 		"fileId":    strconv.FormatInt(c.fileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1913,6 +1926,10 @@ func (c *ReportsFilesListCall) PageToken(pageToken string) *ReportsFilesListCall
 
 // SortField sets the optional parameter "sortField": The field by which
 // to sort the list.
+//
+// Possible values:
+//   "ID" - Sort by file ID.
+//   "LAST_MODIFIED_TIME" (default) - Sort by 'lastmodifiedAt' field.
 func (c *ReportsFilesListCall) SortField(sortField string) *ReportsFilesListCall {
 	c.opt_["sortField"] = sortField
 	return c
@@ -1920,6 +1937,10 @@ func (c *ReportsFilesListCall) SortField(sortField string) *ReportsFilesListCall
 
 // SortOrder sets the optional parameter "sortOrder": Order of sorted
 // results, default is 'DESCENDING'.
+//
+// Possible values:
+//   "ASCENDING" - Ascending order.
+//   "DESCENDING" (default) - Descending order.
 func (c *ReportsFilesListCall) SortOrder(sortOrder string) *ReportsFilesListCall {
 	c.opt_["sortOrder"] = sortOrder
 	return c
@@ -1959,7 +1980,7 @@ func (c *ReportsFilesListCall) Do() (*FileList, error) {
 		"profileId": strconv.FormatInt(c.profileId, 10),
 		"reportId":  strconv.FormatInt(c.reportId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2085,7 +2106,7 @@ func (c *UserProfilesGetCall) Do() (*UserProfile, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"profileId": strconv.FormatInt(c.profileId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2158,7 +2179,7 @@ func (c *UserProfilesListCall) Do() (*UserProfileList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

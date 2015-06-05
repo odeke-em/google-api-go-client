@@ -51,10 +51,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Relyingparty *RelyingpartyService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewRelyingpartyService(s *Service) *RelyingpartyService {
@@ -122,6 +130,18 @@ type GetOobConfirmationCodeResponse struct {
 	OobCode string `json:"oobCode,omitempty"`
 }
 
+type GetRecaptchaParamResponse struct {
+	// Kind: The fixed string "identitytoolkit#GetRecaptchaParamResponse".
+	Kind string `json:"kind,omitempty"`
+
+	// RecaptchaSiteKey: Site key registered at recaptcha.
+	RecaptchaSiteKey string `json:"recaptchaSiteKey,omitempty"`
+
+	// RecaptchaStoken: The stoken field for the recaptcha widget, used to
+	// request captcha challenge.
+	RecaptchaStoken string `json:"recaptchaStoken,omitempty"`
+}
+
 type IdentitytoolkitRelyingpartyCreateAuthUriRequest struct {
 	// AppId: The app ID of the mobile app, base64(CERT_SHA1):PACKAGE_NAME
 	// for Android, BUNDLE_ID for iOS.
@@ -140,6 +160,14 @@ type IdentitytoolkitRelyingpartyCreateAuthUriRequest struct {
 
 	// Identifier: The email or federated ID of the user.
 	Identifier string `json:"identifier,omitempty"`
+
+	// OauthConsumerKey: The developer's consumer key for OpenId OAuth
+	// Extension
+	OauthConsumerKey string `json:"oauthConsumerKey,omitempty"`
+
+	// OauthScope: Additional oauth scopes, beyond the basid user profile,
+	// that the user would be prompted to grant
+	OauthScope string `json:"oauthScope,omitempty"`
 
 	// OpenidRealm: Optional realm for OpenID protocol. The sub string
 	// "scheme://domain:port" of the param "continueUri" is used if this is
@@ -201,6 +229,9 @@ type IdentitytoolkitRelyingpartySetAccountInfoRequest struct {
 	// CaptchaResponse: Response to the captcha.
 	CaptchaResponse string `json:"captchaResponse,omitempty"`
 
+	// DisableUser: Whether to disable the user.
+	DisableUser bool `json:"disableUser,omitempty"`
+
 	// DisplayName: The name of the user.
 	DisplayName string `json:"displayName,omitempty"`
 
@@ -227,6 +258,9 @@ type IdentitytoolkitRelyingpartySetAccountInfoRequest struct {
 
 	// UpgradeToFederatedLogin: Mark the user to upgrade to federated login.
 	UpgradeToFederatedLogin bool `json:"upgradeToFederatedLogin,omitempty"`
+
+	// ValidSince: Timestamp in seconds for valid login token.
+	ValidSince int64 `json:"validSince,omitempty,string"`
 }
 
 type IdentitytoolkitRelyingpartyUploadAccountRequest struct {
@@ -262,6 +296,9 @@ type IdentitytoolkitRelyingpartyVerifyAssertionRequest struct {
 	// RequestUri: The URI to which the IDP redirects the user back. It may
 	// contain federated login result params added by the IDP.
 	RequestUri string `json:"requestUri,omitempty"`
+
+	// ReturnRefreshToken: Whether to return refresh tokens.
+	ReturnRefreshToken bool `json:"returnRefreshToken,omitempty"`
 }
 
 type IdentitytoolkitRelyingpartyVerifyPasswordRequest struct {
@@ -363,6 +400,9 @@ type UploadAccountResponseError struct {
 }
 
 type UserInfo struct {
+	// Disabled: Whether the user is disabled.
+	Disabled bool `json:"disabled,omitempty"`
+
 	// DisplayName: The name of the user.
 	DisplayName string `json:"displayName,omitempty"`
 
@@ -389,6 +429,9 @@ type UserInfo struct {
 
 	// Salt: The user's password salt.
 	Salt string `json:"salt,omitempty"`
+
+	// ValidSince: Timestamp in seconds for valid login token.
+	ValidSince int64 `json:"validSince,omitempty,string"`
 
 	// Version: Version of the user's password.
 	Version int64 `json:"version,omitempty"`
@@ -477,6 +520,15 @@ type VerifyAssertionResponse struct {
 
 	// NickName: The nick name of the user.
 	NickName string `json:"nickName,omitempty"`
+
+	// OauthAccessToken: The OAuth2 access token.
+	OauthAccessToken string `json:"oauthAccessToken,omitempty"`
+
+	// OauthAuthorizationCode: The OAuth2 authorization code.
+	OauthAuthorizationCode string `json:"oauthAuthorizationCode,omitempty"`
+
+	// OauthExpireIn: The lifetime in seconds of the OAuth2 access token.
+	OauthExpireIn int64 `json:"oauthExpireIn,omitempty"`
 
 	// OauthRequestToken: The user approved request token for the OpenID
 	// OAuth extension.
@@ -574,7 +626,7 @@ func (c *RelyingpartyCreateAuthUriCall) Do() (*CreateAuthUriResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -643,7 +695,7 @@ func (c *RelyingpartyDeleteAccountCall) Do() (*DeleteAccountResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -712,7 +764,7 @@ func (c *RelyingpartyDownloadAccountCall) Do() (*DownloadAccountResponse, error)
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -781,7 +833,7 @@ func (c *RelyingpartyGetAccountInfoCall) Do() (*GetAccountInfoResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -850,7 +902,7 @@ func (c *RelyingpartyGetOobConfirmationCodeCall) Do() (*GetOobConfirmationCodeRe
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -911,7 +963,7 @@ func (c *RelyingpartyGetPublicKeysCall) Do() (map[string]string, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -932,6 +984,64 @@ func (c *RelyingpartyGetPublicKeysCall) Do() (map[string]string, error) {
 	//   "path": "publicKeys",
 	//   "response": {
 	//     "$ref": "IdentitytoolkitRelyingpartyGetPublicKeysResponse"
+	//   }
+	// }
+
+}
+
+// method id "identitytoolkit.relyingparty.getRecaptchaParam":
+
+type RelyingpartyGetRecaptchaParamCall struct {
+	s    *Service
+	opt_ map[string]interface{}
+}
+
+// GetRecaptchaParam: Get recaptcha secure param.
+func (r *RelyingpartyService) GetRecaptchaParam() *RelyingpartyGetRecaptchaParamCall {
+	c := &RelyingpartyGetRecaptchaParamCall{s: r.s, opt_: make(map[string]interface{})}
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *RelyingpartyGetRecaptchaParamCall) Fields(s ...googleapi.Field) *RelyingpartyGetRecaptchaParamCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *RelyingpartyGetRecaptchaParamCall) Do() (*GetRecaptchaParamResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "getRecaptchaParam")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *GetRecaptchaParamResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Get recaptcha secure param.",
+	//   "httpMethod": "GET",
+	//   "id": "identitytoolkit.relyingparty.getRecaptchaParam",
+	//   "path": "getRecaptchaParam",
+	//   "response": {
+	//     "$ref": "GetRecaptchaParamResponse"
 	//   }
 	// }
 
@@ -977,7 +1087,7 @@ func (c *RelyingpartyResetPasswordCall) Do() (*ResetPasswordResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1046,7 +1156,7 @@ func (c *RelyingpartySetAccountInfoCall) Do() (*SetAccountInfoResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1115,7 +1225,7 @@ func (c *RelyingpartyUploadAccountCall) Do() (*UploadAccountResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1184,7 +1294,7 @@ func (c *RelyingpartyVerifyAssertionCall) Do() (*VerifyAssertionResponse, error)
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1253,7 +1363,7 @@ func (c *RelyingpartyVerifyPasswordCall) Do() (*VerifyPasswordResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

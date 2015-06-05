@@ -1,4 +1,4 @@
-// Package androidpublisher provides access to the Google Play Android Developer API.
+// Package androidpublisher provides access to the Google Play Developer API.
 //
 // See https://developers.google.com/android-publisher
 //
@@ -43,7 +43,7 @@ const basePath = "https://www.googleapis.com/androidpublisher/v1/applications/"
 
 // OAuth2 scopes used by this API.
 const (
-	// View and manage your Google Play Android Developer account
+	// View and manage your Google Play Developer account
 	AndroidpublisherScope = "https://www.googleapis.com/auth/androidpublisher"
 )
 
@@ -57,10 +57,18 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Purchases *PurchasesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewPurchasesService(s *Service) *PurchasesService {
@@ -133,7 +141,7 @@ func (c *PurchasesCancelCall) Do() error {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -223,7 +231,7 @@ func (c *PurchasesGetCall) Do() (*SubscriptionPurchase, error) {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

@@ -65,8 +65,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	CustomFieldDef *CustomFieldDefService
 
@@ -79,6 +80,13 @@ type Service struct {
 	Team *TeamService
 
 	Worker *WorkerService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewCustomFieldDefService(s *Service) *CustomFieldDefService {
@@ -418,7 +426,7 @@ func (c *CustomFieldDefListCall) Do() (*CustomFieldDefListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"teamId": c.teamId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -498,7 +506,7 @@ func (c *JobsGetCall) Do() (*Job, error) {
 		"teamId": c.teamId,
 		"jobId":  strconv.FormatUint(c.jobId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -659,7 +667,7 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 		"teamId": c.teamId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -824,7 +832,7 @@ func (c *JobsListCall) Do() (*JobListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"teamId": c.teamId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -964,6 +972,13 @@ func (c *JobsPatchCall) Note(note string) *JobsPatchCall {
 }
 
 // Progress sets the optional parameter "progress": Job progress
+//
+// Possible values:
+//   "COMPLETED" - Completed
+//   "IN_PROGRESS" - In progress
+//   "NOT_ACCEPTED" - Not accepted
+//   "NOT_STARTED" - Not started
+//   "OBSOLETE" - Obsolete
 func (c *JobsPatchCall) Progress(progress string) *JobsPatchCall {
 	c.opt_["progress"] = progress
 	return c
@@ -1033,7 +1048,7 @@ func (c *JobsPatchCall) Do() (*Job, error) {
 		"jobId":  strconv.FormatUint(c.jobId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1233,6 +1248,13 @@ func (c *JobsUpdateCall) Note(note string) *JobsUpdateCall {
 }
 
 // Progress sets the optional parameter "progress": Job progress
+//
+// Possible values:
+//   "COMPLETED" - Completed
+//   "IN_PROGRESS" - In progress
+//   "NOT_ACCEPTED" - Not accepted
+//   "NOT_STARTED" - Not started
+//   "OBSOLETE" - Obsolete
 func (c *JobsUpdateCall) Progress(progress string) *JobsUpdateCall {
 	c.opt_["progress"] = progress
 	return c
@@ -1302,7 +1324,7 @@ func (c *JobsUpdateCall) Do() (*Job, error) {
 		"jobId":  strconv.FormatUint(c.jobId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1481,7 +1503,7 @@ func (c *LocationListCall) Do() (*LocationListResponse, error) {
 		"teamId":      c.teamId,
 		"workerEmail": c.workerEmail,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1587,7 +1609,7 @@ func (c *ScheduleGetCall) Do() (*Schedule, error) {
 		"teamId": c.teamId,
 		"jobId":  strconv.FormatUint(c.jobId, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1725,7 +1747,7 @@ func (c *SchedulePatchCall) Do() (*Schedule, error) {
 		"jobId":  strconv.FormatUint(c.jobId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1887,7 +1909,7 @@ func (c *ScheduleUpdateCall) Do() (*Schedule, error) {
 		"jobId":  strconv.FormatUint(c.jobId, 10),
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2023,7 +2045,7 @@ func (c *TeamListCall) Do() (*TeamListResponse, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2106,7 +2128,7 @@ func (c *WorkerListCall) Do() (*WorkerListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"teamId": c.teamId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-// Package androidpublisher provides access to the Google Play Android Developer API.
+// Package androidpublisher provides access to the Google Play Developer API.
 //
 // See https://developers.google.com/android-publisher
 //
@@ -43,7 +43,7 @@ const basePath = "https://www.googleapis.com/androidpublisher/v2/applications/"
 
 // OAuth2 scopes used by this API.
 const (
-	// View and manage your Google Play Android Developer account
+	// View and manage your Google Play Developer account
 	AndroidpublisherScope = "https://www.googleapis.com/auth/androidpublisher"
 )
 
@@ -53,20 +53,31 @@ func New(client *http.Client) (*Service, error) {
 	}
 	s := &Service{client: client, BasePath: basePath}
 	s.Edits = NewEditsService(s)
+	s.Entitlements = NewEntitlementsService(s)
 	s.Inappproducts = NewInappproductsService(s)
 	s.Purchases = NewPurchasesService(s)
 	return s, nil
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Edits *EditsService
+
+	Entitlements *EntitlementsService
 
 	Inappproducts *InappproductsService
 
 	Purchases *PurchasesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewEditsService(s *Service) *EditsService {
@@ -171,6 +182,15 @@ func NewEditsTracksService(s *Service) *EditsTracksService {
 }
 
 type EditsTracksService struct {
+	s *Service
+}
+
+func NewEntitlementsService(s *Service) *EntitlementsService {
+	rs := &EntitlementsService{s: s}
+	return rs
+}
+
+type EntitlementsService struct {
 	s *Service
 }
 
@@ -290,6 +310,32 @@ type AppEdit struct {
 
 	// Id: The ID of the edit that can be used in subsequent API calls.
 	Id string `json:"id,omitempty"`
+}
+
+type Entitlement struct {
+	// Kind: This kind represents an entitlement object in the
+	// androidpublisher service.
+	Kind string `json:"kind,omitempty"`
+
+	// ProductId: The SKU of the product.
+	ProductId string `json:"productId,omitempty"`
+
+	// ProductType: The type of the inapp product. Possible values are:
+	// - In-app item: "inapp"
+	// - Subscription: "subs"
+	ProductType string `json:"productType,omitempty"`
+
+	// Token: The token which can be verified using the subscriptions or
+	// products API.
+	Token string `json:"token,omitempty"`
+}
+
+type EntitlementsListResponse struct {
+	PageInfo *PageInfo `json:"pageInfo,omitempty"`
+
+	Resources []*Entitlement `json:"resources,omitempty"`
+
+	TokenPagination *TokenPagination `json:"tokenPagination,omitempty"`
 }
 
 type ExpansionFile struct {
@@ -700,7 +746,7 @@ func (c *EditsCommitCall) Do() (*AppEdit, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -788,7 +834,7 @@ func (c *EditsDeleteCall) Do() error {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -869,7 +915,7 @@ func (c *EditsGetCall) Do() (*AppEdit, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -961,7 +1007,7 @@ func (c *EditsInsertCall) Do() (*AppEdit, error) {
 		"packageName": c.packageNameid,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1044,7 +1090,7 @@ func (c *EditsValidateCall) Do() (*AppEdit, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1137,7 +1183,7 @@ func (c *EditsApklistingsDeleteCall) Do() error {
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 		"language":       c.language,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1235,7 +1281,7 @@ func (c *EditsApklistingsDeleteallCall) Do() error {
 		"editId":         c.editId,
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1329,7 +1375,7 @@ func (c *EditsApklistingsGetCall) Do() (*ApkListing, error) {
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 		"language":       c.language,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1434,7 +1480,7 @@ func (c *EditsApklistingsListCall) Do() (*ApkListingsListResponse, error) {
 		"editId":         c.editId,
 		"apkVersionCode": strconv.FormatInt(c.apkVersionCode, 10),
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1544,7 +1590,7 @@ func (c *EditsApklistingsPatchCall) Do() (*ApkListing, error) {
 		"language":       c.language,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1663,7 +1709,7 @@ func (c *EditsApklistingsUpdateCall) Do() (*ApkListing, error) {
 		"language":       c.language,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1740,9 +1786,9 @@ type EditsApksAddexternallyhostedCall struct {
 
 // Addexternallyhosted: Creates a new APK without uploading the APK
 // itself to Google Play, instead hosting the APK at a specified URL.
-// This function is only available to enterprises using Android for
-// Work, for applications distributed within the enterprise Private
-// Channel.
+// This function is only available to enterprises using Google Play for
+// Work whose application is configured to restrict distribution to the
+// enterprise domain.
 func (r *EditsApksService) Addexternallyhosted(packageNameid string, editId string, apksaddexternallyhostedrequest *ApksAddExternallyHostedRequest) *EditsApksAddexternallyhostedCall {
 	c := &EditsApksAddexternallyhostedCall{s: r.s, opt_: make(map[string]interface{})}
 	c.packageNameid = packageNameid
@@ -1779,7 +1825,7 @@ func (c *EditsApksAddexternallyhostedCall) Do() (*ApksAddExternallyHostedRespons
 		"editId":      c.editId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1794,7 +1840,7 @@ func (c *EditsApksAddexternallyhostedCall) Do() (*ApksAddExternallyHostedRespons
 	}
 	return ret, nil
 	// {
-	//   "description": "Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to enterprises using Android for Work, for applications distributed within the enterprise Private Channel.",
+	//   "description": "Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to enterprises using Google Play for Work whose application is configured to restrict distribution to the enterprise domain.",
 	//   "httpMethod": "POST",
 	//   "id": "androidpublisher.edits.apks.addexternallyhosted",
 	//   "parameterOrder": [
@@ -1868,7 +1914,7 @@ func (c *EditsApksListCall) Do() (*ApksListResponse, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2012,13 +2058,10 @@ func (c *EditsApksUploadCall) Do() (*Apk, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2031,6 +2074,7 @@ func (c *EditsApksUploadCall) Do() (*Apk, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2138,7 +2182,7 @@ func (c *EditsDetailsGetCall) Do() (*AppDetails, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2233,7 +2277,7 @@ func (c *EditsDetailsPatchCall) Do() (*AppDetails, error) {
 		"editId":      c.editId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2330,7 +2374,7 @@ func (c *EditsDetailsUpdateCall) Do() (*AppDetails, error) {
 		"editId":      c.editId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2425,7 +2469,7 @@ func (c *EditsExpansionfilesGetCall) Do() (*ExpansionFile, error) {
 		"apkVersionCode":    strconv.FormatInt(c.apkVersionCode, 10),
 		"expansionFileType": c.expansionFileType,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2549,7 +2593,7 @@ func (c *EditsExpansionfilesPatchCall) Do() (*ExpansionFile, error) {
 		"expansionFileType": c.expansionFileType,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2676,7 +2720,7 @@ func (c *EditsExpansionfilesUpdateCall) Do() (*ExpansionFile, error) {
 		"expansionFileType": c.expansionFileType,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2853,13 +2897,10 @@ func (c *EditsExpansionfilesUploadCall) Do() (*ExpansionFilesUploadResponse, err
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2872,6 +2913,7 @@ func (c *EditsExpansionfilesUploadCall) Do() (*ExpansionFilesUploadResponse, err
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -3009,7 +3051,7 @@ func (c *EditsImagesDeleteCall) Do() error {
 		"imageType":   c.imageType,
 		"imageId":     c.imageId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3135,7 +3177,7 @@ func (c *EditsImagesDeleteallCall) Do() (*ImagesDeleteAllResponse, error) {
 		"language":    c.language,
 		"imageType":   c.imageType,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3260,7 +3302,7 @@ func (c *EditsImagesListCall) Do() (*ImagesListResponse, error) {
 		"language":    c.language,
 		"imageType":   c.imageType,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3445,13 +3487,10 @@ func (c *EditsImagesUploadCall) Do() (*ImagesUploadResponse, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3464,6 +3503,7 @@ func (c *EditsImagesUploadCall) Do() (*ImagesUploadResponse, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -3606,7 +3646,7 @@ func (c *EditsListingsDeleteCall) Do() error {
 		"editId":      c.editId,
 		"language":    c.language,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3692,7 +3732,7 @@ func (c *EditsListingsDeleteallCall) Do() error {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -3774,7 +3814,7 @@ func (c *EditsListingsGetCall) Do() (*Listing, error) {
 		"editId":      c.editId,
 		"language":    c.language,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3868,7 +3908,7 @@ func (c *EditsListingsListCall) Do() (*ListingsListResponse, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3966,7 +4006,7 @@ func (c *EditsListingsPatchCall) Do() (*Listing, error) {
 		"language":    c.language,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4073,7 +4113,7 @@ func (c *EditsListingsUpdateCall) Do() (*Listing, error) {
 		"language":    c.language,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4172,7 +4212,7 @@ func (c *EditsTestersGetCall) Do() (*Testers, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4286,7 +4326,7 @@ func (c *EditsTestersPatchCall) Do() (*Testers, error) {
 		"track":       c.track,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4403,7 +4443,7 @@ func (c *EditsTestersUpdateCall) Do() (*Testers, error) {
 		"track":       c.track,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4513,7 +4553,7 @@ func (c *EditsTracksGetCall) Do() (*Track, error) {
 		"editId":      c.editId,
 		"track":       c.track,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4618,7 +4658,7 @@ func (c *EditsTracksListCall) Do() (*TracksListResponse, error) {
 		"packageName": c.packageNameid,
 		"editId":      c.editId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4718,7 +4758,7 @@ func (c *EditsTracksPatchCall) Do() (*Track, error) {
 		"track":       c.track,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4839,7 +4879,7 @@ func (c *EditsTracksUpdateCall) Do() (*Track, error) {
 		"track":       c.track,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -4908,6 +4948,137 @@ func (c *EditsTracksUpdateCall) Do() (*Track, error) {
 
 }
 
+// method id "androidpublisher.entitlements.list":
+
+type EntitlementsListCall struct {
+	s           *Service
+	packageName string
+	opt_        map[string]interface{}
+}
+
+// List: Lists the user's current inapp item or subscription
+// entitlements
+func (r *EntitlementsService) List(packageName string) *EntitlementsListCall {
+	c := &EntitlementsListCall{s: r.s, opt_: make(map[string]interface{})}
+	c.packageName = packageName
+	return c
+}
+
+// MaxResults sets the optional parameter "maxResults":
+func (c *EntitlementsListCall) MaxResults(maxResults int64) *EntitlementsListCall {
+	c.opt_["maxResults"] = maxResults
+	return c
+}
+
+// ProductId sets the optional parameter "productId": The product id of
+// the inapp product (for example, 'sku1'). This can be used to restrict
+// the result set.
+func (c *EntitlementsListCall) ProductId(productId string) *EntitlementsListCall {
+	c.opt_["productId"] = productId
+	return c
+}
+
+// StartIndex sets the optional parameter "startIndex":
+func (c *EntitlementsListCall) StartIndex(startIndex int64) *EntitlementsListCall {
+	c.opt_["startIndex"] = startIndex
+	return c
+}
+
+// Token sets the optional parameter "token":
+func (c *EntitlementsListCall) Token(token string) *EntitlementsListCall {
+	c.opt_["token"] = token
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *EntitlementsListCall) Fields(s ...googleapi.Field) *EntitlementsListCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *EntitlementsListCall) Do() (*EntitlementsListResponse, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["maxResults"]; ok {
+		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["productId"]; ok {
+		params.Set("productId", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["startIndex"]; ok {
+		params.Set("startIndex", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["token"]; ok {
+		params.Set("token", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{packageName}/entitlements")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"packageName": c.packageName,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *EntitlementsListResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Lists the user's current inapp item or subscription entitlements",
+	//   "httpMethod": "GET",
+	//   "id": "androidpublisher.entitlements.list",
+	//   "parameterOrder": [
+	//     "packageName"
+	//   ],
+	//   "parameters": {
+	//     "maxResults": {
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "type": "integer"
+	//     },
+	//     "packageName": {
+	//       "description": "The package name of the application the inapp product was sold in (for example, 'com.some.thing').",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "productId": {
+	//       "description": "The product id of the inapp product (for example, 'sku1'). This can be used to restrict the result set.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "startIndex": {
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "type": "integer"
+	//     },
+	//     "token": {
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{packageName}/entitlements",
+	//   "response": {
+	//     "$ref": "EntitlementsListResponse"
+	//   }
+	// }
+
+}
+
 // method id "androidpublisher.inappproducts.batch":
 
 type InappproductsBatchCall struct {
@@ -4948,7 +5119,7 @@ func (c *InappproductsBatchCall) Do() (*InappproductsBatchResponse, error) {
 	req, _ := http.NewRequest("POST", urls, body)
 	googleapi.SetOpaque(req.URL)
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5018,7 +5189,7 @@ func (c *InappproductsDeleteCall) Do() error {
 		"packageName": c.packageNameid,
 		"sku":         c.skuid,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5097,7 +5268,7 @@ func (c *InappproductsGetCall) Do() (*InAppProduct, error) {
 		"packageName": c.packageName,
 		"sku":         c.skuid,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5200,7 +5371,7 @@ func (c *InappproductsInsertCall) Do() (*InAppProduct, error) {
 		"packageName": c.packageNameid,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5312,7 +5483,7 @@ func (c *InappproductsListCall) Do() (*InappproductsListResponse, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"packageName": c.packageNameid,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5427,7 +5598,7 @@ func (c *InappproductsPatchCall) Do() (*InAppProduct, error) {
 		"sku":         c.skuid,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5542,7 +5713,7 @@ func (c *InappproductsUpdateCall) Do() (*InAppProduct, error) {
 		"sku":         c.skuid,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5639,7 +5810,7 @@ func (c *PurchasesProductsGetCall) Do() (*ProductPurchase, error) {
 		"productId":   c.productId,
 		"token":       c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5736,7 +5907,7 @@ func (c *PurchasesSubscriptionsCancelCall) Do() error {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -5834,7 +6005,7 @@ func (c *PurchasesSubscriptionsDeferCall) Do() (*SubscriptionPurchasesDeferRespo
 		"token":          c.token,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -5934,7 +6105,7 @@ func (c *PurchasesSubscriptionsGetCall) Do() (*SubscriptionPurchase, error) {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -6032,7 +6203,7 @@ func (c *PurchasesSubscriptionsRefundCall) Do() error {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -6123,7 +6294,7 @@ func (c *PurchasesSubscriptionsRevokeCall) Do() error {
 		"subscriptionId": c.subscriptionId,
 		"token":          c.token,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err

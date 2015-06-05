@@ -1,6 +1,6 @@
 // Package bigquery provides access to the BigQuery API.
 //
-// See https://developers.google.com/bigquery/docs/overview
+// See https://cloud.google.com/bigquery/
 //
 // Usage example:
 //
@@ -53,13 +53,13 @@ const (
 	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
 
 	// Manage your data and permissions in Google Cloud Storage
-	DevstorageFull_controlScope = "https://www.googleapis.com/auth/devstorage.full_control"
+	DevstorageFullControlScope = "https://www.googleapis.com/auth/devstorage.full_control"
 
 	// View your data in Google Cloud Storage
-	DevstorageRead_onlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
+	DevstorageReadOnlyScope = "https://www.googleapis.com/auth/devstorage.read_only"
 
 	// Manage your data in Google Cloud Storage
-	DevstorageRead_writeScope = "https://www.googleapis.com/auth/devstorage.read_write"
+	DevstorageReadWriteScope = "https://www.googleapis.com/auth/devstorage.read_write"
 )
 
 func New(client *http.Client) (*Service, error) {
@@ -76,8 +76,9 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client   *http.Client
-	BasePath string // API endpoint base URL
+	client    *http.Client
+	BasePath  string // API endpoint base URL
+	UserAgent string // optional additional User-Agent fragment
 
 	Datasets *DatasetsService
 
@@ -88,6 +89,13 @@ type Service struct {
 	Tabledata *TabledataService
 
 	Tables *TablesService
+}
+
+func (s *Service) userAgent() string {
+	if s.UserAgent == "" {
+		return googleapi.UserAgent
+	}
+	return googleapi.UserAgent + " " + s.UserAgent
 }
 
 func NewDatasetsService(s *Service) *DatasetsService {
@@ -135,6 +143,49 @@ type TablesService struct {
 	s *Service
 }
 
+type CsvOptions struct {
+	// AllowJaggedRows: [Optional] Indicates if BigQuery should accept rows
+	// that are missing trailing optional columns. If true, BigQuery treats
+	// missing trailing columns as null values. If false, records with
+	// missing trailing columns are treated as bad records, and if there are
+	// too many bad records, an invalid error is returned in the job result.
+	// The default value is false.
+	AllowJaggedRows bool `json:"allowJaggedRows,omitempty"`
+
+	// AllowQuotedNewlines: [Optional] Indicates if BigQuery should allow
+	// quoted data sections that contain newline characters in a CSV file.
+	// The default value is false.
+	AllowQuotedNewlines bool `json:"allowQuotedNewlines,omitempty"`
+
+	// Encoding: [Optional] The character encoding of the data. The
+	// supported values are UTF-8 or ISO-8859-1. The default value is UTF-8.
+	// BigQuery decodes the data after the raw, binary data has been split
+	// using the values of the quote and fieldDelimiter properties.
+	Encoding string `json:"encoding,omitempty"`
+
+	// FieldDelimiter: [Optional] The separator for fields in a CSV file.
+	// BigQuery converts the string to ISO-8859-1 encoding, and then uses
+	// the first byte of the encoded string to split the data in its raw,
+	// binary state. BigQuery also supports the escape sequence "\t" to
+	// specify a tab separator. The default value is a comma (',').
+	FieldDelimiter string `json:"fieldDelimiter,omitempty"`
+
+	// Quote: [Optional] The value that is used to quote data sections in a
+	// CSV file. BigQuery converts the string to ISO-8859-1 encoding, and
+	// then uses the first byte of the encoded string to split the data in
+	// its raw, binary state. The default value is a double-quote ('"'). If
+	// your data does not contain quoted sections, set the property value to
+	// an empty string. If your data contains quoted newline characters, you
+	// must also set the allowQuotedNewlines property to true.
+	Quote string `json:"quote,omitempty"`
+
+	// SkipLeadingRows: [Optional] The number of rows at the top of a CSV
+	// file that BigQuery will skip when reading the data. The default value
+	// is 0. This property is useful if you have header rows in the file
+	// that should be skipped.
+	SkipLeadingRows int64 `json:"skipLeadingRows,omitempty"`
+}
+
 type Dataset struct {
 	// Access: [Optional] An array of objects that define dataset access for
 	// one or more entities. You can set this property when inserting or
@@ -153,6 +204,19 @@ type Dataset struct {
 
 	// DatasetReference: [Required] A reference that identifies the dataset.
 	DatasetReference *DatasetReference `json:"datasetReference,omitempty"`
+
+	// DefaultTableExpirationMs: [Experimental] The default lifetime of all
+	// tables in the dataset, in milliseconds. The minimum value is 3600000
+	// milliseconds (one hour). Once this property is set, all newly-created
+	// tables in the dataset will have an expirationTime property set to the
+	// creation time plus the value in this property, and changing the value
+	// will only affect new tables, not existing ones. When the
+	// expirationTime for a given table is reached, that table will be
+	// deleted automatically. If a table's expirationTime is modified or
+	// removed before the table expires, or if you provide an explicit
+	// expirationTime when creating a table, that value takes precedence
+	// over the default expiration time indicated by this property.
+	DefaultTableExpirationMs int64 `json:"defaultTableExpirationMs,omitempty,string"`
 
 	// Description: [Optional] A user-friendly description of the dataset.
 	Description string `json:"description,omitempty"`
@@ -175,6 +239,10 @@ type Dataset struct {
 	// LastModifiedTime: [Output-only] The date when this dataset or any of
 	// its tables was last modified, in milliseconds since the epoch.
 	LastModifiedTime int64 `json:"lastModifiedTime,omitempty,string"`
+
+	// Location: [Experimental] The location where the data resides. If not
+	// present, the data will be stored in the US.
+	Location string `json:"location,omitempty"`
 
 	// SelfLink: [Output-only] A URL that can be used to access the resource
 	// again. You can use this URL in Get or Update requests to the
@@ -277,6 +345,45 @@ type ErrorProto struct {
 	Reason string `json:"reason,omitempty"`
 }
 
+type ExternalDataConfiguration struct {
+	// Compression: [Optional] The compression type of the data source.
+	// Possible values include GZIP and NONE. The default value is NONE.
+	Compression string `json:"compression,omitempty"`
+
+	// CsvOptions: Additional properties to set if sourceFormat is set to
+	// CSV.
+	CsvOptions *CsvOptions `json:"csvOptions,omitempty"`
+
+	// IgnoreUnknownValues: [Optional] Indicates if BigQuery should allow
+	// extra values that are not represented in the table schema. If true,
+	// the extra values are ignored. If false, records with extra columns
+	// are treated as bad records, and if there are too many bad records, an
+	// invalid error is returned in the job result. The default value is
+	// false. The sourceFormat property determines what BigQuery treats as
+	// an extra value: CSV: Trailing columns
+	IgnoreUnknownValues bool `json:"ignoreUnknownValues,omitempty"`
+
+	// MaxBadRecords: [Optional] The maximum number of bad records that
+	// BigQuery can ignore when reading data. If the number of bad records
+	// exceeds this value, an invalid error is returned in the job result.
+	// The default value is 0, which requires that all records are valid.
+	MaxBadRecords int64 `json:"maxBadRecords,omitempty"`
+
+	// Schema: [Required] The schema for the data.
+	Schema *TableSchema `json:"schema,omitempty"`
+
+	// SourceFormat: [Optional] The data format. External data sources must
+	// be in CSV format. The default value is CSV.
+	SourceFormat string `json:"sourceFormat,omitempty"`
+
+	// SourceUris: [Required] The fully-qualified URIs that point to your
+	// data in Google Cloud Storage. Each URI can contain one '*' wildcard
+	// character and it must come after the 'bucket' name. CSV limits
+	// related to load jobs apply to external data sources, plus an
+	// additional limit of 10 GB maximum size across all URIs.
+	SourceUris []string `json:"sourceUris,omitempty"`
+}
+
 type GetQueryResultsResponse struct {
 	// CacheHit: Whether the query result was fetched from the query cache.
 	CacheHit bool `json:"cacheHit,omitempty"`
@@ -352,8 +459,8 @@ type Job struct {
 	// polling an asynchronous job to see if the job is complete.
 	Status *JobStatus `json:"status,omitempty"`
 
-	// User_email: [Output-only] Email address of the user who ran the job.
-	User_email string `json:"user_email,omitempty"`
+	// UserEmail: [Output-only] Email address of the user who ran the job.
+	UserEmail string `json:"user_email,omitempty"`
 }
 
 type JobConfiguration struct {
@@ -443,8 +550,10 @@ type JobConfigurationLink struct {
 
 type JobConfigurationLoad struct {
 	// AllowJaggedRows: [Optional] Accept rows that are missing trailing
-	// optional columns. The missing values are treated as nulls. Default is
-	// false which treats short rows as errors. Only applicable to CSV,
+	// optional columns. The missing values are treated as nulls. If false,
+	// records with missing trailing columns are treated as bad records, and
+	// if there are too many bad records, an invalid error is returned in
+	// the job result. The default value is false. Only applicable to CSV,
 	// ignored for other formats.
 	AllowJaggedRows bool `json:"allowJaggedRows,omitempty"`
 
@@ -479,19 +588,31 @@ type JobConfigurationLoad struct {
 	// specify a tab separator. The default value is a comma (',').
 	FieldDelimiter string `json:"fieldDelimiter,omitempty"`
 
-	// IgnoreUnknownValues: [Optional] Accept rows that contain values that
-	// do not match the schema. The unknown values are ignored. Default is
-	// false which treats unknown values as errors. For CSV this ignores
-	// extra values at the end of a line. For JSON this ignores named values
-	// that do not match any column name.
+	// IgnoreUnknownValues: [Optional] Indicates if BigQuery should allow
+	// extra values that are not represented in the table schema. If true,
+	// the extra values are ignored. If false, records with extra columns
+	// are treated as bad records, and if there are too many bad records, an
+	// invalid error is returned in the job result. The default value is
+	// false. The sourceFormat property determines what BigQuery treats as
+	// an extra value: CSV: Trailing columns JSON: Named values that don't
+	// match any column names
 	IgnoreUnknownValues bool `json:"ignoreUnknownValues,omitempty"`
 
 	// MaxBadRecords: [Optional] The maximum number of bad records that
 	// BigQuery can ignore when running the job. If the number of bad
-	// records exceeds this value, an 'invalid' error is returned in the job
-	// result and the job fails. The default value is 0, which requires that
-	// all records are valid.
+	// records exceeds this value, an invalid error is returned in the job
+	// result. The default value is 0, which requires that all records are
+	// valid.
 	MaxBadRecords int64 `json:"maxBadRecords,omitempty"`
+
+	// ProjectionFields: [Experimental] If sourceFormat is set to
+	// "DATASTORE_BACKUP", indicates which entity properties to load into
+	// BigQuery from a Cloud Datastore backup. Property names are case
+	// sensitive and must be top-level properties. If no properties are
+	// specified, BigQuery loads all properties. If any named property isn't
+	// found in the Cloud Datastore backup, an invalid error is returned in
+	// the job result.
+	ProjectionFields []string `json:"projectionFields,omitempty"`
 
 	// Quote: [Optional] The value that is used to quote data sections in a
 	// CSV file. BigQuery converts the string to ISO-8859-1 encoding, and
@@ -529,8 +650,8 @@ type JobConfigurationLoad struct {
 	SourceFormat string `json:"sourceFormat,omitempty"`
 
 	// SourceUris: [Required] The fully-qualified URIs that point to your
-	// data in Google Cloud Storage. Wildcard names are only supported when
-	// they appear at the end of the URI.
+	// data in Google Cloud Storage. Each URI can contain one '*' wildcard
+	// character and it must come after the 'bucket' name.
 	SourceUris []string `json:"sourceUris,omitempty"`
 
 	// WriteDisposition: [Optional] Specifies the action that occurs if the
@@ -570,9 +691,9 @@ type JobConfigurationQuery struct {
 	// to store the results.
 	DestinationTable *TableReference `json:"destinationTable,omitempty"`
 
-	// FlattenResults: [Experimental] Flattens all nested and repeated
-	// fields in the query results. The default value is true.
-	// allowLargeResults must be true if this is set to false.
+	// FlattenResults: [Optional] Flattens all nested and repeated fields in
+	// the query results. The default value is true. allowLargeResults must
+	// be true if this is set to false.
 	FlattenResults bool `json:"flattenResults,omitempty"`
 
 	// PreserveNulls: [Deprecated] This property is deprecated.
@@ -585,6 +706,12 @@ type JobConfigurationQuery struct {
 
 	// Query: [Required] BigQuery SQL query to execute.
 	Query string `json:"query,omitempty"`
+
+	// TableDefinitions: [Experimental] If querying an external data source
+	// outside of BigQuery, describes the data format, location and other
+	// properties of the data source. By defining these properties, the data
+	// source can then be queried as if it were a standard BigQuery table.
+	TableDefinitions map[string]ExternalDataConfiguration `json:"tableDefinitions,omitempty"`
 
 	// UseQueryCache: [Optional] Whether to look for the result in the query
 	// cache. The query cache is a best-effort cache that will be flushed
@@ -684,9 +811,9 @@ type JobListJobs struct {
 	// Status: [Full-projection-only] Describes the state of the job.
 	Status *JobStatus `json:"status,omitempty"`
 
-	// User_email: [Full-projection-only] Email address of the user who ran
+	// UserEmail: [Full-projection-only] Email address of the user who ran
 	// the job.
-	User_email string `json:"user_email,omitempty"`
+	UserEmail string `json:"user_email,omitempty"`
 }
 
 type JobReference struct {
@@ -939,7 +1066,7 @@ type Table struct {
 
 	// LastModifiedTime: [Output-only] The time when this table was last
 	// modified, in milliseconds since the epoch.
-	LastModifiedTime int64 `json:"lastModifiedTime,omitempty,string"`
+	LastModifiedTime uint64 `json:"lastModifiedTime,omitempty,string"`
 
 	// NumBytes: [Output-only] The size of the table in bytes. This property
 	// is unavailable for tables that are actively receiving streaming
@@ -975,11 +1102,21 @@ type TableCell struct {
 }
 
 type TableDataInsertAllRequest struct {
+	// IgnoreUnknownValues: [Optional] Accept rows that contain values that
+	// do not match the schema. The unknown values are ignored. Default is
+	// false, which treats unknown values as errors.
+	IgnoreUnknownValues bool `json:"ignoreUnknownValues,omitempty"`
+
 	// Kind: The resource type of the response.
 	Kind string `json:"kind,omitempty"`
 
 	// Rows: The rows to insert.
 	Rows []*TableDataInsertAllRequestRows `json:"rows,omitempty"`
+
+	// SkipInvalidRows: [Optional] Insert all valid rows of a request, even
+	// if invalid rows exist. The default value is false, which causes the
+	// entire request to fail if any invalid rows exist.
+	SkipInvalidRows bool `json:"skipInvalidRows,omitempty"`
 }
 
 type TableDataInsertAllRequestRows struct {
@@ -1169,7 +1306,7 @@ func (c *DatasetsDeleteCall) Do() error {
 		"projectId": c.projectId,
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -1254,7 +1391,7 @@ func (c *DatasetsGetCall) Do() (*Dataset, error) {
 		"projectId": c.projectId,
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1346,7 +1483,7 @@ func (c *DatasetsInsertCall) Do() (*Dataset, error) {
 		"projectId": c.projectId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1398,9 +1535,8 @@ type DatasetsListCall struct {
 	opt_      map[string]interface{}
 }
 
-// List: Lists all the datasets in the specified project to which the
-// caller has read access; however, a project owner can list (but not
-// necessarily get) all datasets in his project.
+// List: Lists all datasets in the specified project to which you have
+// been granted the READER dataset role.
 func (r *DatasetsService) List(projectId string) *DatasetsListCall {
 	c := &DatasetsListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -1458,7 +1594,7 @@ func (c *DatasetsListCall) Do() (*DatasetList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1473,7 +1609,7 @@ func (c *DatasetsListCall) Do() (*DatasetList, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Lists all the datasets in the specified project to which the caller has read access; however, a project owner can list (but not necessarily get) all datasets in his project.",
+	//   "description": "Lists all datasets in the specified project to which you have been granted the READER dataset role.",
 	//   "httpMethod": "GET",
 	//   "id": "bigquery.datasets.list",
 	//   "parameterOrder": [
@@ -1565,7 +1701,7 @@ func (c *DatasetsPatchCall) Do() (*Dataset, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1665,7 +1801,7 @@ func (c *DatasetsUpdateCall) Do() (*Dataset, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1725,7 +1861,9 @@ type JobsGetCall struct {
 	opt_      map[string]interface{}
 }
 
-// Get: Retrieves the specified job by ID.
+// Get: Returns information about a specific job. Job information is
+// available for a six month period after creation. Requires that you're
+// the person who ran the job, or have the Is Owner project role.
 func (r *JobsService) Get(projectId string, jobId string) *JobsGetCall {
 	c := &JobsGetCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -1755,7 +1893,7 @@ func (c *JobsGetCall) Do() (*Job, error) {
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1770,7 +1908,7 @@ func (c *JobsGetCall) Do() (*Job, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Retrieves the specified job by ID.",
+	//   "description": "Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.",
 	//   "httpMethod": "GET",
 	//   "id": "bigquery.jobs.get",
 	//   "parameterOrder": [
@@ -1884,7 +2022,7 @@ func (c *JobsGetQueryResultsCall) Do() (*GetQueryResultsResponse, error) {
 		"projectId": c.projectId,
 		"jobId":     c.jobId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -1969,7 +2107,8 @@ type JobsInsertCall struct {
 	protocol_  string
 }
 
-// Insert: Starts a new asynchronous job.
+// Insert: Starts a new asynchronous job. Requires the Can View project
+// role.
 func (r *JobsService) Insert(projectId string, job *Job) *JobsInsertCall {
 	c := &JobsInsertCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -2055,13 +2194,10 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 		req.Body = nil
-		if params.Get("name") == "" {
-			return nil, fmt.Errorf("resumable uploads must set the Name parameter.")
-		}
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2074,6 +2210,7 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 		loc := res.Header.Get("Location")
 		rx := &googleapi.ResumableUpload{
 			Client:        c.s.client,
+			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
 			MediaType:     c.mediaType_,
@@ -2092,7 +2229,7 @@ func (c *JobsInsertCall) Do() (*Job, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Starts a new asynchronous job.",
+	//   "description": "Starts a new asynchronous job. Requires the Can View project role.",
 	//   "httpMethod": "POST",
 	//   "id": "bigquery.jobs.insert",
 	//   "mediaUpload": {
@@ -2148,10 +2285,11 @@ type JobsListCall struct {
 	opt_      map[string]interface{}
 }
 
-// List: Lists all the Jobs in the specified project that were started
-// by the user. The job list returns in reverse chronological order of
-// when the jobs were created, starting with the most recent job
-// created.
+// List: Lists all jobs that you started in the specified project. The
+// job list returns in reverse chronological order of when the jobs were
+// created, starting with the most recent job created. Requires the Can
+// View project role, or the Is Owner project role if you set the
+// allUsers property.
 func (r *JobsService) List(projectId string) *JobsListCall {
 	c := &JobsListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -2181,6 +2319,10 @@ func (c *JobsListCall) PageToken(pageToken string) *JobsListCall {
 
 // Projection sets the optional parameter "projection": Restrict
 // information returned to a set of selected fields
+//
+// Possible values:
+//   "full" - Includes all job data
+//   "minimal" - Does not include the job configuration
 func (c *JobsListCall) Projection(projection string) *JobsListCall {
 	c.opt_["projection"] = projection
 	return c
@@ -2188,6 +2330,11 @@ func (c *JobsListCall) Projection(projection string) *JobsListCall {
 
 // StateFilter sets the optional parameter "stateFilter": Filter for job
 // state
+//
+// Possible values:
+//   "done" - Finished jobs
+//   "pending" - Pending jobs
+//   "running" - Running jobs
 func (c *JobsListCall) StateFilter(stateFilter string) *JobsListCall {
 	c.opt_["stateFilter"] = stateFilter
 	return c
@@ -2229,7 +2376,7 @@ func (c *JobsListCall) Do() (*JobList, error) {
 	googleapi.Expand(req.URL, map[string]string{
 		"projectId": c.projectId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2244,7 +2391,7 @@ func (c *JobsListCall) Do() (*JobList, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Lists all the Jobs in the specified project that were started by the user. The job list returns in reverse chronological order of when the jobs were created, starting with the most recent job created.",
+	//   "description": "Lists all jobs that you started in the specified project. The job list returns in reverse chronological order of when the jobs were created, starting with the most recent job created. Requires the Can View project role, or the Is Owner project role if you set the allUsers property.",
 	//   "httpMethod": "GET",
 	//   "id": "bigquery.jobs.list",
 	//   "parameterOrder": [
@@ -2360,7 +2507,7 @@ func (c *JobsQueryCall) Do() (*QueryResponse, error) {
 		"projectId": c.projectId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2411,7 +2558,8 @@ type ProjectsListCall struct {
 	opt_ map[string]interface{}
 }
 
-// List: Lists the projects to which you have at least read access.
+// List: Lists all projects to which you have been granted any project
+// role.
 func (r *ProjectsService) List() *ProjectsListCall {
 	c := &ProjectsListCall{s: r.s, opt_: make(map[string]interface{})}
 	return c
@@ -2456,7 +2604,7 @@ func (c *ProjectsListCall) Do() (*ProjectList, error) {
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.SetOpaque(req.URL)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2471,7 +2619,7 @@ func (c *ProjectsListCall) Do() (*ProjectList, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Lists the projects to which you have at least read access.",
+	//   "description": "Lists all projects to which you have been granted any project role.",
 	//   "httpMethod": "GET",
 	//   "id": "bigquery.projects.list",
 	//   "parameters": {
@@ -2511,7 +2659,7 @@ type TabledataInsertAllCall struct {
 }
 
 // InsertAll: Streams data into BigQuery one record at a time without
-// needing to run a load job.
+// needing to run a load job. Requires the WRITER dataset role.
 func (r *TabledataService) InsertAll(projectId string, datasetId string, tableId string, tabledatainsertallrequest *TableDataInsertAllRequest) *TabledataInsertAllCall {
 	c := &TabledataInsertAllCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -2550,7 +2698,7 @@ func (c *TabledataInsertAllCall) Do() (*TableDataInsertAllResponse, error) {
 		"tableId":   c.tableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2565,7 +2713,7 @@ func (c *TabledataInsertAllCall) Do() (*TableDataInsertAllResponse, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Streams data into BigQuery one record at a time without needing to run a load job.",
+	//   "description": "Streams data into BigQuery one record at a time without needing to run a load job. Requires the WRITER dataset role.",
 	//   "httpMethod": "POST",
 	//   "id": "bigquery.tabledata.insertAll",
 	//   "parameterOrder": [
@@ -2619,7 +2767,8 @@ type TabledataListCall struct {
 	opt_      map[string]interface{}
 }
 
-// List: Retrieves table data from a specified set of rows.
+// List: Retrieves table data from a specified set of rows. Requires the
+// READER dataset role.
 func (r *TabledataService) List(projectId string, datasetId string, tableId string) *TabledataListCall {
 	c := &TabledataListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -2681,7 +2830,7 @@ func (c *TabledataListCall) Do() (*TableDataList, error) {
 		"datasetId": c.datasetId,
 		"tableId":   c.tableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2696,7 +2845,7 @@ func (c *TabledataListCall) Do() (*TableDataList, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Retrieves table data from a specified set of rows.",
+	//   "description": "Retrieves table data from a specified set of rows. Requires the READER dataset role.",
 	//   "httpMethod": "GET",
 	//   "id": "bigquery.tabledata.list",
 	//   "parameterOrder": [
@@ -2796,7 +2945,7 @@ func (c *TablesDeleteCall) Do() error {
 		"datasetId": c.datasetId,
 		"tableId":   c.tableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return err
@@ -2888,7 +3037,7 @@ func (c *TablesGetCall) Do() (*Table, error) {
 		"datasetId": c.datasetId,
 		"tableId":   c.tableId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -2990,7 +3139,7 @@ func (c *TablesInsertCall) Do() (*Table, error) {
 		"datasetId": c.datasetId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3050,7 +3199,8 @@ type TablesListCall struct {
 	opt_      map[string]interface{}
 }
 
-// List: Lists all tables in the specified dataset.
+// List: Lists all tables in the specified dataset. Requires the READER
+// dataset role.
 func (r *TablesService) List(projectId string, datasetId string) *TablesListCall {
 	c := &TablesListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.projectId = projectId
@@ -3100,7 +3250,7 @@ func (c *TablesListCall) Do() (*TableList, error) {
 		"projectId": c.projectId,
 		"datasetId": c.datasetId,
 	})
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3115,7 +3265,7 @@ func (c *TablesListCall) Do() (*TableList, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Lists all tables in the specified dataset.",
+	//   "description": "Lists all tables in the specified dataset. Requires the READER dataset role.",
 	//   "httpMethod": "GET",
 	//   "id": "bigquery.tables.list",
 	//   "parameterOrder": [
@@ -3212,7 +3362,7 @@ func (c *TablesPatchCall) Do() (*Table, error) {
 		"tableId":   c.tableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -3322,7 +3472,7 @@ func (c *TablesUpdateCall) Do() (*Table, error) {
 		"tableId":   c.tableId,
 	})
 	req.Header.Set("Content-Type", ctype)
-	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	req.Header.Set("User-Agent", c.s.userAgent())
 	res, err := c.s.client.Do(req)
 	if err != nil {
 		return nil, err
