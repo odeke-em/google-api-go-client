@@ -1525,8 +1525,8 @@ type ContentRating struct {
 	//   "bfvcUnrated"
 	BfvcRating string `json:"bfvcRating,omitempty"`
 
-	// BmukkRating: Rating system for Austria - Bundesministeriums f�r
-	// Unterricht, Kunst und Kultur!
+	// BmukkRating: Rating system for Austria - Bundesministerium f�r
+	// Unterricht, Kunst und Kultur
 	//
 	// Possible values:
 	//   "bmukk10"
@@ -1664,7 +1664,9 @@ type ContentRating struct {
 	//   "cscf16"
 	//   "cscf18"
 	//   "cscf6"
+	//   "cscf9"
 	//   "cscfA"
+	//   "cscfAl"
 	//   "cscfUnrated"
 	CscfRating string `json:"cscfRating,omitempty"`
 
@@ -1737,6 +1739,7 @@ type ContentRating struct {
 	//   "fcbm18sg"
 	//   "fcbm18sx"
 	//   "fcbmP13"
+	//   "fcbmPg13"
 	//   "fcbmU"
 	//   "fcbmUnrated"
 	FcbmRating string `json:"fcbmRating,omitempty"`
@@ -1820,7 +1823,10 @@ type ContentRating struct {
 	//
 	// Possible values:
 	//   "ifco12"
+	//   "ifco12a"
 	//   "ifco15"
+	//   "ifco15a"
+	//   "ifco16"
 	//   "ifco18"
 	//   "ifcoG"
 	//   "ifcoPg"
@@ -1865,6 +1871,7 @@ type ContentRating struct {
 	// Possible values:
 	//   "kijkwijzer12"
 	//   "kijkwijzer16"
+	//   "kijkwijzer18"
 	//   "kijkwijzer6"
 	//   "kijkwijzer9"
 	//   "kijkwijzerAl"
@@ -2582,9 +2589,17 @@ type LiveBroadcast struct {
 	// including its title, description, start time, and end time.
 	Snippet *LiveBroadcastSnippet `json:"snippet,omitempty"`
 
+	// Statistics: The statistics object contains info about the event's
+	// current stats. These include concurrent viewers and total chat count.
+	// Statistics can change (in either direction) during the lifetime of an
+	// event. Statistics are only returned while the event is live.
+	Statistics *LiveBroadcastStatistics `json:"statistics,omitempty"`
+
 	// Status: The status object contains information about the event's
 	// status.
 	Status *LiveBroadcastStatus `json:"status,omitempty"`
+
+	TopicDetails *LiveBroadcastTopicDetails `json:"topicDetails,omitempty"`
 }
 
 type LiveBroadcastContentDetails struct {
@@ -2619,6 +2634,8 @@ type LiveBroadcastContentDetails struct {
 	// (using the enableArchive property), this setting will also apply to
 	// the archived video.
 	EnableEmbed bool `json:"enableEmbed,omitempty"`
+
+	EnableLowLatency bool `json:"enableLowLatency,omitempty"`
 
 	// MonitorStream: The monitorStream object contains information about
 	// the monitor stream, which the broadcaster can use to review the event
@@ -2700,6 +2717,8 @@ type LiveBroadcastSnippet struct {
 	// description field of the corresponding video resource.
 	Description string `json:"description,omitempty"`
 
+	IsDefaultBroadcast bool `json:"isDefaultBroadcast,omitempty"`
+
 	// PublishedAt: The date and time that the broadcast was added to
 	// YouTube's live broadcast schedule. The value is specified in ISO 8601
 	// (YYYY-MM-DDThh:mm:ss.sZ) format.
@@ -2728,11 +2747,26 @@ type LiveBroadcastSnippet struct {
 	Title string `json:"title,omitempty"`
 }
 
-type LiveBroadcastStatus struct {
-	// IsDefaultBroadcast: Whether or not this broadcast is the default
-	// broadcast
-	IsDefaultBroadcast bool `json:"isDefaultBroadcast,omitempty"`
+type LiveBroadcastStatistics struct {
+	// ConcurrentViewers: The number of viewers currently watching the
+	// broadcast. The property and its value will be present if the
+	// broadcast has current viewers and the broadcast owner has not hidden
+	// the viewcount for the video. Note that YouTube stops tracking the
+	// number of concurrent viewers for a broadcast when the broadcast ends.
+	// So, this property would not identify the number of viewers watching
+	// an archived video of a live broadcast that already ended.
+	ConcurrentViewers uint64 `json:"concurrentViewers,omitempty,string"`
 
+	// TotalChatCount: The total number of live chat messages currently on
+	// the broadcast. The property and its value will be present if the
+	// broadcast is public, has the live chat feature enabled, and has at
+	// least one message. Note that this field will not be filled after the
+	// broadcast ends. So this property would not identify the number of
+	// chat messages for an archived video of a completed live broadcast.
+	TotalChatCount uint64 `json:"totalChatCount,omitempty,string"`
+}
+
+type LiveBroadcastStatus struct {
 	// LifeCycleStatus: The broadcast's status. The status can be updated
 	// using the API's liveBroadcasts.transition method.
 	//
@@ -2780,6 +2814,34 @@ type LiveBroadcastStatus struct {
 	RecordingStatus string `json:"recordingStatus,omitempty"`
 }
 
+type LiveBroadcastTopic struct {
+	// Snippet: Information about the topic matched.
+	Snippet *LiveBroadcastTopicSnippet `json:"snippet,omitempty"`
+
+	// Type: The type of the topic.
+	//
+	// Possible values:
+	//   "videoGame"
+	Type string `json:"type,omitempty"`
+
+	// Unmatched: If this flag is set it means that we have not been able to
+	// match the topic title and type provided to a known entity.
+	Unmatched bool `json:"unmatched,omitempty"`
+}
+
+type LiveBroadcastTopicDetails struct {
+	Topics []*LiveBroadcastTopic `json:"topics,omitempty"`
+}
+
+type LiveBroadcastTopicSnippet struct {
+	// Name: The name of the topic.
+	Name string `json:"name,omitempty"`
+
+	// ReleaseDate: The date at which the topic was released. Filled for
+	// types: videoGame
+	ReleaseDate string `json:"releaseDate,omitempty"`
+}
+
 type LiveStream struct {
 	// Cdn: The cdn object defines the live stream's content delivery
 	// network (CDN) settings. These settings provide details about the
@@ -2809,6 +2871,61 @@ type LiveStream struct {
 	Status *LiveStreamStatus `json:"status,omitempty"`
 }
 
+type LiveStreamConfigurationIssue struct {
+	// Description: The long-form description of the issue and how to
+	// resolve it.
+	Description string `json:"description,omitempty"`
+
+	// Reason: The short-form reason for this issue.
+	Reason string `json:"reason,omitempty"`
+
+	// Severity: How severe this issue is to the stream.
+	//
+	// Possible values:
+	//   "error"
+	//   "info"
+	//   "warning"
+	Severity string `json:"severity,omitempty"`
+
+	// Type: The kind of error happening.
+	//
+	// Possible values:
+	//   "audioBitrate"
+	//   "audioBitrateHigh"
+	//   "audioBitrateLow"
+	//   "audioCodec"
+	//   "audioCodecMismatch"
+	//   "audioSampleRate"
+	//   "audioSampleRateMismatch"
+	//   "audioStereoMismatch"
+	//   "audioTooManyChannel"
+	//   "badContainer"
+	//   "bitrateHigh"
+	//   "bitrateLow"
+	//   "framerateHigh"
+	//   "framerateMismatch"
+	//   "gopMismatch"
+	//   "gopSizeLong"
+	//   "gopSizeOver"
+	//   "gopSizeShort"
+	//   "interlaceVideo"
+	//   "multipleAudioStreams"
+	//   "multipleVideoStreams"
+	//   "noAudioStream"
+	//   "noVideoStream"
+	//   "openGop"
+	//   "resolutionMismatch"
+	//   "videoBitrateMismatch"
+	//   "videoCodec"
+	//   "videoCodecMismatch"
+	//   "videoIngestionStarved"
+	//   "videoInterlaceMismatch"
+	//   "videoProfileMismatch"
+	//   "videoResolutionSuboptimal"
+	//   "videoResolutionUnsupported"
+	Type string `json:"type,omitempty"`
+}
+
 type LiveStreamContentDetails struct {
 	// ClosedCaptionsIngestionUrl: The ingestion URL where the closed
 	// captions of this stream are sent.
@@ -2830,6 +2947,24 @@ type LiveStreamContentDetails struct {
 	// to use that method to retrieve the resource for a non-reusable stream
 	// is to use the id parameter to identify the stream.
 	IsReusable bool `json:"isReusable,omitempty"`
+}
+
+type LiveStreamHealthStatus struct {
+	// ConfigurationIssues: The configurations issues on this stream
+	ConfigurationIssues []*LiveStreamConfigurationIssue `json:"configurationIssues,omitempty"`
+
+	// LastUpdateTimeS: The last time this status was updated (in seconds)
+	LastUpdateTimeS uint64 `json:"lastUpdateTimeS,omitempty,string"`
+
+	// Status: The status code of this stream
+	//
+	// Possible values:
+	//   "bad"
+	//   "good"
+	//   "noData"
+	//   "ok"
+	//   "revoked"
+	Status string `json:"status,omitempty"`
 }
 
 type LiveStreamListResponse struct {
@@ -2872,6 +3007,8 @@ type LiveStreamSnippet struct {
 	// than 10000 characters.
 	Description string `json:"description,omitempty"`
 
+	IsDefaultStream bool `json:"isDefaultStream,omitempty"`
+
 	// PublishedAt: The date and time that the stream was created. The value
 	// is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.
 	PublishedAt string `json:"publishedAt,omitempty"`
@@ -2882,7 +3019,8 @@ type LiveStreamSnippet struct {
 }
 
 type LiveStreamStatus struct {
-	IsDefaultStream bool `json:"isDefaultStream,omitempty"`
+	// HealthStatus: The health status of the stream.
+	HealthStatus *LiveStreamHealthStatus `json:"healthStatus,omitempty"`
 
 	// Possible values:
 	//   "active"
@@ -4206,6 +4344,10 @@ type VideoSnippet struct {
 	// to.
 	ChannelTitle string `json:"channelTitle,omitempty"`
 
+	// DefaultAudioLanguage: The default_audio_language property specifies
+	// the language spoken in the video's default audio track.
+	DefaultAudioLanguage string `json:"defaultAudioLanguage,omitempty"`
+
 	// DefaultLanguage: The language of the videos's default snippet.
 	DefaultLanguage string `json:"defaultLanguage,omitempty"`
 
@@ -4482,7 +4624,7 @@ func (c *ActivitiesInsertCall) Do() (*Activity, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet and contentDetails.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -4693,7 +4835,7 @@ func (c *ActivitiesListCall) Do() (*ActivityListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more activity resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, and contentDetails.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a activity resource, the snippet property contains other properties that identify the type of activity, a display title for the activity, and so forth. If you set part=snippet, the API response will also contain all of those nested properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more activity resource properties that the API response will include.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in an activity resource, the snippet property contains other properties that identify the type of activity, a display title for the activity, and so forth. If you set part=snippet, the API response will also contain all of those nested properties.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -4759,6 +4901,25 @@ func (c *CaptionsDeleteCall) OnBehalfOf(onBehalfOf string) *CaptionsDeleteCall {
 	return c
 }
 
+// OnBehalfOfContentOwner sets the optional parameter
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
+func (c *CaptionsDeleteCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *CaptionsDeleteCall {
+	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -4777,6 +4938,9 @@ func (c *CaptionsDeleteCall) Do() error {
 	}
 	if v, ok := c.opt_["onBehalfOf"]; ok {
 		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
+		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
@@ -4819,11 +4983,17 @@ func (c *CaptionsDeleteCall) Do() error {
 	//       "description": "ID of the Google+ Page for the channel that the request is be on behalf of",
 	//       "location": "query",
 	//       "type": "string"
+	//     },
+	//     "onBehalfOfContentOwner": {
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+	//       "location": "query",
+	//       "type": "string"
 	//     }
 	//   },
 	//   "path": "captions",
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
 
@@ -4859,6 +5029,25 @@ func (c *CaptionsDownloadCall) DebugProjectIdOverride(debugProjectIdOverride int
 // Google+ Page for the channel that the request is be on behalf of
 func (c *CaptionsDownloadCall) OnBehalfOf(onBehalfOf string) *CaptionsDownloadCall {
 	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// OnBehalfOfContentOwner sets the optional parameter
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
+func (c *CaptionsDownloadCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *CaptionsDownloadCall {
+	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
 }
 
@@ -4906,6 +5095,9 @@ func (c *CaptionsDownloadCall) Do() error {
 	}
 	if v, ok := c.opt_["onBehalfOf"]; ok {
 		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
+		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["tfmt"]; ok {
 		params.Set("tfmt", fmt.Sprintf("%v", v))
@@ -4957,6 +5149,11 @@ func (c *CaptionsDownloadCall) Do() error {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "onBehalfOfContentOwner": {
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "tfmt": {
 	//       "description": "The tfmt parameter specifies that the caption track should be returned in a specific format. If the parameter is not included in the request, the track is returned in its original format.",
 	//       "enum": [
@@ -4984,7 +5181,8 @@ func (c *CaptionsDownloadCall) Do() error {
 	//   },
 	//   "path": "captions/{id}",
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
 	//   "supportsMediaDownload": true
 	// }
@@ -5025,6 +5223,25 @@ func (c *CaptionsInsertCall) DebugProjectIdOverride(debugProjectIdOverride int64
 // Google+ Page for the channel that the request is be on behalf of
 func (c *CaptionsInsertCall) OnBehalfOf(onBehalfOf string) *CaptionsInsertCall {
 	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// OnBehalfOfContentOwner sets the optional parameter
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
+func (c *CaptionsInsertCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *CaptionsInsertCall {
+	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
 }
 
@@ -5093,6 +5310,9 @@ func (c *CaptionsInsertCall) Do() (*Caption, error) {
 	}
 	if v, ok := c.opt_["onBehalfOf"]; ok {
 		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
+		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["sync"]; ok {
 		params.Set("sync", fmt.Sprintf("%v", v))
@@ -5199,6 +5419,11 @@ func (c *CaptionsInsertCall) Do() (*Caption, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "onBehalfOfContentOwner": {
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "part": {
 	//       "description": "The part parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
 	//       "location": "query",
@@ -5219,7 +5444,8 @@ func (c *CaptionsInsertCall) Do() (*Caption, error) {
 	//     "$ref": "Caption"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
 	//   "supportsMediaUpload": true
 	// }
@@ -5270,6 +5496,25 @@ func (c *CaptionsListCall) OnBehalfOf(onBehalfOf string) *CaptionsListCall {
 	return c
 }
 
+// OnBehalfOfContentOwner sets the optional parameter
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
+func (c *CaptionsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *CaptionsListCall {
+	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -5292,6 +5537,9 @@ func (c *CaptionsListCall) Do() (*CaptionListResponse, error) {
 	}
 	if v, ok := c.opt_["onBehalfOf"]; ok {
 		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
+		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
@@ -5339,6 +5587,11 @@ func (c *CaptionsListCall) Do() (*CaptionListResponse, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "onBehalfOfContentOwner": {
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "part": {
 	//       "description": "The part parameter specifies a comma-separated list of one or more caption resource parts that the API response will include. The part names that you can include in the parameter value are id and snippet.",
 	//       "location": "query",
@@ -5357,7 +5610,8 @@ func (c *CaptionsListCall) Do() (*CaptionListResponse, error) {
 	//     "$ref": "CaptionListResponse"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ]
 	// }
 
@@ -5399,6 +5653,25 @@ func (c *CaptionsUpdateCall) DebugProjectIdOverride(debugProjectIdOverride int64
 // Google+ Page for the channel that the request is be on behalf of
 func (c *CaptionsUpdateCall) OnBehalfOf(onBehalfOf string) *CaptionsUpdateCall {
 	c.opt_["onBehalfOf"] = onBehalfOf
+	return c
+}
+
+// OnBehalfOfContentOwner sets the optional parameter
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
+func (c *CaptionsUpdateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *CaptionsUpdateCall {
+	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
 }
 
@@ -5466,6 +5739,9 @@ func (c *CaptionsUpdateCall) Do() (*Caption, error) {
 	}
 	if v, ok := c.opt_["onBehalfOf"]; ok {
 		params.Set("onBehalfOf", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
+		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["sync"]; ok {
 		params.Set("sync", fmt.Sprintf("%v", v))
@@ -5572,6 +5848,11 @@ func (c *CaptionsUpdateCall) Do() (*Caption, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "onBehalfOfContentOwner": {
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "part": {
 	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Set the property value to snippet if you are updating the track's draft status. Otherwise, set the property value to id.",
 	//       "location": "query",
@@ -5592,7 +5873,8 @@ func (c *CaptionsUpdateCall) Do() (*Caption, error) {
 	//     "$ref": "Caption"
 	//   },
 	//   "scopes": [
-	//     "https://www.googleapis.com/auth/youtube.force-ssl"
+	//     "https://www.googleapis.com/auth/youtube.force-ssl",
+	//     "https://www.googleapis.com/auth/youtubepartner"
 	//   ],
 	//   "supportsMediaUpload": true
 	// }
@@ -6389,9 +6671,11 @@ func (c *ChannelsListCall) Id(id string) *ChannelsListCall {
 	return c
 }
 
-// ManagedByMe sets the optional parameter "managedByMe": Set this
-// parameter's value to true to instruct the API to only return channels
-// managed by the content owner that the onBehalfOfContentOwner
+// ManagedByMe sets the optional parameter "managedByMe": Note: This
+// parameter is intended exclusively for YouTube content partners.
+//
+// Set this parameter's value to true to instruct the API to only return
+// channels managed by the content owner that the onBehalfOfContentOwner
 // parameter specifies. The user must be authenticated as a CMS account
 // linked to the specified content owner and onBehalfOfContentOwner must
 // be provided.
@@ -6416,24 +6700,27 @@ func (c *ChannelsListCall) Mine(mine bool) *ChannelsListCall {
 	return c
 }
 
-// MySubscribers sets the optional parameter "mySubscribers": Set this
-// parameter's value to true to retrieve a list of channels that
-// subscribed to the authenticated user's channel.
+// MySubscribers sets the optional parameter "mySubscribers": Use the
+// subscriptions.list method and its mySubscribers parameter to retrieve
+// a list of subscribers to the authenticated user's channel.
 func (c *ChannelsListCall) MySubscribers(mySubscribers bool) *ChannelsListCall {
 	c.opt_["mySubscribers"] = mySubscribers
 	return c
 }
 
 // OnBehalfOfContentOwner sets the optional parameter
-// "onBehalfOfContentOwner": The onBehalfOfContentOwner parameter
-// indicates that the authenticated user is acting on behalf of the
-// content owner specified in the parameter value. This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and get access to all their video and channel data, without
-// having to provide authentication credentials for each individual
-// channel. The actual CMS account that the user authenticates with
-// needs to be linked to the specified YouTube content owner.
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *ChannelsListCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ChannelsListCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -6541,7 +6828,7 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "managedByMe": {
-	//       "description": "Set this parameter's value to true to instruct the API to only return channels managed by the content owner that the onBehalfOfContentOwner parameter specifies. The user must be authenticated as a CMS account linked to the specified content owner and onBehalfOfContentOwner must be provided.",
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nSet this parameter's value to true to instruct the API to only return channels managed by the content owner that the onBehalfOfContentOwner parameter specifies. The user must be authenticated as a CMS account linked to the specified content owner and onBehalfOfContentOwner must be provided.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },
@@ -6560,12 +6847,12 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	//       "type": "boolean"
 	//     },
 	//     "mySubscribers": {
-	//       "description": "Set this parameter's value to true to retrieve a list of channels that subscribed to the authenticated user's channel.",
+	//       "description": "Use the subscriptions.list method and its mySubscribers parameter to retrieve a list of subscribers to the authenticated user's channel.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },
 	//     "onBehalfOfContentOwner": {
-	//       "description": "The onBehalfOfContentOwner parameter indicates that the authenticated user is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with needs to be linked to the specified YouTube content owner.",
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -6575,7 +6862,7 @@ func (c *ChannelsListCall) Do() (*ChannelListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, statistics, topicDetails, and invideoPromotion.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set part=contentDetails, the API response will also contain all of those nested properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more channel resource properties that the API response will include.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set part=contentDetails, the API response will also contain all of those nested properties.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -6605,7 +6892,9 @@ type ChannelsUpdateCall struct {
 	opt_    map[string]interface{}
 }
 
-// Update: Updates a channel's metadata.
+// Update: Updates a channel's metadata. Note that this method currently
+// only supports updates to the channel resource's brandingSettings and
+// invideoPromotion objects and their child properties.
 func (r *ChannelsService) Update(part string, channel *Channel) *ChannelsUpdateCall {
 	c := &ChannelsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -6672,7 +6961,7 @@ func (c *ChannelsUpdateCall) Do() (*Channel, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Updates a channel's metadata.",
+	//   "description": "Updates a channel's metadata. Note that this method currently only supports updates to the channel resource's brandingSettings and invideoPromotion objects and their child properties.",
 	//   "httpMethod": "PUT",
 	//   "id": "youtube.channels.update",
 	//   "parameterOrder": [
@@ -6685,7 +6974,7 @@ func (c *ChannelsUpdateCall) Do() (*Channel, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and invideoPromotion.\n\nNote that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe API currently only allows the parameter value to be set to either brandingSettings or invideoPromotion. (You cannot update both of those parts with a single request.)\n\nNote that this method overrides the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -6716,7 +7005,8 @@ type CommentThreadsInsertCall struct {
 	opt_          map[string]interface{}
 }
 
-// Insert: Creates a new comment thread and top level comment.
+// Insert: Creates a new top-level comment. To add a reply to an
+// existing comment, use the comments.insert method instead.
 func (r *CommentThreadsService) Insert(part string, commentthread *CommentThread) *CommentThreadsInsertCall {
 	c := &CommentThreadsInsertCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -6725,8 +7015,9 @@ func (r *CommentThreadsService) Insert(part string, commentthread *CommentThread
 }
 
 // ShareOnGooglePlus sets the optional parameter "shareOnGooglePlus":
-// The shareOnGooglePlus determines whether this thread should also be
-// posted on Google+.
+// The shareOnGooglePlus parameter indicates whether the top-level
+// comment and any replies that are made to that comment should also be
+// posted to the author's Google+ profile.
 func (c *CommentThreadsInsertCall) ShareOnGooglePlus(shareOnGooglePlus bool) *CommentThreadsInsertCall {
 	c.opt_["shareOnGooglePlus"] = shareOnGooglePlus
 	return c
@@ -6776,7 +7067,7 @@ func (c *CommentThreadsInsertCall) Do() (*CommentThread, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Creates a new comment thread and top level comment.",
+	//   "description": "Creates a new top-level comment. To add a reply to an existing comment, use the comments.insert method instead.",
 	//   "httpMethod": "POST",
 	//   "id": "youtube.commentThreads.insert",
 	//   "parameterOrder": [
@@ -6784,14 +7075,14 @@ func (c *CommentThreadsInsertCall) Do() (*CommentThread, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+	//       "description": "The part parameter identifies the properties that the API response will include. Set the parameter value to snippet. The snippet part has a quota cost of 2 units.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "shareOnGooglePlus": {
 	//       "default": "false",
-	//       "description": "The shareOnGooglePlus determines whether this thread should also be posted on Google+.",
+	//       "description": "The shareOnGooglePlus parameter indicates whether the top-level comment and any replies that are made to that comment should also be posted to the author's Google+ profile.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     }
@@ -6828,16 +7119,18 @@ func (r *CommentThreadsService) List(part string) *CommentThreadsListCall {
 
 // AllThreadsRelatedToChannelId sets the optional parameter
 // "allThreadsRelatedToChannelId": The allThreadsRelatedToChannelId
-// parameter instructs the API to return the comment threads of all
-// videos of the channel and the channel comments as well.
+// parameter instructs the API to return all comment threads associated
+// with the specified channel. The response can include comments about
+// the channel or about the channel's videos.
 func (c *CommentThreadsListCall) AllThreadsRelatedToChannelId(allThreadsRelatedToChannelId string) *CommentThreadsListCall {
 	c.opt_["allThreadsRelatedToChannelId"] = allThreadsRelatedToChannelId
 	return c
 }
 
 // ChannelId sets the optional parameter "channelId": The channelId
-// parameter instructs the API to return the comment threads for all the
-// channel comments (not including comments left on videos).
+// parameter instructs the API to return comment threads containing
+// comments about the specified channel. (The response will not include
+// comments left on videos that the channel uploaded.)
 func (c *CommentThreadsListCall) ChannelId(channelId string) *CommentThreadsListCall {
 	c.opt_["channelId"] = channelId
 	return c
@@ -6870,13 +7163,36 @@ func (c *CommentThreadsListCall) MaxResults(maxResults int64) *CommentThreadsLis
 // id parameter.
 //
 // Possible values:
-//   "heldForReview" - Returns only comment threads awaiting review by a
-// moderator.
-//   "likelySpam" - Returns only comment threads classified as likely
-// being spam.
-//   "published" (default) - Returns only published comment threads.
+//   "heldForReview" - Retrieve comment threads that are awaiting review
+// by a moderator. A comment thread can be included in the response if
+// the top-level comment or at least one of the replies to that comment
+// are awaiting review.
+//   "likelySpam" - Retrieve comment threads classified as likely to be
+// spam. A comment thread can be included in the response if the
+// top-level comment or at least one of the replies to that comment is
+// considered likely to be spam.
+//   "published" - Retrieve threads of published comments. This is the
+// default value. A comment thread can be included in the response if
+// its top-level comment has been published.
 func (c *CommentThreadsListCall) ModerationStatus(moderationStatus string) *CommentThreadsListCall {
 	c.opt_["moderationStatus"] = moderationStatus
+	return c
+}
+
+// Order sets the optional parameter "order": The order parameter
+// specifies the order in which the API response should list comment
+// threads. Valid values are:
+// - time - Comment threads are ordered by time. This is the default
+// behavior.
+// - relevance - Comment threads are ordered by relevance.Note: This
+// parameter is not supported for use in conjunction with the id
+// parameter.
+//
+// Possible values:
+//   "relevance" - Order by relevance.
+//   "time" - Order by time.
+func (c *CommentThreadsListCall) Order(order string) *CommentThreadsListCall {
+	c.opt_["order"] = order
 	return c
 }
 
@@ -6893,8 +7209,8 @@ func (c *CommentThreadsListCall) PageToken(pageToken string) *CommentThreadsList
 }
 
 // SearchTerms sets the optional parameter "searchTerms": The
-// searchTerms parameter instructs the API to limit the returned
-// comments to those which contain the specified search terms.
+// searchTerms parameter instructs the API to limit the API response to
+// only contain comments that contain the specified search terms.
 //
 // Note: This parameter is not supported for use in conjunction with the
 // id parameter.
@@ -6908,7 +7224,8 @@ func (c *CommentThreadsListCall) SearchTerms(searchTerms string) *CommentThreads
 // the comments left by users in html formatted or in plain text.
 //
 // Possible values:
-//   "html" - Returns the comments in HTML format.
+//   "html" - Returns the comments in HTML format. This is the default
+// value.
 //   "plainText" - Returns the comments in plain text format.
 func (c *CommentThreadsListCall) TextFormat(textFormat string) *CommentThreadsListCall {
 	c.opt_["textFormat"] = textFormat
@@ -6916,8 +7233,8 @@ func (c *CommentThreadsListCall) TextFormat(textFormat string) *CommentThreadsLi
 }
 
 // VideoId sets the optional parameter "videoId": The videoId parameter
-// instructs the API to return the comment threads for the video
-// specified by the video id.
+// instructs the API to return comment threads associated with the
+// specified video ID.
 func (c *CommentThreadsListCall) VideoId(videoId string) *CommentThreadsListCall {
 	c.opt_["videoId"] = videoId
 	return c
@@ -6950,6 +7267,9 @@ func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
 	}
 	if v, ok := c.opt_["moderationStatus"]; ok {
 		params.Set("moderationStatus", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["order"]; ok {
+		params.Set("order", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["pageToken"]; ok {
 		params.Set("pageToken", fmt.Sprintf("%v", v))
@@ -6993,12 +7313,12 @@ func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
 	//   ],
 	//   "parameters": {
 	//     "allThreadsRelatedToChannelId": {
-	//       "description": "The allThreadsRelatedToChannelId parameter instructs the API to return the comment threads of all videos of the channel and the channel comments as well.",
+	//       "description": "The allThreadsRelatedToChannelId parameter instructs the API to return all comment threads associated with the specified channel. The response can include comments about the channel or about the channel's videos.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "channelId": {
-	//       "description": "The channelId parameter instructs the API to return the comment threads for all the channel comments (not including comments left on videos).",
+	//       "description": "The channelId parameter instructs the API to return comment threads containing comments about the specified channel. (The response will not include comments left on videos that the channel uploaded.)",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7017,7 +7337,7 @@ func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
 	//       "type": "integer"
 	//     },
 	//     "moderationStatus": {
-	//       "default": "published",
+	//       "default": "MODERATION_STATUS_PUBLISHED",
 	//       "description": "Set this parameter to limit the returned comment threads to a particular moderation state.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
 	//       "enum": [
 	//         "heldForReview",
@@ -7025,9 +7345,23 @@ func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
 	//         "published"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Returns only comment threads awaiting review by a moderator.",
-	//         "Returns only comment threads classified as likely being spam.",
-	//         "Returns only published comment threads."
+	//         "Retrieve comment threads that are awaiting review by a moderator. A comment thread can be included in the response if the top-level comment or at least one of the replies to that comment are awaiting review.",
+	//         "Retrieve comment threads classified as likely to be spam. A comment thread can be included in the response if the top-level comment or at least one of the replies to that comment is considered likely to be spam.",
+	//         "Retrieve threads of published comments. This is the default value. A comment thread can be included in the response if its top-level comment has been published."
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "order": {
+	//       "default": "true",
+	//       "description": "The order parameter specifies the order in which the API response should list comment threads. Valid values are: \n- time - Comment threads are ordered by time. This is the default behavior.\n- relevance - Comment threads are ordered by relevance.Note: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "enum": [
+	//         "relevance",
+	//         "time"
+	//       ],
+	//       "enumDescriptions": [
+	//         "Order by relevance.",
+	//         "Order by time."
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
@@ -7038,13 +7372,13 @@ func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies the commentThread resource parts that the API response will include. Supported values are id, snippet and replies.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more commentThread resource properties that the API response will include.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "searchTerms": {
-	//       "description": "The searchTerms parameter instructs the API to limit the returned comments to those which contain the specified search terms.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
+	//       "description": "The searchTerms parameter instructs the API to limit the API response to only contain comments that contain the specified search terms.\n\nNote: This parameter is not supported for use in conjunction with the id parameter.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7056,14 +7390,14 @@ func (c *CommentThreadsListCall) Do() (*CommentThreadListResponse, error) {
 	//         "plainText"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Returns the comments in HTML format.",
+	//         "Returns the comments in HTML format. This is the default value.",
 	//         "Returns the comments in plain text format."
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "videoId": {
-	//       "description": "The videoId parameter instructs the API to return the comment threads for the video specified by the video id.",
+	//       "description": "The videoId parameter instructs the API to return comment threads associated with the specified video ID.",
 	//       "location": "query",
 	//       "type": "string"
 	//     }
@@ -7088,7 +7422,7 @@ type CommentThreadsUpdateCall struct {
 	opt_          map[string]interface{}
 }
 
-// Update: Modifies an existing comment.
+// Update: Modifies the top-level comment in a comment thread.
 func (r *CommentThreadsService) Update(part string, commentthread *CommentThread) *CommentThreadsUpdateCall {
 	c := &CommentThreadsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -7137,7 +7471,7 @@ func (c *CommentThreadsUpdateCall) Do() (*CommentThread, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Modifies an existing comment.",
+	//   "description": "Modifies the top-level comment in a comment thread.",
 	//   "httpMethod": "PUT",
 	//   "id": "youtube.commentThreads.update",
 	//   "parameterOrder": [
@@ -7145,7 +7479,7 @@ func (c *CommentThreadsUpdateCall) Do() (*CommentThread, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id, snippet and replies. However only snippet contains properties that can be updated.",
+	//       "description": "The part parameter specifies a comma-separated list of commentThread resource properties that the API response will include. You must at least include the snippet part in the parameter value since that part contains all of the properties that the API request can update.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -7219,7 +7553,7 @@ func (c *CommentsDeleteCall) Do() error {
 	//   ],
 	//   "parameters": {
 	//     "id": {
-	//       "description": "The id parameter specifies the comment ID for the resource that should be deleted.",
+	//       "description": "The id parameter specifies the comment ID for the resource that is being deleted.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -7242,11 +7576,8 @@ type CommentsInsertCall struct {
 	opt_    map[string]interface{}
 }
 
-// Insert: Creates a new comment.
-//
-// Note: to create a top level comment it is also necessary to create a
-// comment thread. Both are accomplished through the commentThreads
-// resource.
+// Insert: Creates a reply to an existing comment. Note: To create a
+// top-level comment, use the commentThreads.insert method.
 func (r *CommentsService) Insert(part string, comment *Comment) *CommentsInsertCall {
 	c := &CommentsInsertCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -7295,7 +7626,7 @@ func (c *CommentsInsertCall) Do() (*Comment, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Creates a new comment.\n\nNote: to create a top level comment it is also necessary to create a comment thread. Both are accomplished through the commentThreads resource.",
+	//   "description": "Creates a reply to an existing comment. Note: To create a top-level comment, use the commentThreads.insert method.",
 	//   "httpMethod": "POST",
 	//   "id": "youtube.comments.insert",
 	//   "parameterOrder": [
@@ -7303,7 +7634,7 @@ func (c *CommentsInsertCall) Do() (*Comment, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be set.",
+	//       "description": "The part parameter identifies the properties that the API response will include. Set the parameter value to snippet. The snippet part has a quota cost of 2 units.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -7340,8 +7671,9 @@ func (r *CommentsService) List(part string) *CommentsListCall {
 }
 
 // Id sets the optional parameter "id": The id parameter specifies a
-// comma-separated list of comment IDs for the resources that should be
-// retrieved.
+// comma-separated list of comment IDs for the resources that are being
+// retrieved. In a comment resource, the id property specifies the
+// comment's ID.
 func (c *CommentsListCall) Id(id string) *CommentsListCall {
 	c.opt_["id"] = id
 	return c
@@ -7374,20 +7706,20 @@ func (c *CommentsListCall) PageToken(pageToken string) *CommentsListCall {
 // parameter specifies the ID of the comment for which replies should be
 // retrieved.
 //
-// Note: Currently YouTube features only one level of replies (ie
-// replies to top level comments). However replies to replies may be
-// supported in the future.
+// Note: YouTube currently supports replies only for top-level comments.
+// However, replies to replies may be supported in the future.
 func (c *CommentsListCall) ParentId(parentId string) *CommentsListCall {
 	c.opt_["parentId"] = parentId
 	return c
 }
 
-// TextFormat sets the optional parameter "textFormat": Set this
-// parameter's value to html or plainText to instruct the API to return
-// the comments left by users formatted as HTML or as plain text.
+// TextFormat sets the optional parameter "textFormat": This parameter
+// indicates whether the API should return comments formatted as HTML or
+// as plain text.
 //
 // Possible values:
-//   "html" - Returns the comments in HTML format.
+//   "html" - Returns the comments in HTML format. This is the default
+// value.
 //   "plainText" - Returns the comments in plain text format.
 func (c *CommentsListCall) TextFormat(textFormat string) *CommentsListCall {
 	c.opt_["textFormat"] = textFormat
@@ -7452,7 +7784,7 @@ func (c *CommentsListCall) Do() (*CommentListResponse, error) {
 	//   ],
 	//   "parameters": {
 	//     "id": {
-	//       "description": "The id parameter specifies a comma-separated list of comment IDs for the resources that should be retrieved.",
+	//       "description": "The id parameter specifies a comma-separated list of comment IDs for the resources that are being retrieved. In a comment resource, the id property specifies the comment's ID.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -7471,25 +7803,25 @@ func (c *CommentsListCall) Do() (*CommentListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "parentId": {
-	//       "description": "The parentId parameter specifies the ID of the comment for which replies should be retrieved.\n\nNote: Currently YouTube features only one level of replies (ie replies to top level comments). However replies to replies may be supported in the future.",
+	//       "description": "The parentId parameter specifies the ID of the comment for which replies should be retrieved.\n\nNote: YouTube currently supports replies only for top-level comments. However, replies to replies may be supported in the future.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies the comment resource parts that the API response will include. Supported values are id and snippet.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more comment resource properties that the API response will include.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "textFormat": {
 	//       "default": "FORMAT_HTML",
-	//       "description": "Set this parameter's value to html or plainText to instruct the API to return the comments left by users formatted as HTML or as plain text.",
+	//       "description": "This parameter indicates whether the API should return comments formatted as HTML or as plain text.",
 	//       "enum": [
 	//         "html",
 	//         "plainText"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Returns the comments in HTML format.",
+	//         "Returns the comments in HTML format. This is the default value.",
 	//         "Returns the comments in plain text format."
 	//       ],
 	//       "location": "query",
@@ -7515,7 +7847,8 @@ type CommentsMarkAsSpamCall struct {
 	opt_ map[string]interface{}
 }
 
-// MarkAsSpam: Expresses the caller's opinion that a comment is spam.
+// MarkAsSpam: Expresses the caller's opinion that one or more comments
+// should be flagged as spam.
 func (r *CommentsService) MarkAsSpam(id string) *CommentsMarkAsSpamCall {
 	c := &CommentsMarkAsSpamCall{s: r.s, opt_: make(map[string]interface{})}
 	c.id = id
@@ -7553,7 +7886,7 @@ func (c *CommentsMarkAsSpamCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Expresses the caller's opinion that a comment is spam.",
+	//   "description": "Expresses the caller's opinion that one or more comments should be flagged as spam.",
 	//   "httpMethod": "POST",
 	//   "id": "youtube.comments.markAsSpam",
 	//   "parameterOrder": [
@@ -7561,7 +7894,7 @@ func (c *CommentsMarkAsSpamCall) Do() error {
 	//   ],
 	//   "parameters": {
 	//     "id": {
-	//       "description": "The id parameter specifies a comma-separated list of IDs of comments which should get flagged as spam.",
+	//       "description": "The id parameter specifies a comma-separated list of IDs of comments that the caller believes should be classified as spam.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -7585,7 +7918,8 @@ type CommentsSetModerationStatusCall struct {
 }
 
 // SetModerationStatus: Sets the moderation status of one or more
-// comments.
+// comments. The API request must be authorized by the owner of the
+// channel or video associated with the comments.
 func (r *CommentsService) SetModerationStatus(id string, moderationStatus string) *CommentsSetModerationStatusCall {
 	c := &CommentsSetModerationStatusCall{s: r.s, opt_: make(map[string]interface{})}
 	c.id = id
@@ -7594,12 +7928,12 @@ func (r *CommentsService) SetModerationStatus(id string, moderationStatus string
 }
 
 // BanAuthor sets the optional parameter "banAuthor": The banAuthor
-// paramter, if set to true, adds the author of the comment to the ban
-// list. This means all future comments of the author will
-// autmomatically be rejected.
+// parameter lets you indicate that you want to automatically reject any
+// additional comments written by the comment's author. Set the
+// parameter value to true to ban the author.
 //
-// Note: This parameter is only valid in combination with
-// moderationStatus 'rejected'.
+// Note: This parameter is only valid if the moderationStatus parameter
+// is also set to rejected.
 func (c *CommentsSetModerationStatusCall) BanAuthor(banAuthor bool) *CommentsSetModerationStatusCall {
 	c.opt_["banAuthor"] = banAuthor
 	return c
@@ -7640,7 +7974,7 @@ func (c *CommentsSetModerationStatusCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Sets the moderation status of one or more comments.",
+	//   "description": "Sets the moderation status of one or more comments. The API request must be authorized by the owner of the channel or video associated with the comments.",
 	//   "httpMethod": "POST",
 	//   "id": "youtube.comments.setModerationStatus",
 	//   "parameterOrder": [
@@ -7650,18 +7984,18 @@ func (c *CommentsSetModerationStatusCall) Do() error {
 	//   "parameters": {
 	//     "banAuthor": {
 	//       "default": "false",
-	//       "description": "The banAuthor paramter, if set to true, adds the author of the comment to the ban list. This means all future comments of the author will autmomatically be rejected.\n\nNote: This parameter is only valid in combination with moderationStatus 'rejected'.",
+	//       "description": "The banAuthor parameter lets you indicate that you want to automatically reject any additional comments written by the comment's author. Set the parameter value to true to ban the author.\n\nNote: This parameter is only valid if the moderationStatus parameter is also set to rejected.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },
 	//     "id": {
-	//       "description": "The id parameter specifies a comma-separated list of IDs of comments whose moderation status should be updated.",
+	//       "description": "The id parameter specifies a comma-separated list of IDs that identify the comments for which you are updating the moderation status.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "moderationStatus": {
-	//       "description": "Determines the new moderation status of the specified comments.",
+	//       "description": "Identifies the new moderation status of the specified comments.",
 	//       "enum": [
 	//         "heldForReview",
 	//         "published",
@@ -7670,7 +8004,7 @@ func (c *CommentsSetModerationStatusCall) Do() error {
 	//       "enumDescriptions": [
 	//         "Marks a comment as awaiting review by a moderator.",
 	//         "Clears a comment for public display.",
-	//         "Rejects a comment as not fit for display.\n\nNote: currently there is no way to list or otherwise discover a rejected comment. However it is possible to change its moderation status as long as its ID is still known.\n\nNote: Currently, if you reject a comment you effectively also hide all its replies as there is no longer any way to discover them. This may change in the future."
+	//         "Rejects a comment as being unfit for display. This action also effectively hides all replies to the rejected comment.\n\nNote: The API does not currently provide a way to list or otherwise discover rejected comments. However, you can change the moderation status of a rejected comment if you still know its ID. If you were to change the moderation status of a rejected comment, the comment replies would subsequently be discoverable again as well."
 	//       ],
 	//       "location": "query",
 	//       "required": true,
@@ -7694,7 +8028,7 @@ type CommentsUpdateCall struct {
 	opt_    map[string]interface{}
 }
 
-// Update: Modifies an existing comment.
+// Update: Modifies a comment.
 func (r *CommentsService) Update(part string, comment *Comment) *CommentsUpdateCall {
 	c := &CommentsUpdateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -7743,7 +8077,7 @@ func (c *CommentsUpdateCall) Do() (*Comment, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Modifies an existing comment.",
+	//   "description": "Modifies a comment.",
 	//   "httpMethod": "PUT",
 	//   "id": "youtube.comments.update",
 	//   "parameterOrder": [
@@ -7751,7 +8085,7 @@ func (c *CommentsUpdateCall) Do() (*Comment, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are id and snippet. However only snippet contains properties that can be updated.",
+	//       "description": "The part parameter identifies the properties that the API response will include. You must at least include the snippet part in the parameter value since that part contains all of the properties that the API request can update.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -7875,7 +8209,7 @@ func (c *GuideCategoriesListCall) Do() (*GuideCategoryListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more guideCategory resource properties that the API response will include. The part names that you can include in the parameter value are id and snippet.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a guideCategory resource, the snippet property contains other properties, such as the category's title. If you set part=snippet, the API response will also contain all of those nested properties.",
+	//       "description": "The part parameter specifies the guideCategory resource properties that the API response will include. Set the parameter value to snippet.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -7908,7 +8242,8 @@ type I18nLanguagesListCall struct {
 	opt_ map[string]interface{}
 }
 
-// List: Returns a list of supported languages.
+// List: Returns a list of application languages that the YouTube
+// website supports.
 func (r *I18nLanguagesService) List(part string) *I18nLanguagesListCall {
 	c := &I18nLanguagesListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -7960,7 +8295,7 @@ func (c *I18nLanguagesListCall) Do() (*I18nLanguageListResponse, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns a list of supported languages.",
+	//   "description": "Returns a list of application languages that the YouTube website supports.",
 	//   "httpMethod": "GET",
 	//   "id": "youtube.i18nLanguages.list",
 	//   "parameterOrder": [
@@ -7974,7 +8309,7 @@ func (c *I18nLanguagesListCall) Do() (*I18nLanguageListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more i18nLanguage resource properties that the API response will include. The part names that you can include in the parameter value are id and snippet.",
+	//       "description": "The part parameter specifies the i18nLanguage resource properties that the API response will include. Set the parameter value to snippet.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -8002,7 +8337,8 @@ type I18nRegionsListCall struct {
 	opt_ map[string]interface{}
 }
 
-// List: Returns a list of supported regions.
+// List: Returns a list of content regions that the YouTube website
+// supports.
 func (r *I18nRegionsService) List(part string) *I18nRegionsListCall {
 	c := &I18nRegionsListCall{s: r.s, opt_: make(map[string]interface{})}
 	c.part = part
@@ -8054,7 +8390,7 @@ func (c *I18nRegionsListCall) Do() (*I18nRegionListResponse, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns a list of supported regions.",
+	//   "description": "Returns a list of content regions that the YouTube website supports.",
 	//   "httpMethod": "GET",
 	//   "id": "youtube.i18nRegions.list",
 	//   "parameterOrder": [
@@ -8068,7 +8404,7 @@ func (c *I18nRegionsListCall) Do() (*I18nRegionListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more i18nRegion resource properties that the API response will include. The part names that you can include in the parameter value are id and snippet.",
+	//       "description": "The part parameter specifies the i18nRegion resource properties that the API response will include. Set the parameter value to snippet.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -8099,7 +8435,8 @@ type LiveBroadcastsBindCall struct {
 
 // Bind: Binds a YouTube broadcast to a stream or removes an existing
 // binding between a broadcast and a stream. A broadcast can only be
-// bound to one video stream.
+// bound to one video stream, though a video stream may be bound to more
+// than one broadcast.
 func (r *LiveBroadcastsService) Bind(id string, part string) *LiveBroadcastsBindCall {
 	c := &LiveBroadcastsBindCall{s: r.s, opt_: make(map[string]interface{})}
 	c.id = id
@@ -8205,7 +8542,7 @@ func (c *LiveBroadcastsBindCall) Do() (*LiveBroadcast, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Binds a YouTube broadcast to a stream or removes an existing binding between a broadcast and a stream. A broadcast can only be bound to one video stream.",
+	//   "description": "Binds a YouTube broadcast to a stream or removes an existing binding between a broadcast and a stream. A broadcast can only be bound to one video stream, though a video stream may be bound to more than one broadcast.",
 	//   "httpMethod": "POST",
 	//   "id": "youtube.liveBroadcasts.bind",
 	//   "parameterOrder": [
@@ -9608,8 +9945,7 @@ func (c *LiveStreamsListCall) Id(id string) *LiveStreamsListCall {
 
 // MaxResults sets the optional parameter "maxResults": The maxResults
 // parameter specifies the maximum number of items that should be
-// returned in the result set. Acceptable values are 0 to 50, inclusive.
-// The default value is 5.
+// returned in the result set.
 func (c *LiveStreamsListCall) MaxResults(maxResults int64) *LiveStreamsListCall {
 	c.opt_["maxResults"] = maxResults
 	return c
@@ -9744,7 +10080,7 @@ func (c *LiveStreamsListCall) Do() (*LiveStreamListResponse, error) {
 	//     },
 	//     "maxResults": {
 	//       "default": "5",
-	//       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set. Acceptable values are 0 to 50, inclusive. The default value is 5.",
+	//       "description": "The maxResults parameter specifies the maximum number of items that should be returned in the result set.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "maximum": "50",
@@ -10102,7 +10438,7 @@ func (c *PlaylistItemsInsertCall) Do() (*PlaylistItem, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet, contentDetails, and status.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -10287,7 +10623,7 @@ func (c *PlaylistItemsListCall) Do() (*PlaylistItemListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more playlistItem resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlistItem resource, the snippet property contains numerous fields, including the title, description, position, and resourceId properties. As such, if you set part=snippet, the API response will contain all of those properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more playlistItem resource properties that the API response will include.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlistItem resource, the snippet property contains numerous fields, including the title, description, position, and resourceId properties. As such, if you set part=snippet, the API response will contain all of those properties.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -10385,7 +10721,7 @@ func (c *PlaylistItemsUpdateCall) Do() (*PlaylistItem, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet, contentDetails, and status.\n\nNote that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies. For example, a playlist item can specify a start time and end time, which identify the times portion of the video that should play when users watch the video in the playlist. If your request is updating a playlist item that sets these values, and the request's part parameter value includes the contentDetails part, the playlist item's start and end times will be updated to whatever value the request body specifies. If the request body does not specify values, the existing start and end times will be removed and replaced with the default settings.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nNote that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies. For example, a playlist item can specify a start time and end time, which identify the times portion of the video that should play when users watch the video in the playlist. If your request is updating a playlist item that sets these values, and the request's part parameter value includes the contentDetails part, the playlist item's start and end times will be updated to whatever value the request body specifies. If the request body does not specify values, the existing start and end times will be removed and replaced with the default settings.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -10629,7 +10965,7 @@ func (c *PlaylistsInsertCall) Do() (*Playlist, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet and status.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -10874,7 +11210,7 @@ func (c *PlaylistsListCall) Do() (*PlaylistListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more playlist resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, status, and contentDetails.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlist resource, the snippet property contains properties like author, title, description, tags, and timeCreated. As such, if you set part=snippet, the API response will contain all of those properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more playlist resource properties that the API response will include.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlist resource, the snippet property contains properties like author, title, description, tags, and timeCreated. As such, if you set part=snippet, the API response will contain all of those properties.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -10987,7 +11323,7 @@ func (c *PlaylistsUpdateCall) Do() (*Playlist, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet and status.\n\nNote that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies. For example, a playlist's privacy setting is contained in the status part. As such, if your request is updating a private playlist, and the request's part parameter value includes the status part, the playlist's privacy setting will be updated to whatever value the request body specifies. If the request body does not specify a value, the existing privacy setting will be removed and the playlist will revert to the default privacy setting.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nNote that this method will override the existing values for mutable properties that are contained in any parts that the request body specifies. For example, a playlist's description is contained in the snippet part, which must be included in the request body. If the request does not specify a value for the snippet.description property, the playlist's existing description will be deleted.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -11049,7 +11385,9 @@ func (c *SearchListCall) ChannelType(channelType string) *SearchListCall {
 }
 
 // EventType sets the optional parameter "eventType": The eventType
-// parameter restricts a search to broadcast events.
+// parameter restricts a search to broadcast events. If you specify a
+// value for this parameter, you must also set the type parameter's
+// value to video.
 //
 // Possible values:
 //   "completed" - Only include completed broadcasts.
@@ -11096,24 +11434,37 @@ func (c *SearchListCall) ForMine(forMine bool) *SearchListCall {
 }
 
 // Location sets the optional parameter "location": The location
-// parameter restricts a search to videos that have a geographical
-// location specified in their metadata. The value is a string that
-// specifies geographic latitude/longitude coordinates e.g.
-// (37.42307,-122.08427)
+// parameter, in conjunction with the locationRadius parameter, defines
+// a circular geographic area and also restricts a search to videos that
+// specify, in their metadata, a geographic location that falls within
+// that area. The parameter value is a string that specifies
+// latitude/longitude coordinates e.g. (37.42307,-122.08427).
+//
+//
+// - The location parameter value identifies the point at the center of
+// the area.
+// - The locationRadius parameter specifies the maximum distance that
+// the location associated with a video can be from that point for the
+// video to still be included in the search results.The API returns an
+// error if your request specifies a value for the location parameter
+// but does not also specify a value for the locationRadius parameter.
 func (c *SearchListCall) Location(location string) *SearchListCall {
 	c.opt_["location"] = location
 	return c
 }
 
 // LocationRadius sets the optional parameter "locationRadius": The
-// locationRadius, in conjunction with the location parameter, defines a
-// geographic area. If the geographic coordinates associated with a
-// video fall within that area, then the video may be included in search
-// results. This parameter value must be a floating point number
-// followed by a measurement unit. Valid measurement units are m, km,
-// ft, and mi. For example, valid parameter values include 1500m, 5km,
-// 10000ft, and 0.75mi. The API does not support locationRadius
-// parameter values larger than 1000 kilometers.
+// locationRadius parameter, in conjunction with the location parameter,
+// defines a circular geographic area.
+//
+// The parameter value must be a floating point number followed by a
+// measurement unit. Valid measurement units are m, km, ft, and mi. For
+// example, valid parameter values include 1500m, 5km, 10000ft, and
+// 0.75mi. The API does not support locationRadius parameter values
+// larger than 1000 kilometers.
+//
+// Note: See the definition of the location parameter for more
+// information.
 func (c *SearchListCall) LocationRadius(locationRadius string) *SearchListCall {
 	c.opt_["locationRadius"] = locationRadius
 	return c
@@ -11194,6 +11545,16 @@ func (c *SearchListCall) PublishedBefore(publishedBefore string) *SearchListCall
 
 // Q sets the optional parameter "q": The q parameter specifies the
 // query term to search for.
+//
+// Your request can also use the Boolean NOT (-) and OR (|) operators to
+// exclude videos or to find videos that are associated with one of
+// several search terms. For example, to search for videos matching
+// either "boating" or "sailing", set the q parameter value to
+// boating|sailing. Similarly, to search for videos matching either
+// "boating" or "sailing" but not "fishing", set the q parameter value
+// to boating|sailing -fishing. Note that the pipe character must be
+// URL-escaped when it is sent in your API request. The URL-escaped
+// value for the pipe character is %7C.
 func (c *SearchListCall) Q(q string) *SearchListCall {
 	c.opt_["q"] = q
 	return c
@@ -11269,7 +11630,9 @@ func (c *SearchListCall) Type(type_ string) *SearchListCall {
 
 // VideoCaption sets the optional parameter "videoCaption": The
 // videoCaption parameter indicates whether the API should filter video
-// search results based on whether they have captions.
+// search results based on whether they have captions. If you specify a
+// value for this parameter, you must also set the type parameter's
+// value to video.
 //
 // Possible values:
 //   "any" - Do not filter results based on caption availability.
@@ -11282,7 +11645,8 @@ func (c *SearchListCall) VideoCaption(videoCaption string) *SearchListCall {
 
 // VideoCategoryId sets the optional parameter "videoCategoryId": The
 // videoCategoryId parameter filters video search results based on their
-// category.
+// category. If you specify a value for this parameter, you must also
+// set the type parameter's value to video.
 func (c *SearchListCall) VideoCategoryId(videoCategoryId string) *SearchListCall {
 	c.opt_["videoCategoryId"] = videoCategoryId
 	return c
@@ -11292,7 +11656,9 @@ func (c *SearchListCall) VideoCategoryId(videoCategoryId string) *SearchListCall
 // videoDefinition parameter lets you restrict a search to only include
 // either high definition (HD) or standard definition (SD) videos. HD
 // videos are available for playback in at least 720p, though higher
-// resolutions, like 1080p, might also be available.
+// resolutions, like 1080p, might also be available. If you specify a
+// value for this parameter, you must also set the type parameter's
+// value to video.
 //
 // Possible values:
 //   "any" - Return all videos, regardless of their resolution.
@@ -11305,7 +11671,8 @@ func (c *SearchListCall) VideoDefinition(videoDefinition string) *SearchListCall
 
 // VideoDimension sets the optional parameter "videoDimension": The
 // videoDimension parameter lets you restrict a search to only retrieve
-// 2D or 3D videos.
+// 2D or 3D videos. If you specify a value for this parameter, you must
+// also set the type parameter's value to video.
 //
 // Possible values:
 //   "2d" - Restrict search results to exclude 3D videos.
@@ -11319,7 +11686,8 @@ func (c *SearchListCall) VideoDimension(videoDimension string) *SearchListCall {
 
 // VideoDuration sets the optional parameter "videoDuration": The
 // videoDuration parameter filters video search results based on their
-// duration.
+// duration. If you specify a value for this parameter, you must also
+// set the type parameter's value to video.
 //
 // Possible values:
 //   "any" - Do not filter video search results based on their duration.
@@ -11335,7 +11703,9 @@ func (c *SearchListCall) VideoDuration(videoDuration string) *SearchListCall {
 
 // VideoEmbeddable sets the optional parameter "videoEmbeddable": The
 // videoEmbeddable parameter lets you to restrict a search to only
-// videos that can be embedded into a webpage.
+// videos that can be embedded into a webpage. If you specify a value
+// for this parameter, you must also set the type parameter's value to
+// video.
 //
 // Possible values:
 //   "any" - Return all videos, embeddable or not.
@@ -11349,7 +11719,8 @@ func (c *SearchListCall) VideoEmbeddable(videoEmbeddable string) *SearchListCall
 // videoLicense parameter filters search results to only include videos
 // with a particular license. YouTube lets video uploaders choose to
 // attach either the Creative Commons license or the standard YouTube
-// license to each of their videos.
+// license to each of their videos. If you specify a value for this
+// parameter, you must also set the type parameter's value to video.
 //
 // Possible values:
 //   "any" - Return all videos, regardless of which license they have,
@@ -11366,7 +11737,9 @@ func (c *SearchListCall) VideoLicense(videoLicense string) *SearchListCall {
 
 // VideoSyndicated sets the optional parameter "videoSyndicated": The
 // videoSyndicated parameter lets you to restrict a search to only
-// videos that can be played outside youtube.com.
+// videos that can be played outside youtube.com. If you specify a value
+// for this parameter, you must also set the type parameter's value to
+// video.
 //
 // Possible values:
 //   "any" - Return all videos, syndicated or not.
@@ -11378,6 +11751,8 @@ func (c *SearchListCall) VideoSyndicated(videoSyndicated string) *SearchListCall
 
 // VideoType sets the optional parameter "videoType": The videoType
 // parameter lets you restrict a search to a particular type of videos.
+// If you specify a value for this parameter, you must also set the type
+// parameter's value to video.
 //
 // Possible values:
 //   "any" - Return all videos.
@@ -11539,7 +11914,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "eventType": {
-	//       "description": "The eventType parameter restricts a search to broadcast events.",
+	//       "description": "The eventType parameter restricts a search to broadcast events. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "completed",
 	//         "live",
@@ -11569,12 +11944,12 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "boolean"
 	//     },
 	//     "location": {
-	//       "description": "The location parameter restricts a search to videos that have a geographical location specified in their metadata. The value is a string that specifies geographic latitude/longitude coordinates e.g. (37.42307,-122.08427)",
+	//       "description": "The location parameter, in conjunction with the locationRadius parameter, defines a circular geographic area and also restricts a search to videos that specify, in their metadata, a geographic location that falls within that area. The parameter value is a string that specifies latitude/longitude coordinates e.g. (37.42307,-122.08427).\n\n\n- The location parameter value identifies the point at the center of the area.\n- The locationRadius parameter specifies the maximum distance that the location associated with a video can be from that point for the video to still be included in the search results.The API returns an error if your request specifies a value for the location parameter but does not also specify a value for the locationRadius parameter.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "locationRadius": {
-	//       "description": "The locationRadius, in conjunction with the location parameter, defines a geographic area. If the geographic coordinates associated with a video fall within that area, then the video may be included in search results. This parameter value must be a floating point number followed by a measurement unit. Valid measurement units are m, km, ft, and mi. For example, valid parameter values include 1500m, 5km, 10000ft, and 0.75mi. The API does not support locationRadius parameter values larger than 1000 kilometers.",
+	//       "description": "The locationRadius parameter, in conjunction with the location parameter, defines a circular geographic area.\n\nThe parameter value must be a floating point number followed by a measurement unit. Valid measurement units are m, km, ft, and mi. For example, valid parameter values include 1500m, 5km, 10000ft, and 0.75mi. The API does not support locationRadius parameter values larger than 1000 kilometers.\n\nNote: See the definition of the location parameter for more information.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -11620,7 +11995,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more search resource properties that the API response will include. The part names that you can include in the parameter value are id and snippet.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a search result, the snippet property contains other properties that identify the result's title, description, and so forth. If you set part=snippet, the API response will also contain all of those nested properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more search resource properties that the API response will include. Set the parameter value to snippet.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -11638,7 +12013,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "q": {
-	//       "description": "The q parameter specifies the query term to search for.",
+	//       "description": "The q parameter specifies the query term to search for.\n\nYour request can also use the Boolean NOT (-) and OR (|) operators to exclude videos or to find videos that are associated with one of several search terms. For example, to search for videos matching either \"boating\" or \"sailing\", set the q parameter value to boating|sailing. Similarly, to search for videos matching either \"boating\" or \"sailing\" but not \"fishing\", set the q parameter value to boating|sailing -fishing. Note that the pipe character must be URL-escaped when it is sent in your API request. The URL-escaped value for the pipe character is %7C.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -11684,7 +12059,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoCaption": {
-	//       "description": "The videoCaption parameter indicates whether the API should filter video search results based on whether they have captions.",
+	//       "description": "The videoCaption parameter indicates whether the API should filter video search results based on whether they have captions. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "closedCaption",
@@ -11699,12 +12074,12 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoCategoryId": {
-	//       "description": "The videoCategoryId parameter filters video search results based on their category.",
+	//       "description": "The videoCategoryId parameter filters video search results based on their category. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "videoDefinition": {
-	//       "description": "The videoDefinition parameter lets you restrict a search to only include either high definition (HD) or standard definition (SD) videos. HD videos are available for playback in at least 720p, though higher resolutions, like 1080p, might also be available.",
+	//       "description": "The videoDefinition parameter lets you restrict a search to only include either high definition (HD) or standard definition (SD) videos. HD videos are available for playback in at least 720p, though higher resolutions, like 1080p, might also be available. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "high",
@@ -11719,7 +12094,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoDimension": {
-	//       "description": "The videoDimension parameter lets you restrict a search to only retrieve 2D or 3D videos.",
+	//       "description": "The videoDimension parameter lets you restrict a search to only retrieve 2D or 3D videos. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "2d",
 	//         "3d",
@@ -11734,7 +12109,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoDuration": {
-	//       "description": "The videoDuration parameter filters video search results based on their duration.",
+	//       "description": "The videoDuration parameter filters video search results based on their duration. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "long",
@@ -11751,7 +12126,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoEmbeddable": {
-	//       "description": "The videoEmbeddable parameter lets you to restrict a search to only videos that can be embedded into a webpage.",
+	//       "description": "The videoEmbeddable parameter lets you to restrict a search to only videos that can be embedded into a webpage. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "true"
@@ -11764,7 +12139,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoLicense": {
-	//       "description": "The videoLicense parameter filters search results to only include videos with a particular license. YouTube lets video uploaders choose to attach either the Creative Commons license or the standard YouTube license to each of their videos.",
+	//       "description": "The videoLicense parameter filters search results to only include videos with a particular license. YouTube lets video uploaders choose to attach either the Creative Commons license or the standard YouTube license to each of their videos. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "creativeCommon",
@@ -11779,7 +12154,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoSyndicated": {
-	//       "description": "The videoSyndicated parameter lets you to restrict a search to only videos that can be played outside youtube.com.",
+	//       "description": "The videoSyndicated parameter lets you to restrict a search to only videos that can be played outside youtube.com. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "true"
@@ -11792,7 +12167,7 @@ func (c *SearchListCall) Do() (*SearchListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "videoType": {
-	//       "description": "The videoType parameter lets you restrict a search to a particular type of videos.",
+	//       "description": "The videoType parameter lets you restrict a search to a particular type of videos. If you specify a value for this parameter, you must also set the type parameter's value to video.",
 	//       "enum": [
 	//         "any",
 	//         "episode",
@@ -11957,7 +12332,7 @@ func (c *SubscriptionsInsertCall) Do() (*Subscription, error) {
 	//   ],
 	//   "parameters": {
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet and contentDetails.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -12248,7 +12623,7 @@ func (c *SubscriptionsListCall) Do() (*SubscriptionListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more subscription resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, and contentDetails.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a subscription resource, the snippet property contains other properties, such as a display title for the subscription. If you set part=snippet, the API response will also contain all of those nested properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more subscription resource properties that the API response will include.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a subscription resource, the snippet property contains other properties, such as a display title for the subscription. If you set part=snippet, the API response will also contain all of those nested properties.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -12290,15 +12665,19 @@ func (r *ThumbnailsService) Set(videoId string) *ThumbnailsSetCall {
 }
 
 // OnBehalfOfContentOwner sets the optional parameter
-// "onBehalfOfContentOwner": The onBehalfOfContentOwner parameter
-// indicates that the authenticated user is acting on behalf of the
-// content owner specified in the parameter value. This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and get access to all their video and channel data, without
-// having to provide authentication credentials for each individual
-// channel. The actual CMS account that the user authenticates with
-// needs to be linked to the specified YouTube content owner.
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The actual CMS account that the user
+// authenticates with must be linked to the specified YouTube content
+// owner.
 func (c *ThumbnailsSetCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *ThumbnailsSetCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -12442,7 +12821,7 @@ func (c *ThumbnailsSetCall) Do() (*ThumbnailSetResponse, error) {
 	//   ],
 	//   "parameters": {
 	//     "onBehalfOfContentOwner": {
-	//       "description": "The onBehalfOfContentOwner parameter indicates that the authenticated user is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with needs to be linked to the specified YouTube content owner.",
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -12665,7 +13044,7 @@ func (c *VideoCategoriesListCall) Do() (*VideoCategoryListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies the videoCategory resource parts that the API response will include. Supported values are id and snippet.",
+	//       "description": "The part parameter specifies the videoCategory resource properties that the API response will include. Set the parameter value to snippet.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -12924,7 +13303,12 @@ func (c *VideosInsertCall) AutoLevels(autoLevels bool) *VideosInsertCall {
 
 // NotifySubscribers sets the optional parameter "notifySubscribers":
 // The notifySubscribers parameter indicates whether YouTube should send
-// notification to subscribers about the inserted video.
+// a notification about the new video to users who subscribe to the
+// video's channel. A parameter value of True indicates that subscribers
+// will be notified of newly uploaded videos. However, a channel owner
+// who is uploading many videos might prefer to set the value to False
+// to avoid sending a notification about each new video to the channel's
+// subscribers.
 func (c *VideosInsertCall) NotifySubscribers(notifySubscribers bool) *VideosInsertCall {
 	c.opt_["notifySubscribers"] = notifySubscribers
 	return c
@@ -13140,7 +13524,7 @@ func (c *VideosInsertCall) Do() (*Video, error) {
 	//     },
 	//     "notifySubscribers": {
 	//       "default": "true",
-	//       "description": "The notifySubscribers parameter indicates whether YouTube should send notification to subscribers about the inserted video.",
+	//       "description": "The notifySubscribers parameter indicates whether YouTube should send a notification about the new video to users who subscribe to the video's channel. A parameter value of True indicates that subscribers will be notified of newly uploaded videos. However, a channel owner who is uploading many videos might prefer to set the value to False to avoid sending a notification about each new video to the channel's subscribers.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },
@@ -13155,7 +13539,7 @@ func (c *VideosInsertCall) Do() (*Video, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet, contentDetails, fileDetails, liveStreamingDetails, localizations, player, processingDetails, recordingDetails, statistics, status, suggestions, and topicDetails. However, not all of those parts contain properties that can be set when setting or updating a video's metadata. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nNote that not all parts contain properties that can be set when inserting or updating a video. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -13210,14 +13594,25 @@ func (c *VideosListCall) Chart(chart string) *VideosListCall {
 	return c
 }
 
+// DebugProjectIdOverride sets the optional parameter
+// "debugProjectIdOverride": The debugProjectIdOverride parameter should
+// be used for mimicking a request for a certain project ID
+func (c *VideosListCall) DebugProjectIdOverride(debugProjectIdOverride int64) *VideosListCall {
+	c.opt_["debugProjectIdOverride"] = debugProjectIdOverride
+	return c
+}
+
 // Hl sets the optional parameter "hl": The hl parameter instructs the
-// API to return a localized version of the video details. If localized
-// text is nor available for the requested language, the localizations
-// object in the API response will contain the requested information in
-// the default language instead. The parameter value is a BCP-47
-// language code. Your application can determine whether the requested
-// localization was returned by checking the value of the
-// snippet.localized.language property in the API response.
+// API to retrieve localized resource metadata for a specific
+// application language that the YouTube website supports. The parameter
+// value must be a language code included in the list returned by the
+// i18nLanguages.list method.
+//
+// If localized resource details are available in that language, the
+// resource's snippet.localized object will contain the localized
+// values. However, if localized details are not available, the
+// snippet.localized object will contain resource details in the
+// resource's default language.
 func (c *VideosListCall) Hl(hl string) *VideosListCall {
 	c.opt_["hl"] = hl
 	return c
@@ -13329,6 +13724,9 @@ func (c *VideosListCall) Do() (*VideoListResponse, error) {
 	if v, ok := c.opt_["chart"]; ok {
 		params.Set("chart", fmt.Sprintf("%v", v))
 	}
+	if v, ok := c.opt_["debugProjectIdOverride"]; ok {
+		params.Set("debugProjectIdOverride", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["hl"]; ok {
 		params.Set("hl", fmt.Sprintf("%v", v))
 	}
@@ -13396,8 +13794,14 @@ func (c *VideosListCall) Do() (*VideoListResponse, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "debugProjectIdOverride": {
+	//       "description": "The debugProjectIdOverride parameter should be used for mimicking a request for a certain project ID",
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "hl": {
-	//       "description": "The hl parameter instructs the API to return a localized version of the video details. If localized text is nor available for the requested language, the localizations object in the API response will contain the requested information in the default language instead. The parameter value is a BCP-47 language code. Your application can determine whether the requested localization was returned by checking the value of the snippet.localized.language property in the API response.",
+	//       "description": "The hl parameter instructs the API to retrieve localized resource metadata for a specific application language that the YouTube website supports. The parameter value must be a language code included in the list returned by the i18nLanguages.list method.\n\nIf localized resource details are available in that language, the resource's snippet.localized object will contain the localized values. However, if localized details are not available, the snippet.localized object will contain resource details in the resource's default language.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -13444,7 +13848,7 @@ func (c *VideosListCall) Do() (*VideoListResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter specifies a comma-separated list of one or more video resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, fileDetails, liveStreamingDetails, localizations, player, processingDetails, recordingDetails, statistics, status, suggestions, and topicDetails.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a video resource, the snippet property contains the channelId, title, description, tags, and categoryId properties. As such, if you set part=snippet, the API response will contain all of those properties.",
+	//       "description": "The part parameter specifies a comma-separated list of one or more video resource properties that the API response will include.\n\nIf the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a video resource, the snippet property contains the channelId, title, description, tags, and categoryId properties. As such, if you set part=snippet, the API response will contain all of those properties.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -13493,24 +13897,6 @@ func (r *VideosService) Rate(id string, rating string) *VideosRateCall {
 	return c
 }
 
-// OnBehalfOfContentOwner sets the optional parameter
-// "onBehalfOfContentOwner": Note: This parameter is intended
-// exclusively for YouTube content partners.
-//
-// The onBehalfOfContentOwner parameter indicates that the request's
-// authorization credentials identify a YouTube CMS user who is acting
-// on behalf of the content owner specified in the parameter value. This
-// parameter is intended for YouTube content partners that own and
-// manage many different YouTube channels. It allows content owners to
-// authenticate once and get access to all their video and channel data,
-// without having to provide authentication credentials for each
-// individual channel. The CMS account that the user authenticates with
-// must be linked to the specified YouTube content owner.
-func (c *VideosRateCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *VideosRateCall {
-	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
-	return c
-}
-
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -13525,9 +13911,6 @@ func (c *VideosRateCall) Do() error {
 	params.Set("alt", "json")
 	params.Set("id", fmt.Sprintf("%v", c.id))
 	params.Set("rating", fmt.Sprintf("%v", c.rating))
-	if v, ok := c.opt_["onBehalfOfContentOwner"]; ok {
-		params.Set("onBehalfOfContentOwner", fmt.Sprintf("%v", v))
-	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -13558,11 +13941,6 @@ func (c *VideosRateCall) Do() error {
 	//       "description": "The id parameter specifies the YouTube video ID of the video that is being rated or having its rating removed.",
 	//       "location": "query",
 	//       "required": true,
-	//       "type": "string"
-	//     },
-	//     "onBehalfOfContentOwner": {
-	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "rating": {
@@ -13780,7 +14158,7 @@ func (c *VideosUpdateCall) Do() (*Video, error) {
 	//       "type": "string"
 	//     },
 	//     "part": {
-	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nThe part names that you can include in the parameter value are snippet, contentDetails, fileDetails, liveStreamingDetails, localizations, player, processingDetails, recordingDetails, statistics, status, suggestions, and topicDetails.\n\nNote that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies. For example, a video's privacy setting is contained in the status part. As such, if your request is updating a private video, and the request's part parameter value includes the status part, the video's privacy setting will be updated to whatever value the request body specifies. If the request body does not specify a value, the existing privacy setting will be removed and the video will revert to the default privacy setting.\n\nIn addition, not all of those parts contain properties that can be set when setting or updating a video's metadata. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
+	//       "description": "The part parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.\n\nNote that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies. For example, a video's privacy setting is contained in the status part. As such, if your request is updating a private video, and the request's part parameter value includes the status part, the video's privacy setting will be updated to whatever value the request body specifies. If the request body does not specify a value, the existing privacy setting will be removed and the video will revert to the default privacy setting.\n\nIn addition, not all parts contain properties that can be set when inserting or updating a video. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -13825,15 +14203,18 @@ func (r *WatermarksService) Set(channelId string, invideobranding *InvideoBrandi
 }
 
 // OnBehalfOfContentOwner sets the optional parameter
-// "onBehalfOfContentOwner": The onBehalfOfContentOwner parameter
-// indicates that the authenticated user is acting on behalf of the
-// content owner specified in the parameter value. This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and get access to all their video and channel data, without
-// having to provide authentication credentials for each individual
-// channel. The actual CMS account that the user authenticates with
-// needs to be linked to the specified YouTube content owner.
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *WatermarksSetCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *WatermarksSetCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -13976,13 +14357,13 @@ func (c *WatermarksSetCall) Do() error {
 	//   ],
 	//   "parameters": {
 	//     "channelId": {
-	//       "description": "The channelId parameter specifies a YouTube channel ID for which the watermark is being provided.",
+	//       "description": "The channelId parameter specifies the YouTube channel ID for which the watermark is being provided.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "onBehalfOfContentOwner": {
-	//       "description": "The onBehalfOfContentOwner parameter indicates that the authenticated user is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with needs to be linked to the specified YouTube content owner.",
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
 	//       "location": "query",
 	//       "type": "string"
 	//     }
@@ -14010,7 +14391,7 @@ type WatermarksUnsetCall struct {
 	opt_      map[string]interface{}
 }
 
-// Unset: Deletes a watermark.
+// Unset: Deletes a channel's watermark image.
 func (r *WatermarksService) Unset(channelId string) *WatermarksUnsetCall {
 	c := &WatermarksUnsetCall{s: r.s, opt_: make(map[string]interface{})}
 	c.channelId = channelId
@@ -14018,15 +14399,18 @@ func (r *WatermarksService) Unset(channelId string) *WatermarksUnsetCall {
 }
 
 // OnBehalfOfContentOwner sets the optional parameter
-// "onBehalfOfContentOwner": The onBehalfOfContentOwner parameter
-// indicates that the authenticated user is acting on behalf of the
-// content owner specified in the parameter value. This parameter is
-// intended for YouTube content partners that own and manage many
-// different YouTube channels. It allows content owners to authenticate
-// once and get access to all their video and channel data, without
-// having to provide authentication credentials for each individual
-// channel. The actual CMS account that the user authenticates with
-// needs to be linked to the specified YouTube content owner.
+// "onBehalfOfContentOwner": Note: This parameter is intended
+// exclusively for YouTube content partners.
+//
+// The onBehalfOfContentOwner parameter indicates that the request's
+// authorization credentials identify a YouTube CMS user who is acting
+// on behalf of the content owner specified in the parameter value. This
+// parameter is intended for YouTube content partners that own and
+// manage many different YouTube channels. It allows content owners to
+// authenticate once and get access to all their video and channel data,
+// without having to provide authentication credentials for each
+// individual channel. The CMS account that the user authenticates with
+// must be linked to the specified YouTube content owner.
 func (c *WatermarksUnsetCall) OnBehalfOfContentOwner(onBehalfOfContentOwner string) *WatermarksUnsetCall {
 	c.opt_["onBehalfOfContentOwner"] = onBehalfOfContentOwner
 	return c
@@ -14066,7 +14450,7 @@ func (c *WatermarksUnsetCall) Do() error {
 	}
 	return nil
 	// {
-	//   "description": "Deletes a watermark.",
+	//   "description": "Deletes a channel's watermark image.",
 	//   "httpMethod": "POST",
 	//   "id": "youtube.watermarks.unset",
 	//   "parameterOrder": [
@@ -14074,13 +14458,13 @@ func (c *WatermarksUnsetCall) Do() error {
 	//   ],
 	//   "parameters": {
 	//     "channelId": {
-	//       "description": "The channelId parameter specifies a YouTube channel ID for which the watermark is being unset.",
+	//       "description": "The channelId parameter specifies the YouTube channel ID for which the watermark is being unset.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "onBehalfOfContentOwner": {
-	//       "description": "The onBehalfOfContentOwner parameter indicates that the authenticated user is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with needs to be linked to the specified YouTube content owner.",
+	//       "description": "Note: This parameter is intended exclusively for YouTube content partners.\n\nThe onBehalfOfContentOwner parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
 	//       "location": "query",
 	//       "type": "string"
 	//     }

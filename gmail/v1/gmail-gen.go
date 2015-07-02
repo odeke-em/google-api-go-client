@@ -335,6 +335,14 @@ type Message struct {
 	// Id: The immutable ID of the message.
 	Id string `json:"id,omitempty"`
 
+	// InternalDate: The internal message creation timestamp (epoch ms),
+	// which determines ordering in the inbox. For normal SMTP-received
+	// email, this represents the time the message was originally accepted
+	// by Google, which is more reliable than the Date header. However, for
+	// API-migrated mail, it can be configured by client to be based on the
+	// Date header.
+	InternalDate int64 `json:"internalDate,omitempty,string"`
+
 	// LabelIds: List of IDs of labels applied to this message.
 	LabelIds []string `json:"labelIds,omitempty"`
 
@@ -461,6 +469,42 @@ type Thread struct {
 	Snippet string `json:"snippet,omitempty"`
 }
 
+type WatchRequest struct {
+	// LabelFilterAction: Filtering behavior of labelIds list specified.
+	//
+	// Possible values:
+	//   "exclude"
+	//   "include"
+	LabelFilterAction string `json:"labelFilterAction,omitempty"`
+
+	// LabelIds: List of label_ids to restrict notifications about. By
+	// default, if unspecified, all changes are pushed out. If specified
+	// then dictates which labels are required for a push notification to be
+	// generated.
+	LabelIds []string `json:"labelIds,omitempty"`
+
+	// TopicName: A fully qualified Google Cloud Pub/Sub API topic name to
+	// publish the events to. This topic name **must** already exist in
+	// Cloud Pub/Sub and you **must** have already granted gmail "publish"
+	// permission on it. For example,
+	// "projects/my-project-identifier/topics/my-topic-name" (using the new
+	// Cloud Pub/Sub "v1beta2" topic naming format).
+	//
+	// Note that the "my-project-identifier" portion must exactly match your
+	// Google developer project id (the one executing this watch request).
+	TopicName string `json:"topicName,omitempty"`
+}
+
+type WatchResponse struct {
+	// Expiration: When Gmail will stop sending notifications for mailbox
+	// updates (epoch millis). Call watch again before this time to renew
+	// the watch.
+	Expiration int64 `json:"expiration,omitempty,string"`
+
+	// HistoryId: The ID of the mailbox's current history record.
+	HistoryId uint64 `json:"historyId,omitempty,string"`
+}
+
 // method id "gmail.users.getProfile":
 
 type UsersGetProfileCall struct {
@@ -534,6 +578,169 @@ func (c *UsersGetProfileCall) Do() (*Profile, error) {
 	//   "scopes": [
 	//     "https://mail.google.com/",
 	//     "https://www.googleapis.com/auth/gmail.compose",
+	//     "https://www.googleapis.com/auth/gmail.modify",
+	//     "https://www.googleapis.com/auth/gmail.readonly"
+	//   ]
+	// }
+
+}
+
+// method id "gmail.users.stop":
+
+type UsersStopCall struct {
+	s      *Service
+	userId string
+	opt_   map[string]interface{}
+}
+
+// Stop: Stop receiving push notifications for the given user mailbox.
+func (r *UsersService) Stop(userId string) *UsersStopCall {
+	c := &UsersStopCall{s: r.s, opt_: make(map[string]interface{})}
+	c.userId = userId
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *UsersStopCall) Fields(s ...googleapi.Field) *UsersStopCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *UsersStopCall) Do() error {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{userId}/stop")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"userId": c.userId,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "description": "Stop receiving push notifications for the given user mailbox.",
+	//   "httpMethod": "POST",
+	//   "id": "gmail.users.stop",
+	//   "parameterOrder": [
+	//     "userId"
+	//   ],
+	//   "parameters": {
+	//     "userId": {
+	//       "default": "me",
+	//       "description": "The user's email address. The special value me can be used to indicate the authenticated user.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{userId}/stop",
+	//   "scopes": [
+	//     "https://mail.google.com/",
+	//     "https://www.googleapis.com/auth/gmail.modify",
+	//     "https://www.googleapis.com/auth/gmail.readonly"
+	//   ]
+	// }
+
+}
+
+// method id "gmail.users.watch":
+
+type UsersWatchCall struct {
+	s            *Service
+	userId       string
+	watchrequest *WatchRequest
+	opt_         map[string]interface{}
+}
+
+// Watch: Set up or update a push notification watch on the given user
+// mailbox.
+func (r *UsersService) Watch(userId string, watchrequest *WatchRequest) *UsersWatchCall {
+	c := &UsersWatchCall{s: r.s, opt_: make(map[string]interface{})}
+	c.userId = userId
+	c.watchrequest = watchrequest
+	return c
+}
+
+// Fields allows partial responses to be retrieved.
+// See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *UsersWatchCall) Fields(s ...googleapi.Field) *UsersWatchCall {
+	c.opt_["fields"] = googleapi.CombineFields(s)
+	return c
+}
+
+func (c *UsersWatchCall) Do() (*WatchResponse, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.watchrequest)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["fields"]; ok {
+		params.Set("fields", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "{userId}/watch")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"userId": c.userId,
+	})
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *WatchResponse
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "description": "Set up or update a push notification watch on the given user mailbox.",
+	//   "httpMethod": "POST",
+	//   "id": "gmail.users.watch",
+	//   "parameterOrder": [
+	//     "userId"
+	//   ],
+	//   "parameters": {
+	//     "userId": {
+	//       "default": "me",
+	//       "description": "The user's email address. The special value me can be used to indicate the authenticated user.",
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "{userId}/watch",
+	//   "request": {
+	//     "$ref": "WatchRequest"
+	//   },
+	//   "response": {
+	//     "$ref": "WatchResponse"
+	//   },
+	//   "scopes": [
+	//     "https://mail.google.com/",
 	//     "https://www.googleapis.com/auth/gmail.modify",
 	//     "https://www.googleapis.com/auth/gmail.readonly"
 	//   ]
@@ -1464,11 +1671,11 @@ func (c *UsersHistoryListCall) PageToken(pageToken string) *UsersHistoryListCall
 // chronologically but are not contiguous with random gaps in between
 // valid IDs. Supplying an invalid or out of date startHistoryId
 // typically returns an HTTP 404 error code. A historyId is typically
-// valid for at least a week, but in some circumstances may be valid for
-// only a few hours. If you receive an HTTP 404 error response, your
-// application should perform a full sync. If you receive no
-// nextPageToken in the response, there are no updates to retrieve and
-// you can store the returned historyId for a future request.
+// valid for at least a week, but in some rare circumstances may be
+// valid for only a few hours. If you receive an HTTP 404 error
+// response, your application should perform a full sync. If you receive
+// no nextPageToken in the response, there are no updates to retrieve
+// and you can store the returned historyId for a future request.
 func (c *UsersHistoryListCall) StartHistoryId(startHistoryId uint64) *UsersHistoryListCall {
 	c.opt_["startHistoryId"] = startHistoryId
 	return c
@@ -1547,7 +1754,7 @@ func (c *UsersHistoryListCall) Do() (*ListHistoryResponse, error) {
 	//       "type": "string"
 	//     },
 	//     "startHistoryId": {
-	//       "description": "Required. Returns history records after the specified startHistoryId. The supplied startHistoryId should be obtained from the historyId of a message, thread, or previous list response. History IDs increase chronologically but are not contiguous with random gaps in between valid IDs. Supplying an invalid or out of date startHistoryId typically returns an HTTP 404 error code. A historyId is typically valid for at least a week, but in some circumstances may be valid for only a few hours. If you receive an HTTP 404 error response, your application should perform a full sync. If you receive no nextPageToken in the response, there are no updates to retrieve and you can store the returned historyId for a future request.",
+	//       "description": "Required. Returns history records after the specified startHistoryId. The supplied startHistoryId should be obtained from the historyId of a message, thread, or previous list response. History IDs increase chronologically but are not contiguous with random gaps in between valid IDs. Supplying an invalid or out of date startHistoryId typically returns an HTTP 404 error code. A historyId is typically valid for at least a week, but in some rare circumstances may be valid for only a few hours. If you receive an HTTP 404 error response, your application should perform a full sync. If you receive no nextPageToken in the response, there are no updates to retrieve and you can store the returned historyId for a future request.",
 	//       "format": "uint64",
 	//       "location": "query",
 	//       "type": "string"

@@ -187,7 +187,7 @@ func getAPIs() []*API {
 		}
 	}
 	if err := json.Unmarshal(disco, &all); err != nil {
-		log.Fatalf("error decoding JSON in %s: %v", apisURL, err)
+		log.Fatalf("error decoding JSON in %s: %v", *apisURL, err)
 	}
 	if !*publicOnly && *apiToGenerate != "*" {
 		parts := strings.SplitN(*apiToGenerate, ":", 2)
@@ -238,6 +238,10 @@ func writeFile(file string, contents []byte) error {
 	existing, err := ioutil.ReadFile(file)
 	if err == nil && (bytes.Equal(existing, contents) || basicallyEqual(existing, contents)) {
 		return nil
+	}
+	outdir := filepath.Dir(file)
+	if err = os.MkdirAll(outdir, 0755); err != nil {
+		return fmt.Errorf("failed to Mkdir %s: %v", outdir, err)
 	}
 	return ioutil.WriteFile(file, contents, 0644)
 }
@@ -1920,11 +1924,22 @@ func validGoIdentifer(ident string) string {
 }
 
 // depunct removes '-', '.', '$', '/', '_' from identifers, making the
-// following character uppercase
+// following character uppercase. Multiple '_' are preserved.
 func depunct(ident string, needCap bool) string {
 	var buf bytes.Buffer
-	for _, c := range ident {
-		if c == '-' || c == '.' || c == '$' || c == '/' || c == '_' {
+	preserve_ := false
+	for i, c := range ident {
+		if c == '_' {
+			if preserve_ || strings.HasPrefix(ident[i:], "__") {
+				preserve_ = true
+			} else {
+				needCap = true
+				continue
+			}
+		} else {
+			preserve_ = false
+		}
+		if c == '-' || c == '.' || c == '$' || c == '/' {
 			needCap = true
 			continue
 		}

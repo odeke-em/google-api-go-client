@@ -46,6 +46,12 @@ const (
 	// View and manage your data across Google Cloud Platform services
 	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
 
+	// Manage your Google Cloud User Accounts
+	CloudUseraccountsScope = "https://www.googleapis.com/auth/cloud.useraccounts"
+
+	// View your Google Cloud User Accounts
+	CloudUseraccountsReadonlyScope = "https://www.googleapis.com/auth/cloud.useraccounts.readonly"
+
 	// Manage your Google Compute Accounts
 	ComputeaccountsScope = "https://www.googleapis.com/auth/computeaccounts"
 
@@ -123,7 +129,7 @@ type UsersService struct {
 }
 
 type AuthorizedKeysView struct {
-	// Keys: [Output Only] The authorized public keys in SSH format.
+	// Keys: [Output Only] The list of authorized public keys in SSH format.
 	Keys []string `json:"keys,omitempty"`
 }
 
@@ -141,7 +147,7 @@ type Group struct {
 	Id uint64 `json:"id,omitempty,string"`
 
 	// Kind: [Output Only] Type of the resource. Always
-	// computeaccounts#group for groups.
+	// clouduseraccounts#group for groups.
 	Kind string `json:"kind,omitempty"`
 
 	// Members: [Output Only] A list of URLs to User resources who belong to
@@ -165,7 +171,7 @@ type GroupList struct {
 	Items []*Group `json:"items,omitempty"`
 
 	// Kind: [Output Only] Type of resource. Always
-	// computeaccounts#groupList for lists of groups.
+	// clouduseraccounts#groupList for lists of groups.
 	Kind string `json:"kind,omitempty"`
 
 	// NextPageToken: [Output Only] A token used to continue a truncated
@@ -191,7 +197,7 @@ type LinuxAccountViews struct {
 	GroupViews []*LinuxGroupView `json:"groupViews,omitempty"`
 
 	// Kind: [Output Only] Type of the resource. Always
-	// computeaccounts#linuxAccountViews for Linux views.
+	// clouduseraccounts#linuxAccountViews for Linux resources.
 	Kind string `json:"kind,omitempty"`
 
 	// UserViews: [Output Only] A list of all users within a project.
@@ -210,13 +216,14 @@ type LinuxGetLinuxAccountViewsResponse struct {
 }
 
 type LinuxGroupView struct {
-	// Gid: [Output Only] GID.
+	// Gid: [Output Only] The Group ID.
 	Gid int64 `json:"gid,omitempty"`
 
 	// GroupName: [Output Only] Group name.
 	GroupName string `json:"groupName,omitempty"`
 
-	// Members: [Output Only] List of usernames who belong to the group.
+	// Members: [Output Only] List of user accounts that belong to the
+	// group.
 	Members []string `json:"members,omitempty"`
 }
 
@@ -238,14 +245,14 @@ type LinuxUserView struct {
 	// Uid: [Output Only] User ID.
 	Uid int64 `json:"uid,omitempty"`
 
-	// Username: [Output Only] The username for the account.
+	// Username: [Output Only] The username of the account.
 	Username string `json:"username,omitempty"`
 }
 
 type Operation struct {
 	// ClientOperationId: [Output Only] An optional identifier specified by
 	// the client when the mutation was initiated. Must be unique for all
-	// operation resources in the project
+	// Operation resources in the project.
 	ClientOperationId string `json:"clientOperationId,omitempty"`
 
 	// CreationTimestamp: [Output Only] Creation timestamp in RFC3339 text
@@ -290,8 +297,8 @@ type Operation struct {
 	// Progress: [Output Only] An optional progress indicator that ranges
 	// from 0 to 100. There is no requirement that this be linear or support
 	// any granularity of operations. This should not be used to guess at
-	// when the operation will be complete. This number should be
-	// monotonically increasing as the operation progresses.
+	// when the operation will be complete. This number should monotonically
+	// increase as the operation progresses.
 	Progress int64 `json:"progress,omitempty"`
 
 	// Region: [Output Only] URL of the region where the operation resides.
@@ -397,7 +404,7 @@ type OperationList struct {
 	// server.
 	Id string `json:"id,omitempty"`
 
-	// Items: [Output Only] The operation resources.
+	// Items: [Output Only] The Operation resources.
 	Items []*Operation `json:"items,omitempty"`
 
 	// Kind: [Output Only] Type of resource. Always compute#operations for
@@ -450,8 +457,8 @@ type User struct {
 	// server.
 	Id uint64 `json:"id,omitempty,string"`
 
-	// Kind: [Output Only] Type of the resource. Always computeaccounts#user
-	// for users.
+	// Kind: [Output Only] Type of the resource. Always
+	// clouduseraccounts#user for users.
 	Kind string `json:"kind,omitempty"`
 
 	// Name: Name of the resource; provided by the client when the resource
@@ -479,8 +486,8 @@ type UserList struct {
 	// Items: [Output Only] A list of User resources.
 	Items []*User `json:"items,omitempty"`
 
-	// Kind: [Output Only] Type of resource. Always computeaccounts#userList
-	// for lists of users.
+	// Kind: [Output Only] Type of resource. Always
+	// clouduseraccounts#userList for lists of users.
 	Kind string `json:"kind,omitempty"`
 
 	// NextPageToken: [Output Only] A token used to continue a truncated
@@ -550,7 +557,7 @@ func (c *GlobalAccountsOperationsDeleteCall) Do() error {
 	//   ],
 	//   "parameters": {
 	//     "operation": {
-	//       "description": "Name of the operation resource to delete.",
+	//       "description": "Name of the Operations resource to delete.",
 	//       "location": "path",
 	//       "pattern": "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?",
 	//       "required": true,
@@ -567,6 +574,7 @@ func (c *GlobalAccountsOperationsDeleteCall) Do() error {
 	//   "path": "{project}/global/operations/{operation}",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -636,7 +644,7 @@ func (c *GlobalAccountsOperationsGetCall) Do() (*Operation, error) {
 	//   ],
 	//   "parameters": {
 	//     "operation": {
-	//       "description": "Name of the operation resource to return.",
+	//       "description": "Name of the Operations resource to return.",
 	//       "location": "path",
 	//       "pattern": "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?",
 	//       "required": true,
@@ -656,6 +664,8 @@ func (c *GlobalAccountsOperationsGetCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -679,24 +689,60 @@ func (r *GlobalAccountsOperationsService) List(project string) *GlobalAccountsOp
 	return c
 }
 
-// Filter sets the optional parameter "filter": Filter expression for
-// filtering listed resources.
+// Filter sets the optional parameter "filter": Sets a filter expression
+// for filtering listed resources, in the form filter={expression}. Your
+// {expression} must contain the following:
+// FIELD_NAME COMPARISON_STRING LITERAL_STRING
+//
+// - FIELD_NAME: The name of the field you want to compare. The field
+// name must be valid for the type of resource being filtered. Only
+// atomic field types are supported (string, number, boolean). Array and
+// object fields are not currently supported.
+// - COMPARISON_STRING: The comparison string, either eq (equals) or ne
+// (not equals).
+// - LITERAL_STRING: The literal string value to filter to. The literal
+// value must be valid for the type of field (string, number, boolean).
+// For string fields, the literal value is interpreted as a regular
+// expression using RE2 syntax. The literal value must match the entire
+// field.  For example, you can filter by the name of a
+// resource:
+// filter=name ne example-instance
+// The above filter returns only results whose name field does not equal
+// example-instance. You can also enclose your literal string in single,
+// double, or no quotes.
 func (c *GlobalAccountsOperationsListCall) Filter(filter string) *GlobalAccountsOperationsListCall {
 	c.opt_["filter"] = filter
 	return c
 }
 
 // MaxResults sets the optional parameter "maxResults": Maximum count of
-// results to be returned. Maximum value is 500 and default value is
-// 500.
+// results to be returned.
 func (c *GlobalAccountsOperationsListCall) MaxResults(maxResults int64) *GlobalAccountsOperationsListCall {
 	c.opt_["maxResults"] = maxResults
 	return c
 }
 
-// PageToken sets the optional parameter "pageToken": Tag returned by a
-// previous list request truncated by maxResults. Used to continue a
-// previous list request.
+// OrderBy sets the optional parameter "orderBy": Sorts list results by
+// a certain order. By default, results are returned in alphanumerical
+// order based on the resource name.
+//
+// You can also sort results in descending order based on the creation
+// timestamp using orderBy="creationTimestamp desc". This sorts results
+// based on the creationTimestamp field in reverse chronological order
+// (newest result first). Use this to sort resources like operations so
+// that the newest operation is returned first.
+//
+// Currently, only sorting by name or creationTimestamp desc is
+// supported.
+func (c *GlobalAccountsOperationsListCall) OrderBy(orderBy string) *GlobalAccountsOperationsListCall {
+	c.opt_["orderBy"] = orderBy
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": Specifies a page
+// token to use. Use this parameter if you want to list the next page of
+// results. Set pageToken to the nextPageToken returned by a previous
+// list request.
 func (c *GlobalAccountsOperationsListCall) PageToken(pageToken string) *GlobalAccountsOperationsListCall {
 	c.opt_["pageToken"] = pageToken
 	return c
@@ -719,6 +765,9 @@ func (c *GlobalAccountsOperationsListCall) Do() (*OperationList, error) {
 	}
 	if v, ok := c.opt_["maxResults"]; ok {
 		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["orderBy"]; ok {
+		params.Set("orderBy", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["pageToken"]; ok {
 		params.Set("pageToken", fmt.Sprintf("%v", v))
@@ -755,21 +804,26 @@ func (c *GlobalAccountsOperationsListCall) Do() (*OperationList, error) {
 	//   ],
 	//   "parameters": {
 	//     "filter": {
-	//       "description": "Optional. Filter expression for filtering listed resources.",
+	//       "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
 	//       "default": "500",
-	//       "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+	//       "description": "Maximum count of results to be returned.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "maximum": "500",
 	//       "minimum": "0",
 	//       "type": "integer"
 	//     },
+	//     "orderBy": {
+	//       "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "pageToken": {
-	//       "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+	//       "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -787,6 +841,8 @@ func (c *GlobalAccountsOperationsListCall) Do() (*OperationList, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -888,6 +944,7 @@ func (c *GroupsAddMemberCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -903,7 +960,7 @@ type GroupsDeleteCall struct {
 	opt_      map[string]interface{}
 }
 
-// Delete: Deletes the specified group resource.
+// Delete: Deletes the specified Group resource.
 func (r *GroupsService) Delete(project string, groupName string) *GroupsDeleteCall {
 	c := &GroupsDeleteCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -948,7 +1005,7 @@ func (c *GroupsDeleteCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Deletes the specified group resource.",
+	//   "description": "Deletes the specified Group resource.",
 	//   "httpMethod": "DELETE",
 	//   "id": "computeaccounts.groups.delete",
 	//   "parameterOrder": [
@@ -957,7 +1014,7 @@ func (c *GroupsDeleteCall) Do() (*Operation, error) {
 	//   ],
 	//   "parameters": {
 	//     "groupName": {
-	//       "description": "Name of the group resource to delete.",
+	//       "description": "Name of the Group resource to delete.",
 	//       "location": "path",
 	//       "pattern": "[a-z][-a-z0-9_]{0,31}",
 	//       "required": true,
@@ -977,6 +1034,7 @@ func (c *GroupsDeleteCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -992,7 +1050,7 @@ type GroupsGetCall struct {
 	opt_      map[string]interface{}
 }
 
-// Get: Returns the specified group resource.
+// Get: Returns the specified Group resource.
 func (r *GroupsService) Get(project string, groupName string) *GroupsGetCall {
 	c := &GroupsGetCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -1037,7 +1095,7 @@ func (c *GroupsGetCall) Do() (*Group, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns the specified group resource.",
+	//   "description": "Returns the specified Group resource.",
 	//   "httpMethod": "GET",
 	//   "id": "computeaccounts.groups.get",
 	//   "parameterOrder": [
@@ -1046,7 +1104,7 @@ func (c *GroupsGetCall) Do() (*Group, error) {
 	//   ],
 	//   "parameters": {
 	//     "groupName": {
-	//       "description": "Name of the group resource to return.",
+	//       "description": "Name of the Group resource to return.",
 	//       "location": "path",
 	//       "pattern": "[a-z][-a-z0-9_]{0,31}",
 	//       "required": true,
@@ -1066,6 +1124,8 @@ func (c *GroupsGetCall) Do() (*Group, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -1082,7 +1142,7 @@ type GroupsInsertCall struct {
 	opt_    map[string]interface{}
 }
 
-// Insert: Creates a group resource in the specified project using the
+// Insert: Creates a Group resource in the specified project using the
 // data included in the request.
 func (r *GroupsService) Insert(project string, group *Group) *GroupsInsertCall {
 	c := &GroupsInsertCall{s: r.s, opt_: make(map[string]interface{})}
@@ -1133,7 +1193,7 @@ func (c *GroupsInsertCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Creates a group resource in the specified project using the data included in the request.",
+	//   "description": "Creates a Group resource in the specified project using the data included in the request.",
 	//   "httpMethod": "POST",
 	//   "id": "computeaccounts.groups.insert",
 	//   "parameterOrder": [
@@ -1157,6 +1217,7 @@ func (c *GroupsInsertCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -1179,24 +1240,60 @@ func (r *GroupsService) List(project string) *GroupsListCall {
 	return c
 }
 
-// Filter sets the optional parameter "filter": Filter expression for
-// filtering listed resources.
+// Filter sets the optional parameter "filter": Sets a filter expression
+// for filtering listed resources, in the form filter={expression}. Your
+// {expression} must contain the following:
+// FIELD_NAME COMPARISON_STRING LITERAL_STRING
+//
+// - FIELD_NAME: The name of the field you want to compare. The field
+// name must be valid for the type of resource being filtered. Only
+// atomic field types are supported (string, number, boolean). Array and
+// object fields are not currently supported.
+// - COMPARISON_STRING: The comparison string, either eq (equals) or ne
+// (not equals).
+// - LITERAL_STRING: The literal string value to filter to. The literal
+// value must be valid for the type of field (string, number, boolean).
+// For string fields, the literal value is interpreted as a regular
+// expression using RE2 syntax. The literal value must match the entire
+// field.  For example, you can filter by the name of a
+// resource:
+// filter=name ne example-instance
+// The above filter returns only results whose name field does not equal
+// example-instance. You can also enclose your literal string in single,
+// double, or no quotes.
 func (c *GroupsListCall) Filter(filter string) *GroupsListCall {
 	c.opt_["filter"] = filter
 	return c
 }
 
 // MaxResults sets the optional parameter "maxResults": Maximum count of
-// results to be returned. Maximum value is 500 and default value is
-// 500.
+// results to be returned.
 func (c *GroupsListCall) MaxResults(maxResults int64) *GroupsListCall {
 	c.opt_["maxResults"] = maxResults
 	return c
 }
 
-// PageToken sets the optional parameter "pageToken": Tag returned by a
-// previous list request truncated by maxResults. Used to continue a
-// previous list request.
+// OrderBy sets the optional parameter "orderBy": Sorts list results by
+// a certain order. By default, results are returned in alphanumerical
+// order based on the resource name.
+//
+// You can also sort results in descending order based on the creation
+// timestamp using orderBy="creationTimestamp desc". This sorts results
+// based on the creationTimestamp field in reverse chronological order
+// (newest result first). Use this to sort resources like operations so
+// that the newest operation is returned first.
+//
+// Currently, only sorting by name or creationTimestamp desc is
+// supported.
+func (c *GroupsListCall) OrderBy(orderBy string) *GroupsListCall {
+	c.opt_["orderBy"] = orderBy
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": Specifies a page
+// token to use. Use this parameter if you want to list the next page of
+// results. Set pageToken to the nextPageToken returned by a previous
+// list request.
 func (c *GroupsListCall) PageToken(pageToken string) *GroupsListCall {
 	c.opt_["pageToken"] = pageToken
 	return c
@@ -1219,6 +1316,9 @@ func (c *GroupsListCall) Do() (*GroupList, error) {
 	}
 	if v, ok := c.opt_["maxResults"]; ok {
 		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["orderBy"]; ok {
+		params.Set("orderBy", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["pageToken"]; ok {
 		params.Set("pageToken", fmt.Sprintf("%v", v))
@@ -1255,21 +1355,26 @@ func (c *GroupsListCall) Do() (*GroupList, error) {
 	//   ],
 	//   "parameters": {
 	//     "filter": {
-	//       "description": "Optional. Filter expression for filtering listed resources.",
+	//       "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
 	//       "default": "500",
-	//       "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+	//       "description": "Maximum count of results to be returned.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "maximum": "500",
 	//       "minimum": "0",
 	//       "type": "integer"
 	//     },
+	//     "orderBy": {
+	//       "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "pageToken": {
-	//       "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+	//       "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -1287,6 +1392,8 @@ func (c *GroupsListCall) Do() (*GroupList, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -1388,6 +1495,7 @@ func (c *GroupsRemoveMemberCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -1405,8 +1513,8 @@ type LinuxGetAuthorizedKeysViewCall struct {
 	opt_     map[string]interface{}
 }
 
-// GetAuthorizedKeysView: Returns the AuthorizedKeysView of the
-// specified user.
+// GetAuthorizedKeysView: Returns a list of authorized public keys for a
+// specific user account.
 func (r *LinuxService) GetAuthorizedKeysView(project string, zone string, user string, instance string) *LinuxGetAuthorizedKeysViewCall {
 	c := &LinuxGetAuthorizedKeysViewCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -1455,7 +1563,7 @@ func (c *LinuxGetAuthorizedKeysViewCall) Do() (*LinuxGetAuthorizedKeysViewRespon
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns the AuthorizedKeysView of the specified user.",
+	//   "description": "Returns a list of authorized public keys for a specific user account.",
 	//   "httpMethod": "POST",
 	//   "id": "computeaccounts.linux.getAuthorizedKeysView",
 	//   "parameterOrder": [
@@ -1466,7 +1574,7 @@ func (c *LinuxGetAuthorizedKeysViewCall) Do() (*LinuxGetAuthorizedKeysViewRespon
 	//   ],
 	//   "parameters": {
 	//     "instance": {
-	//       "description": "The fully-qualified URL of the instance requesting the view.",
+	//       "description": "The fully-qualified URL of the virtual machine requesting the view.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
@@ -1479,7 +1587,7 @@ func (c *LinuxGetAuthorizedKeysViewCall) Do() (*LinuxGetAuthorizedKeysViewRespon
 	//       "type": "string"
 	//     },
 	//     "user": {
-	//       "description": "Username of the AuthorizedKeysView to return.",
+	//       "description": "The user account for which you want to get a list of authorized public keys.",
 	//       "location": "path",
 	//       "pattern": "[a-z][-a-z0-9_]{0,31}",
 	//       "required": true,
@@ -1499,6 +1607,8 @@ func (c *LinuxGetAuthorizedKeysViewCall) Do() (*LinuxGetAuthorizedKeysViewRespon
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -1516,8 +1626,8 @@ type LinuxGetLinuxAccountViewsCall struct {
 	opt_     map[string]interface{}
 }
 
-// GetLinuxAccountViews: Retrieves the Linux views for an instance
-// contained within the specified project.
+// GetLinuxAccountViews: Retrieves a list of user accounts for an
+// instance within a specific project.
 func (r *LinuxService) GetLinuxAccountViews(project string, zone string, instance string) *LinuxGetLinuxAccountViewsCall {
 	c := &LinuxGetLinuxAccountViewsCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -1526,31 +1636,68 @@ func (r *LinuxService) GetLinuxAccountViews(project string, zone string, instanc
 	return c
 }
 
-// Filter sets the optional parameter "filter": Filter expression for
-// filtering listed resources.
+// Filter sets the optional parameter "filter": Sets a filter expression
+// for filtering listed resources, in the form filter={expression}. Your
+// {expression} must contain the following:
+// FIELD_NAME COMPARISON_STRING LITERAL_STRING
+//
+// - FIELD_NAME: The name of the field you want to compare. The field
+// name must be valid for the type of resource being filtered. Only
+// atomic field types are supported (string, number, boolean). Array and
+// object fields are not currently supported.
+// - COMPARISON_STRING: The comparison string, either eq (equals) or ne
+// (not equals).
+// - LITERAL_STRING: The literal string value to filter to. The literal
+// value must be valid for the type of field (string, number, boolean).
+// For string fields, the literal value is interpreted as a regular
+// expression using RE2 syntax. The literal value must match the entire
+// field.  For example, you can filter by the name of a
+// resource:
+// filter=name ne example-instance
+// The above filter returns only results whose name field does not equal
+// example-instance. You can also enclose your literal string in single,
+// double, or no quotes.
 func (c *LinuxGetLinuxAccountViewsCall) Filter(filter string) *LinuxGetLinuxAccountViewsCall {
 	c.opt_["filter"] = filter
 	return c
 }
 
 // MaxResults sets the optional parameter "maxResults": Maximum count of
-// results to be returned. Maximum value is 500 and default value is
-// 500.
+// results to be returned.
 func (c *LinuxGetLinuxAccountViewsCall) MaxResults(maxResults int64) *LinuxGetLinuxAccountViewsCall {
 	c.opt_["maxResults"] = maxResults
 	return c
 }
 
-// PageToken sets the optional parameter "pageToken": Tag returned by a
-// previous list request truncated by maxResults. Used to continue a
-// previous list request.
+// OrderBy sets the optional parameter "orderBy": Sorts list results by
+// a certain order. By default, results are returned in alphanumerical
+// order based on the resource name.
+//
+// You can also sort results in descending order based on the creation
+// timestamp using orderBy="creationTimestamp desc". This sorts results
+// based on the creationTimestamp field in reverse chronological order
+// (newest result first). Use this to sort resources like operations so
+// that the newest operation is returned first.
+//
+// Currently, only sorting by name or creationTimestamp desc is
+// supported.
+func (c *LinuxGetLinuxAccountViewsCall) OrderBy(orderBy string) *LinuxGetLinuxAccountViewsCall {
+	c.opt_["orderBy"] = orderBy
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": Specifies a page
+// token to use. Use this parameter if you want to list the next page of
+// results. Set pageToken to the nextPageToken returned by a previous
+// list request.
 func (c *LinuxGetLinuxAccountViewsCall) PageToken(pageToken string) *LinuxGetLinuxAccountViewsCall {
 	c.opt_["pageToken"] = pageToken
 	return c
 }
 
-// User sets the optional parameter "user": If provided, the user whose
-// login is triggering an immediate refresh of the views.
+// User sets the optional parameter "user": If provided, the user
+// requesting the views. If left blank, the system is requesting the
+// views, instead of a particular user.
 func (c *LinuxGetLinuxAccountViewsCall) User(user string) *LinuxGetLinuxAccountViewsCall {
 	c.opt_["user"] = user
 	return c
@@ -1574,6 +1721,9 @@ func (c *LinuxGetLinuxAccountViewsCall) Do() (*LinuxGetLinuxAccountViewsResponse
 	}
 	if v, ok := c.opt_["maxResults"]; ok {
 		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["orderBy"]; ok {
+		params.Set("orderBy", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["pageToken"]; ok {
 		params.Set("pageToken", fmt.Sprintf("%v", v))
@@ -1606,7 +1756,7 @@ func (c *LinuxGetLinuxAccountViewsCall) Do() (*LinuxGetLinuxAccountViewsResponse
 	}
 	return ret, nil
 	// {
-	//   "description": "Retrieves the Linux views for an instance contained within the specified project.",
+	//   "description": "Retrieves a list of user accounts for an instance within a specific project.",
 	//   "httpMethod": "POST",
 	//   "id": "computeaccounts.linux.getLinuxAccountViews",
 	//   "parameterOrder": [
@@ -1616,27 +1766,32 @@ func (c *LinuxGetLinuxAccountViewsCall) Do() (*LinuxGetLinuxAccountViewsResponse
 	//   ],
 	//   "parameters": {
 	//     "filter": {
-	//       "description": "Optional. Filter expression for filtering listed resources.",
+	//       "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "instance": {
-	//       "description": "The fully-qualified URL of the instance requesting the views.",
+	//       "description": "The fully-qualified URL of the virtual machine requesting the views.",
 	//       "location": "query",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
 	//       "default": "500",
-	//       "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+	//       "description": "Maximum count of results to be returned.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "maximum": "500",
 	//       "minimum": "0",
 	//       "type": "integer"
 	//     },
+	//     "orderBy": {
+	//       "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "pageToken": {
-	//       "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+	//       "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -1648,7 +1803,7 @@ func (c *LinuxGetLinuxAccountViewsCall) Do() (*LinuxGetLinuxAccountViewsResponse
 	//       "type": "string"
 	//     },
 	//     "user": {
-	//       "description": "If provided, the user whose login is triggering an immediate refresh of the views.",
+	//       "description": "If provided, the user requesting the views. If left blank, the system is requesting the views, instead of a particular user.",
 	//       "location": "query",
 	//       "pattern": "[a-z][-a-z0-9_]{0,31}",
 	//       "type": "string"
@@ -1667,6 +1822,8 @@ func (c *LinuxGetLinuxAccountViewsCall) Do() (*LinuxGetLinuxAccountViewsResponse
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -1684,8 +1841,8 @@ type UsersAddPublicKeyCall struct {
 	opt_      map[string]interface{}
 }
 
-// AddPublicKey: Adds a public key to the specified user using the data
-// included in the request.
+// AddPublicKey: Adds a public key to the specified User resource with
+// the data included in the request.
 func (r *UsersService) AddPublicKey(project string, user string, publickey *PublicKey) *UsersAddPublicKeyCall {
 	c := &UsersAddPublicKeyCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -1737,7 +1894,7 @@ func (c *UsersAddPublicKeyCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Adds a public key to the specified user using the data included in the request.",
+	//   "description": "Adds a public key to the specified User resource with the data included in the request.",
 	//   "httpMethod": "POST",
 	//   "id": "computeaccounts.users.addPublicKey",
 	//   "parameterOrder": [
@@ -1769,6 +1926,7 @@ func (c *UsersAddPublicKeyCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -1784,7 +1942,7 @@ type UsersDeleteCall struct {
 	opt_    map[string]interface{}
 }
 
-// Delete: Deletes the specified user resource.
+// Delete: Deletes the specified User resource.
 func (r *UsersService) Delete(project string, user string) *UsersDeleteCall {
 	c := &UsersDeleteCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -1829,7 +1987,7 @@ func (c *UsersDeleteCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Deletes the specified user resource.",
+	//   "description": "Deletes the specified User resource.",
 	//   "httpMethod": "DELETE",
 	//   "id": "computeaccounts.users.delete",
 	//   "parameterOrder": [
@@ -1858,6 +2016,7 @@ func (c *UsersDeleteCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -1873,7 +2032,7 @@ type UsersGetCall struct {
 	opt_    map[string]interface{}
 }
 
-// Get: Returns the specified user resource.
+// Get: Returns the specified User resource.
 func (r *UsersService) Get(project string, user string) *UsersGetCall {
 	c := &UsersGetCall{s: r.s, opt_: make(map[string]interface{})}
 	c.project = project
@@ -1918,7 +2077,7 @@ func (c *UsersGetCall) Do() (*User, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns the specified user resource.",
+	//   "description": "Returns the specified User resource.",
 	//   "httpMethod": "GET",
 	//   "id": "computeaccounts.users.get",
 	//   "parameterOrder": [
@@ -1947,6 +2106,8 @@ func (c *UsersGetCall) Do() (*User, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -1963,7 +2124,7 @@ type UsersInsertCall struct {
 	opt_    map[string]interface{}
 }
 
-// Insert: Creates a user resource in the specified project using the
+// Insert: Creates a User resource in the specified project using the
 // data included in the request.
 func (r *UsersService) Insert(project string, user *User) *UsersInsertCall {
 	c := &UsersInsertCall{s: r.s, opt_: make(map[string]interface{})}
@@ -2014,7 +2175,7 @@ func (c *UsersInsertCall) Do() (*Operation, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Creates a user resource in the specified project using the data included in the request.",
+	//   "description": "Creates a User resource in the specified project using the data included in the request.",
 	//   "httpMethod": "POST",
 	//   "id": "computeaccounts.users.insert",
 	//   "parameterOrder": [
@@ -2038,6 +2199,7 @@ func (c *UsersInsertCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
@@ -2052,7 +2214,7 @@ type UsersListCall struct {
 	opt_    map[string]interface{}
 }
 
-// List: Retrieves the list of users contained within the specified
+// List: Retrieves a list of users contained within the specified
 // project.
 func (r *UsersService) List(project string) *UsersListCall {
 	c := &UsersListCall{s: r.s, opt_: make(map[string]interface{})}
@@ -2060,24 +2222,60 @@ func (r *UsersService) List(project string) *UsersListCall {
 	return c
 }
 
-// Filter sets the optional parameter "filter": Filter expression for
-// filtering listed resources.
+// Filter sets the optional parameter "filter": Sets a filter expression
+// for filtering listed resources, in the form filter={expression}. Your
+// {expression} must contain the following:
+// FIELD_NAME COMPARISON_STRING LITERAL_STRING
+//
+// - FIELD_NAME: The name of the field you want to compare. The field
+// name must be valid for the type of resource being filtered. Only
+// atomic field types are supported (string, number, boolean). Array and
+// object fields are not currently supported.
+// - COMPARISON_STRING: The comparison string, either eq (equals) or ne
+// (not equals).
+// - LITERAL_STRING: The literal string value to filter to. The literal
+// value must be valid for the type of field (string, number, boolean).
+// For string fields, the literal value is interpreted as a regular
+// expression using RE2 syntax. The literal value must match the entire
+// field.  For example, you can filter by the name of a
+// resource:
+// filter=name ne example-instance
+// The above filter returns only results whose name field does not equal
+// example-instance. You can also enclose your literal string in single,
+// double, or no quotes.
 func (c *UsersListCall) Filter(filter string) *UsersListCall {
 	c.opt_["filter"] = filter
 	return c
 }
 
 // MaxResults sets the optional parameter "maxResults": Maximum count of
-// results to be returned. Maximum value is 500 and default value is
-// 500.
+// results to be returned.
 func (c *UsersListCall) MaxResults(maxResults int64) *UsersListCall {
 	c.opt_["maxResults"] = maxResults
 	return c
 }
 
-// PageToken sets the optional parameter "pageToken": Tag returned by a
-// previous list request truncated by maxResults. Used to continue a
-// previous list request.
+// OrderBy sets the optional parameter "orderBy": Sorts list results by
+// a certain order. By default, results are returned in alphanumerical
+// order based on the resource name.
+//
+// You can also sort results in descending order based on the creation
+// timestamp using orderBy="creationTimestamp desc". This sorts results
+// based on the creationTimestamp field in reverse chronological order
+// (newest result first). Use this to sort resources like operations so
+// that the newest operation is returned first.
+//
+// Currently, only sorting by name or creationTimestamp desc is
+// supported.
+func (c *UsersListCall) OrderBy(orderBy string) *UsersListCall {
+	c.opt_["orderBy"] = orderBy
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken": Specifies a page
+// token to use. Use this parameter if you want to list the next page of
+// results. Set pageToken to the nextPageToken returned by a previous
+// list request.
 func (c *UsersListCall) PageToken(pageToken string) *UsersListCall {
 	c.opt_["pageToken"] = pageToken
 	return c
@@ -2100,6 +2298,9 @@ func (c *UsersListCall) Do() (*UserList, error) {
 	}
 	if v, ok := c.opt_["maxResults"]; ok {
 		params.Set("maxResults", fmt.Sprintf("%v", v))
+	}
+	if v, ok := c.opt_["orderBy"]; ok {
+		params.Set("orderBy", fmt.Sprintf("%v", v))
 	}
 	if v, ok := c.opt_["pageToken"]; ok {
 		params.Set("pageToken", fmt.Sprintf("%v", v))
@@ -2128,7 +2329,7 @@ func (c *UsersListCall) Do() (*UserList, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Retrieves the list of users contained within the specified project.",
+	//   "description": "Retrieves a list of users contained within the specified project.",
 	//   "httpMethod": "GET",
 	//   "id": "computeaccounts.users.list",
 	//   "parameterOrder": [
@@ -2136,21 +2337,26 @@ func (c *UsersListCall) Do() (*UserList, error) {
 	//   ],
 	//   "parameters": {
 	//     "filter": {
-	//       "description": "Optional. Filter expression for filtering listed resources.",
+	//       "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
 	//       "default": "500",
-	//       "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+	//       "description": "Maximum count of results to be returned.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "maximum": "500",
 	//       "minimum": "0",
 	//       "type": "integer"
 	//     },
+	//     "orderBy": {
+	//       "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "pageToken": {
-	//       "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+	//       "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -2168,6 +2374,8 @@ func (c *UsersListCall) Do() (*UserList, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
 	//     "https://www.googleapis.com/auth/computeaccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts.readonly"
 	//   ]
@@ -2269,6 +2477,7 @@ func (c *UsersRemovePublicKeyCall) Do() (*Operation, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/cloud-platform",
+	//     "https://www.googleapis.com/auth/cloud.useraccounts",
 	//     "https://www.googleapis.com/auth/computeaccounts"
 	//   ]
 	// }
