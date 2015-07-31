@@ -80,6 +80,7 @@ type ArchiveService struct {
 	s *Service
 }
 
+// Groups: JSON response template for groups migration API.
 type Groups struct {
 	// Kind: The kind of insert resource this is.
 	Kind string `json:"kind,omitempty"`
@@ -177,12 +178,11 @@ func (c *ArchiveInsertCall) Do() (*Groups, error) {
 		"groupId": c.groupId,
 	})
 	if c.protocol_ == "resumable" {
-		req.ContentLength = 0
 		if c.mediaType_ == "" {
 			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
-		req.Body = nil
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}

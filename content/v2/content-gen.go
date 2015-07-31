@@ -176,6 +176,7 @@ type ProductstatusesService struct {
 	s *Service
 }
 
+// Account: Account data.
 type Account struct {
 	// AdultContent: Indicates whether the merchant sells adult content.
 	AdultContent bool `json:"adultContent,omitempty"`
@@ -240,6 +241,7 @@ type AccountIdentifier struct {
 	MerchantId uint64 `json:"merchantId,omitempty,string"`
 }
 
+// AccountShipping: The shipping settings of a merchant account.
 type AccountShipping struct {
 	// AccountId: The ID of the account to which these account shipping
 	// settings belong.
@@ -262,6 +264,7 @@ type AccountShipping struct {
 	Services []*AccountShippingShippingService `json:"services,omitempty"`
 }
 
+// AccountShippingCarrierRate: A carrier-calculated shipping rate.
 type AccountShippingCarrierRate struct {
 	// Carrier: The carrier that is responsible for the shipping, such as
 	// "UPS", "FedEx", or "USPS".
@@ -320,6 +323,9 @@ type AccountShippingCondition struct {
 	WeightMax *Weight `json:"weightMax,omitempty"`
 }
 
+// AccountShippingLocationGroup: A user-defined locations group in a
+// given country. All the locations of the group must be of the same
+// type.
 type AccountShippingLocationGroup struct {
 	// Country: The country in which this location group is, represented as
 	// ISO 3166-1 Alpha-2 code.
@@ -344,6 +350,12 @@ type AccountShippingLocationGroup struct {
 	PostalCodes []string `json:"postalCodes,omitempty"`
 }
 
+// AccountShippingPostalCodeRange: A postal code range, that can be
+// either:
+// - A range of postal codes (e.g., start=12340, end=12359)
+// - A range of postal codes prefixes (e.g., start=1234* end=1235*).
+// Prefixes must be of the same length (e.g., start=12* end=2* is
+// invalid).
 type AccountShippingPostalCodeRange struct {
 	// End: The last (inclusive) postal code or prefix of the range.
 	End string `json:"end,omitempty"`
@@ -352,6 +364,9 @@ type AccountShippingPostalCodeRange struct {
 	Start string `json:"start,omitempty"`
 }
 
+// AccountShippingRateTable: A single or bi-dimensional table of
+// shipping rates. Each dimension is defined in terms of consecutive
+// price/weight ranges, delivery locations, or shipping labels.
 type AccountShippingRateTable struct {
 	// Content: One-dimensional table cells define one condition along the
 	// same dimension. Bi-dimensional table cells use two dimensions with
@@ -379,6 +394,8 @@ type AccountShippingRateTableCell struct {
 	Rate *Price `json:"rate,omitempty"`
 }
 
+// AccountShippingShippingService: Shipping services provided in a
+// country.
 type AccountShippingShippingService struct {
 	// Active: Whether the shipping service is available.
 	Active bool `json:"active,omitempty"`
@@ -399,6 +416,8 @@ type AccountShippingShippingService struct {
 	SaleCountry string `json:"saleCountry,omitempty"`
 }
 
+// AccountShippingShippingServiceCalculationMethod: Shipping cost
+// calculation method. Exactly one of the field is set.
 type AccountShippingShippingServiceCalculationMethod struct {
 	// CarrierRate: Name of the carrier rate to use for the calculation.
 	CarrierRate string `json:"carrierRate,omitempty"`
@@ -418,6 +437,16 @@ type AccountShippingShippingServiceCalculationMethod struct {
 	RateTable string `json:"rateTable,omitempty"`
 }
 
+// AccountShippingShippingServiceCostRule: Building block of the cost
+// calculation decision tree.
+// - The tree root should have no condition and no calculation method.
+// - All the children must have a condition on the same dimension. The
+// first child matching a condition is entered, therefore, price and
+// weight conditions form contiguous intervals.
+// - The last child of an element must have no condition and matches all
+// elements not previously matched.
+// - Children and calculation method are mutually exclusive, and exactly
+// one of them must be defined; the root must only have children.
 type AccountShippingShippingServiceCostRule struct {
 	// CalculationMethod: Final calculation method to be used only in leaf
 	// nodes.
@@ -432,6 +461,9 @@ type AccountShippingShippingServiceCostRule struct {
 	Condition *AccountShippingCondition `json:"condition,omitempty"`
 }
 
+// AccountStatus: The status of an account, i.e., information about its
+// products, which is computed offline and not returned immediately at
+// insertion time.
 type AccountStatus struct {
 	// AccountId: The ID of the account for which the status is reported.
 	AccountId string `json:"accountId,omitempty"`
@@ -471,6 +503,9 @@ type AccountStatusDataQualityIssue struct {
 	SubmittedValue string `json:"submittedValue,omitempty"`
 }
 
+// AccountStatusExampleItem: An example of an item that has poor data
+// quality. An item value on the landing page differs from what is
+// submitted, or conflicts with a policy.
 type AccountStatusExampleItem struct {
 	// ItemId: Unique item ID as specified in the uploaded product data.
 	ItemId string `json:"itemId,omitempty"`
@@ -488,6 +523,7 @@ type AccountStatusExampleItem struct {
 	ValueOnLandingPage string `json:"valueOnLandingPage,omitempty"`
 }
 
+// AccountTax: The tax settings of a merchant account.
 type AccountTax struct {
 	// AccountId: The ID of the account to which these account tax settings
 	// belong.
@@ -503,6 +539,8 @@ type AccountTax struct {
 	Rules []*AccountTaxTaxRule `json:"rules,omitempty"`
 }
 
+// AccountTaxTaxRule: Tax calculation rule to apply in a state or
+// province (USA only).
 type AccountTaxTaxRule struct {
 	// Country: Country code in which tax is applicable.
 	Country string `json:"country,omitempty"`
@@ -550,6 +588,8 @@ type AccountsCustomBatchRequest struct {
 	Entries []*AccountsCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// AccountsCustomBatchRequestEntry: A batch entry encoding a single
+// non-batch accounts request.
 type AccountsCustomBatchRequestEntry struct {
 	// Account: The account to create or update. Only defined if the method
 	// is insert or update.
@@ -577,6 +617,8 @@ type AccountsCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// AccountsCustomBatchResponseEntry: A batch entry encoding a single
+// non-batch accounts response.
 type AccountsCustomBatchResponseEntry struct {
 	// Account: The retrieved, created, or updated account. Not defined if
 	// the method was delete.
@@ -610,6 +652,8 @@ type AccountshippingCustomBatchRequest struct {
 	Entries []*AccountshippingCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// AccountshippingCustomBatchRequestEntry: A batch entry encoding a
+// single non-batch accountshipping request.
 type AccountshippingCustomBatchRequestEntry struct {
 	// AccountId: The ID of the account for which to get/update account
 	// shipping settings.
@@ -637,6 +681,8 @@ type AccountshippingCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// AccountshippingCustomBatchResponseEntry: A batch entry encoding a
+// single non-batch accountshipping response.
 type AccountshippingCustomBatchResponseEntry struct {
 	// AccountShipping: The retrieved or updated account shipping settings.
 	AccountShipping *AccountShipping `json:"accountShipping,omitempty"`
@@ -669,6 +715,8 @@ type AccountstatusesCustomBatchRequest struct {
 	Entries []*AccountstatusesCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// AccountstatusesCustomBatchRequestEntry: A batch entry encoding a
+// single non-batch accountstatuses request.
 type AccountstatusesCustomBatchRequestEntry struct {
 	// AccountId: The ID of the (sub-)account whose status to get.
 	AccountId uint64 `json:"accountId,omitempty,string"`
@@ -692,6 +740,8 @@ type AccountstatusesCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// AccountstatusesCustomBatchResponseEntry: A batch entry encoding a
+// single non-batch accountstatuses response.
 type AccountstatusesCustomBatchResponseEntry struct {
 	// AccountStatus: The requested account status. Defined if and only if
 	// the request was successful.
@@ -721,6 +771,8 @@ type AccounttaxCustomBatchRequest struct {
 	Entries []*AccounttaxCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// AccounttaxCustomBatchRequestEntry: A batch entry encoding a single
+// non-batch accounttax request.
 type AccounttaxCustomBatchRequestEntry struct {
 	// AccountId: The ID of the account for which to get/update account tax
 	// settings.
@@ -748,6 +800,8 @@ type AccounttaxCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// AccounttaxCustomBatchResponseEntry: A batch entry encoding a single
+// non-batch accounttax response.
 type AccounttaxCustomBatchResponseEntry struct {
 	// AccountTax: The retrieved or updated account tax settings.
 	AccountTax *AccountTax `json:"accountTax,omitempty"`
@@ -775,6 +829,7 @@ type AccounttaxListResponse struct {
 	Resources []*AccountTax `json:"resources,omitempty"`
 }
 
+// Datafeed: Datafeed data.
 type Datafeed struct {
 	// AttributeLanguage: The two-letter ISO 639-1 language in which the
 	// attributes are defined in the data feed.
@@ -816,6 +871,10 @@ type Datafeed struct {
 	TargetCountry string `json:"targetCountry,omitempty"`
 }
 
+// DatafeedFetchSchedule: The required fields vary based on the
+// frequency of fetching. For a monthly fetch schedule, day_of_month and
+// hour are required. For a weekly fetch schedule, weekday and hour are
+// required. For a daily fetch schedule, only hour is required.
 type DatafeedFetchSchedule struct {
 	// DayOfMonth: The day of the month the feed file should be fetched
 	// (1-31).
@@ -860,6 +919,9 @@ type DatafeedFormat struct {
 	QuotingMode string `json:"quotingMode,omitempty"`
 }
 
+// DatafeedStatus: The status of a datafeed, i.e., the result of the
+// last retrieval of the datafeed computed asynchronously when the feed
+// processing is finished.
 type DatafeedStatus struct {
 	// DatafeedId: The ID of the feed for which the status is reported.
 	DatafeedId uint64 `json:"datafeedId,omitempty,string"`
@@ -887,6 +949,8 @@ type DatafeedStatus struct {
 	Warnings []*DatafeedStatusError `json:"warnings,omitempty"`
 }
 
+// DatafeedStatusError: An error occurring in the feed, like "invalid
+// price".
 type DatafeedStatusError struct {
 	// Code: The code of the error, e.g., "validation/invalid_value".
 	Code string `json:"code,omitempty"`
@@ -902,6 +966,7 @@ type DatafeedStatusError struct {
 	Message string `json:"message,omitempty"`
 }
 
+// DatafeedStatusExample: An example occurrence for a particular error.
 type DatafeedStatusExample struct {
 	// ItemId: The ID of the example item.
 	ItemId string `json:"itemId,omitempty"`
@@ -918,6 +983,8 @@ type DatafeedsCustomBatchRequest struct {
 	Entries []*DatafeedsCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// DatafeedsCustomBatchRequestEntry: A batch entry encoding a single
+// non-batch datafeeds request.
 type DatafeedsCustomBatchRequestEntry struct {
 	// BatchId: An entry ID, unique within the batch request.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -943,6 +1010,8 @@ type DatafeedsCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// DatafeedsCustomBatchResponseEntry: A batch entry encoding a single
+// non-batch datafeeds response.
 type DatafeedsCustomBatchResponseEntry struct {
 	// BatchId: The ID of the request entry this entry responds to.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -972,6 +1041,8 @@ type DatafeedstatusesCustomBatchRequest struct {
 	Entries []*DatafeedstatusesCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// DatafeedstatusesCustomBatchRequestEntry: A batch entry encoding a
+// single non-batch datafeedstatuses request.
 type DatafeedstatusesCustomBatchRequestEntry struct {
 	// BatchId: An entry ID, unique within the batch request.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -994,6 +1065,8 @@ type DatafeedstatusesCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// DatafeedstatusesCustomBatchResponseEntry: A batch entry encoding a
+// single non-batch datafeedstatuses response.
 type DatafeedstatusesCustomBatchResponseEntry struct {
 	// BatchId: The ID of the request entry this entry responds to.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1018,6 +1091,7 @@ type DatafeedstatusesListResponse struct {
 	Resources []*DatafeedStatus `json:"resources,omitempty"`
 }
 
+// Error: An error returned by the API.
 type Error struct {
 	// Domain: The domain of the error.
 	Domain string `json:"domain,omitempty"`
@@ -1029,6 +1103,7 @@ type Error struct {
 	Reason string `json:"reason,omitempty"`
 }
 
+// Errors: A list of errors returned by a failed batch entry.
 type Errors struct {
 	// Code: The HTTP status of the first error in errors.
 	Code int64 `json:"code,omitempty"`
@@ -1070,6 +1145,8 @@ type InventoryCustomBatchRequest struct {
 	Entries []*InventoryCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// InventoryCustomBatchRequestEntry: A batch entry encoding a single
+// non-batch inventory request.
 type InventoryCustomBatchRequestEntry struct {
 	// BatchId: An entry ID, unique within the batch request.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1099,6 +1176,8 @@ type InventoryCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// InventoryCustomBatchResponseEntry: A batch entry encoding a single
+// non-batch inventory response.
 type InventoryCustomBatchResponseEntry struct {
 	// BatchId: The ID of the request entry this entry responds to.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1160,6 +1239,7 @@ type Price struct {
 	Value string `json:"value,omitempty"`
 }
 
+// Product: Product data.
 type Product struct {
 	// AdditionalImageLinks: Additional URLs of images of the item.
 	AdditionalImageLinks []string `json:"additionalImageLinks,omitempty"`
@@ -1512,6 +1592,8 @@ type ProductShippingWeight struct {
 	Value float64 `json:"value,omitempty"`
 }
 
+// ProductStatus: The status of a product, i.e., information about a
+// product computed asynchronously by the data quality analysis.
 type ProductStatus struct {
 	// CreationDate: Date on which the item has been created, in ISO 8601
 	// format.
@@ -1631,6 +1713,8 @@ type ProductsCustomBatchRequest struct {
 	Entries []*ProductsCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// ProductsCustomBatchRequestEntry: A batch entry encoding a single
+// non-batch products request.
 type ProductsCustomBatchRequestEntry struct {
 	// BatchId: An entry ID, unique within the batch request.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1658,6 +1742,8 @@ type ProductsCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// ProductsCustomBatchResponseEntry: A batch entry encoding a single
+// non-batch products response.
 type ProductsCustomBatchResponseEntry struct {
 	// BatchId: The ID of the request entry this entry responds to.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1691,6 +1777,8 @@ type ProductstatusesCustomBatchRequest struct {
 	Entries []*ProductstatusesCustomBatchRequestEntry `json:"entries,omitempty"`
 }
 
+// ProductstatusesCustomBatchRequestEntry: A batch entry encoding a
+// single non-batch productstatuses request.
 type ProductstatusesCustomBatchRequestEntry struct {
 	// BatchId: An entry ID, unique within the batch request.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1713,6 +1801,8 @@ type ProductstatusesCustomBatchResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// ProductstatusesCustomBatchResponseEntry: A batch entry encoding a
+// single non-batch productstatuses response.
 type ProductstatusesCustomBatchResponseEntry struct {
 	// BatchId: The ID of the request entry this entry responds to.
 	BatchId int64 `json:"batchId,omitempty"`
@@ -1826,6 +1916,13 @@ func (r *AccountsService) Custombatch(accountscustombatchrequest *AccountsCustom
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountsCustombatchCall) DryRun(dryRun bool) *AccountsCustombatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -1843,6 +1940,9 @@ func (c *AccountsCustombatchCall) Do() (*AccountsCustomBatchResponse, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -1869,6 +1969,13 @@ func (c *AccountsCustombatchCall) Do() (*AccountsCustomBatchResponse, error) {
 	//   "description": "Retrieves, inserts, updates, and deletes multiple Merchant Center (sub-)accounts in a single request.",
 	//   "httpMethod": "POST",
 	//   "id": "content.accounts.custombatch",
+	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
 	//   "path": "accounts/batch",
 	//   "request": {
 	//     "$ref": "AccountsCustomBatchRequest"
@@ -1900,6 +2007,13 @@ func (r *AccountsService) Delete(merchantId uint64, accountId uint64) *AccountsD
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountsDeleteCall) DryRun(dryRun bool) *AccountsDeleteCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -1912,6 +2026,9 @@ func (c *AccountsDeleteCall) Do() error {
 	var body io.Reader = nil
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -1947,6 +2064,11 @@ func (c *AccountsDeleteCall) Do() error {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
@@ -2069,6 +2191,13 @@ func (r *AccountsService) Insert(merchantId uint64, account *Account) *AccountsI
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountsInsertCall) DryRun(dryRun bool) *AccountsInsertCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -2086,6 +2215,9 @@ func (c *AccountsInsertCall) Do() (*Account, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -2118,6 +2250,11 @@ func (c *AccountsInsertCall) Do() (*Account, error) {
 	//     "merchantId"
 	//   ],
 	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
 	//       "format": "uint64",
@@ -2268,6 +2405,13 @@ func (r *AccountsService) Patch(merchantId uint64, accountId uint64, account *Ac
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountsPatchCall) DryRun(dryRun bool) *AccountsPatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -2285,6 +2429,9 @@ func (c *AccountsPatchCall) Do() (*Account, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -2325,6 +2472,11 @@ func (c *AccountsPatchCall) Do() (*Account, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
@@ -2367,6 +2519,13 @@ func (r *AccountsService) Update(merchantId uint64, accountId uint64, account *A
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *AccountsUpdateCall) DryRun(dryRun bool) *AccountsUpdateCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -2384,6 +2543,9 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -2424,6 +2586,11 @@ func (c *AccountsUpdateCall) Do() (*Account, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
@@ -3764,6 +3931,13 @@ func (r *DatafeedsService) Custombatch(datafeedscustombatchrequest *DatafeedsCus
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *DatafeedsCustombatchCall) DryRun(dryRun bool) *DatafeedsCustombatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -3781,6 +3955,9 @@ func (c *DatafeedsCustombatchCall) Do() (*DatafeedsCustomBatchResponse, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -3806,6 +3983,13 @@ func (c *DatafeedsCustombatchCall) Do() (*DatafeedsCustomBatchResponse, error) {
 	// {
 	//   "httpMethod": "POST",
 	//   "id": "content.datafeeds.custombatch",
+	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
 	//   "path": "datafeeds/batch",
 	//   "request": {
 	//     "$ref": "DatafeedsCustomBatchRequest"
@@ -3837,6 +4021,13 @@ func (r *DatafeedsService) Delete(merchantId uint64, datafeedId uint64) *Datafee
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *DatafeedsDeleteCall) DryRun(dryRun bool) *DatafeedsDeleteCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -3849,6 +4040,9 @@ func (c *DatafeedsDeleteCall) Do() error {
 	var body io.Reader = nil
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -3883,6 +4077,11 @@ func (c *DatafeedsDeleteCall) Do() error {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "format": "uint64",
@@ -4002,6 +4201,13 @@ func (r *DatafeedsService) Insert(merchantId uint64, datafeed *Datafeed) *Datafe
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *DatafeedsInsertCall) DryRun(dryRun bool) *DatafeedsInsertCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -4019,6 +4225,9 @@ func (c *DatafeedsInsertCall) Do() (*Datafeed, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -4051,6 +4260,11 @@ func (c *DatafeedsInsertCall) Do() (*Datafeed, error) {
 	//     "merchantId"
 	//   ],
 	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
 	//     "merchantId": {
 	//       "format": "uint64",
 	//       "location": "path",
@@ -4200,6 +4414,13 @@ func (r *DatafeedsService) Patch(merchantId uint64, datafeedId uint64, datafeed 
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *DatafeedsPatchCall) DryRun(dryRun bool) *DatafeedsPatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -4217,6 +4438,9 @@ func (c *DatafeedsPatchCall) Do() (*Datafeed, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -4256,6 +4480,11 @@ func (c *DatafeedsPatchCall) Do() (*Datafeed, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "format": "uint64",
@@ -4297,6 +4526,13 @@ func (r *DatafeedsService) Update(merchantId uint64, datafeedId uint64, datafeed
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *DatafeedsUpdateCall) DryRun(dryRun bool) *DatafeedsUpdateCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -4314,6 +4550,9 @@ func (c *DatafeedsUpdateCall) Do() (*Datafeed, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -4353,6 +4592,11 @@ func (c *DatafeedsUpdateCall) Do() (*Datafeed, error) {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
+	//     },
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
 	//     },
 	//     "merchantId": {
 	//       "format": "uint64",
@@ -4658,6 +4902,13 @@ func (r *InventoryService) Custombatch(inventorycustombatchrequest *InventoryCus
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *InventoryCustombatchCall) DryRun(dryRun bool) *InventoryCustombatchCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -4675,6 +4926,9 @@ func (c *InventoryCustombatchCall) Do() (*InventoryCustomBatchResponse, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -4701,6 +4955,13 @@ func (c *InventoryCustombatchCall) Do() (*InventoryCustomBatchResponse, error) {
 	//   "description": "Updates price and availability for multiple products or stores in a single request.",
 	//   "httpMethod": "POST",
 	//   "id": "content.inventory.custombatch",
+	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     }
+	//   },
 	//   "path": "inventory/batch",
 	//   "request": {
 	//     "$ref": "InventoryCustomBatchRequest"
@@ -4737,6 +4998,13 @@ func (r *InventoryService) Set(merchantId uint64, storeCode string, productId st
 	return c
 }
 
+// DryRun sets the optional parameter "dryRun": Flag to run the request
+// in dry-run mode.
+func (c *InventorySetCall) DryRun(dryRun bool) *InventorySetCall {
+	c.opt_["dryRun"] = dryRun
+	return c
+}
+
 // Fields allows partial responses to be retrieved.
 // See https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -4754,6 +5022,9 @@ func (c *InventorySetCall) Do() (*InventorySetResponse, error) {
 	ctype := "application/json"
 	params := make(url.Values)
 	params.Set("alt", "json")
+	if v, ok := c.opt_["dryRun"]; ok {
+		params.Set("dryRun", fmt.Sprintf("%v", v))
+	}
 	if v, ok := c.opt_["fields"]; ok {
 		params.Set("fields", fmt.Sprintf("%v", v))
 	}
@@ -4790,6 +5061,11 @@ func (c *InventorySetCall) Do() (*InventorySetResponse, error) {
 	//     "productId"
 	//   ],
 	//   "parameters": {
+	//     "dryRun": {
+	//       "description": "Flag to run the request in dry-run mode.",
+	//       "location": "query",
+	//       "type": "boolean"
+	//     },
 	//     "merchantId": {
 	//       "description": "The ID of the managing account.",
 	//       "format": "uint64",

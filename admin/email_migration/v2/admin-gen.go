@@ -4,7 +4,7 @@
 //
 // Usage example:
 //
-//   import "google.golang.org/api/admin/email_migration_v2"
+//   import "google.golang.org/api/admin/email_migration/v2"
 //   ...
 //   adminService, err := admin.New(oauthHttpClient)
 package admin
@@ -80,6 +80,7 @@ type MailService struct {
 	s *Service
 }
 
+// MailItem: JSON template for MailItem object in Email Migration API.
 type MailItem struct {
 	// IsDeleted: Boolean indicating if the mail is deleted (used in Vault)
 	IsDeleted bool `json:"isDeleted,omitempty"`
@@ -203,12 +204,11 @@ func (c *MailInsertCall) Do() error {
 		"userKey": c.userKey,
 	})
 	if c.protocol_ == "resumable" {
-		req.ContentLength = 0
 		if c.mediaType_ == "" {
 			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
-		req.Body = nil
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	} else {
 		req.Header.Set("Content-Type", ctype)
 	}

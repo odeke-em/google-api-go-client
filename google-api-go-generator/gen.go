@@ -287,6 +287,9 @@ type namePool struct {
 	m map[string]bool // lazily initialized
 }
 
+// oddVersionRE matches unusual API names like directory_v1.
+var oddVersionRE = regexp.MustCompile(`^(.+)_(v[\d\.]+)$`)
+
 // renameVersion conditionally rewrites the provided version such
 // that the final path component of the import path doesn't look
 // like a Go identifier. This keeps the consistency that import paths
@@ -295,12 +298,13 @@ type namePool struct {
 // and have package NAME.
 // See https://github.com/google/google-api-go-client/issues/78
 func renameVersion(version string) string {
-	// TODO: Add support for mapping hierarchical APIs (see bug for details).
 	if version == "alpha" || version == "beta" {
 		return "v0." + version
-	} else {
-		return version
 	}
+	if m := oddVersionRE.FindStringSubmatch(version); m != nil {
+		return m[1] + "/" + m[2]
+	}
+	return version
 }
 
 func (p *namePool) Get(preferred string) string {
@@ -643,11 +647,26 @@ func (p *Property) Enum() ([]string, bool) {
 	if enums := jstrlist(p.m, "enum"); enums != nil {
 		return enums, true
 	}
+	// Check if this has an array of string enums.
+	if items := jobj(p.m, "items"); items != nil {
+		if enums := jstrlist(items, "enum"); enums != nil && jstr(items, "type") == "string" {
+			return enums, true
+		}
+	}
 	return nil, false
 }
 
 func (p *Property) EnumDescriptions() []string {
-	return jstrlist(p.m, "enumDescriptions")
+	if desc := jstrlist(p.m, "enumDescriptions"); desc != nil {
+		return desc
+	}
+	// Check if this has an array of string enum descriptions.
+	if items := jobj(p.m, "items"); items != nil {
+		if desc := jstrlist(items, "enumDescriptions"); desc != nil {
+			return desc
+		}
+	}
+	return nil
 }
 
 func (p *Property) Pattern() (string, bool) {
@@ -1119,13 +1138,21 @@ func (s *Schema) writeVariant(api *API, v map[string]interface{}) {
 	}
 }
 
+func (s *Schema) Description() string {
+	return jstr(s.m, "description")
+}
+
 func (s *Schema) writeSchemaStruct(api *API) {
 	if v := jobj(s.m, "variant"); v != nil {
 		s.writeVariant(api, v)
 		return
 	}
-	// TODO: description
-	s.api.p("\ntype %s struct {\n", s.GoName())
+	s.api.p("\n")
+	des := s.Description()
+	if des != "" {
+		s.api.p("%s", asComment("", fmt.Sprintf("%s: %s", s.GoName(), des)))
+	}
+	s.api.p("type %s struct {\n", s.GoName())
 	for i, p := range s.properties() {
 		if i > 0 {
 			s.api.p("\n")
@@ -1519,12 +1546,11 @@ func (meth *Method) generateCode() {
 
 	if meth.supportsMediaUpload() {
 		pn(`if c.protocol_ == "resumable" {`)
-		pn(" req.ContentLength = 0")
 		pn(` if c.mediaType_ == "" {`)
 		pn("  c.mediaType_ = googleapi.DetectMediaType(c.resumable_)")
 		pn(" }")
 		pn(` req.Header.Set("X-Upload-Content-Type", c.mediaType_)`)
-		pn(" req.Body = nil")
+		pn(` req.Header.Set("Content-Type", "application/json; charset=utf-8")`)
 		pn("} else {")
 		pn(` req.Header.Set("Content-Type", ctype)`)
 		pn("}")
@@ -1807,6 +1833,8 @@ func (a *arguments) String() string {
 	return buf.String()
 }
 
+var urlRE = regexp.MustCompile(`^http\S+$`)
+
 func asComment(pfx, c string) string {
 	var buf bytes.Buffer
 	const maxLen = 70
@@ -1821,7 +1849,10 @@ func asComment(pfx, c string) string {
 			fmt.Fprintf(&buf, "%s// %s\n", pfx, r.Replace(line))
 			break
 		}
-		line = line[:maxLen]
+		// Don't break URLs.
+		if !urlRE.MatchString(line[:maxLen]) {
+			line = line[:maxLen]
+		}
 		si := strings.LastIndex(line, " ")
 		if nl := strings.Index(line, "\n"); nl != -1 && nl < si {
 			si = nl

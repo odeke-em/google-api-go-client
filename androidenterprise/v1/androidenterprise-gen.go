@@ -1,5 +1,7 @@
 // Package androidenterprise provides access to the Google Play EMM API.
 //
+// See https://developers.google.com/play/enterprise
+//
 // Usage example:
 //
 //   import "google.golang.org/api/androidenterprise/v1"
@@ -198,11 +200,16 @@ type UsersService struct {
 	s *Service
 }
 
+// AppRestrictionsSchema: Represents the list of app restrictions
+// available to be pre-configured for the product.
 type AppRestrictionsSchema struct {
 	// Restrictions: The set of restrictions that make up this schema.
 	Restrictions []*AppRestrictionsSchemaRestriction `json:"restrictions,omitempty"`
 }
 
+// AppRestrictionsSchemaRestriction: A restriction in the App
+// Restriction Schema represents a piece of configuration that may be
+// pre-applied.
 type AppRestrictionsSchemaRestriction struct {
 	// DefaultValue: The default value of the restriction.
 	DefaultValue *AppRestrictionsSchemaRestrictionRestrictionValue `json:"defaultValue,omitempty"`
@@ -230,6 +237,8 @@ type AppRestrictionsSchemaRestriction struct {
 	Title string `json:"title,omitempty"`
 }
 
+// AppRestrictionsSchemaRestrictionRestrictionValue: A typed value for
+// the restriction.
 type AppRestrictionsSchemaRestrictionRestrictionValue struct {
 	// Type: The type of the value being provided.
 	Type string `json:"type,omitempty"`
@@ -251,16 +260,18 @@ type AppRestrictionsSchemaRestrictionRestrictionValue struct {
 	ValueString string `json:"valueString,omitempty"`
 }
 
+// AppVersion: This represents a single version of the app.
 type AppVersion struct {
-	// VersionCode: Unique increasing identifier for the apk version.
+	// VersionCode: Unique increasing identifier for the app version.
 	VersionCode int64 `json:"versionCode,omitempty"`
 
 	// VersionString: The string used in the Play Store by the app developer
-	// to identify a version of an app. The string is not necessarily unique
-	// or localized (e.g. "1.4").
+	// to identify the version. The string is not necessarily unique or
+	// localized (for example, the string could be "1.4").
 	VersionString string `json:"versionString,omitempty"`
 }
 
+// ApprovalUrlInfo: Information on an approval URL.
 type ApprovalUrlInfo struct {
 	// ApprovalUrl: A URL that displays a product's permissions and that can
 	// also be used to approve the product with the Products.approve call.
@@ -271,6 +282,19 @@ type ApprovalUrlInfo struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// Collection: A collection resource defines a named set of apps that is
+// visible to a set of users in the Google Play Store app running on
+// those users' managed devices. Those users can then install any of
+// those apps if they wish (which will trigger creation of install and
+// entitlement resources). A user cannot install an app on a managed
+// device unless the app is listed in at least one collection that is
+// visible to that user.
+//
+// Note that the API can be used to directly install an app regardless
+// of whether it is in any collection - so an enterprise has a choice of
+// either directly pushing apps to users, or allowing users to install
+// apps if they want. Which is appropriate will depend on the
+// enterprise's policies and the purpose of the apps concerned.
 type Collection struct {
 	// CollectionId: Arbitrary unique ID, allocated by the API on creation.
 	CollectionId string `json:"collectionId,omitempty"`
@@ -295,6 +319,7 @@ type Collection struct {
 	Visibility string `json:"visibility,omitempty"`
 }
 
+// CollectionViewersListResponse: The user resources for the collection.
 type CollectionViewersListResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "androidenterprise#collectionViewersListResponse".
@@ -304,6 +329,7 @@ type CollectionViewersListResponse struct {
 	User []*User `json:"user,omitempty"`
 }
 
+// CollectionsListResponse: The collection resources for the enterprise.
 type CollectionsListResponse struct {
 	// Collection: An ordered collection of products which can be made
 	// visible on the Google Play Store app to a selected group of users.
@@ -314,6 +340,11 @@ type CollectionsListResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// Device: A device resource represents a mobile device managed by the
+// MDM and belonging to a specific enterprise user.
+//
+// This collection cannot be modified via the API; it is automatically
+// populated as devices are set up to be managed.
 type Device struct {
 	// AndroidId: The Google Play Services Android ID for the device encoded
 	// as a lowercase hex string, e.g. "123456789abcdef0".
@@ -332,6 +363,8 @@ type Device struct {
 	ManagementType string `json:"managementType,omitempty"`
 }
 
+// DeviceState: The state of a user's device, as accessed by the
+// getState and setState methods on device resources.
 type DeviceState struct {
 	// AccountState: The state of the Google account on the device.
 	// "enabled" indicates that the Google account on the device can be used
@@ -345,6 +378,7 @@ type DeviceState struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// DevicesListResponse: The device resources for the user.
 type DevicesListResponse struct {
 	// Device: A managed device.
 	Device []*Device `json:"device,omitempty"`
@@ -354,6 +388,37 @@ type DevicesListResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// Enterprise: An enterprise resource represents a binding between an
+// organisation and their MDM.
+//
+// To create an enterprise, an admin of the enterprise must first go
+// through a Play for Work sign-up flow. At the end of this the admin
+// will be presented with a token (a short opaque alphanumeric string).
+// They must then present this to the MDM, who then supplies it to the
+// enroll method. Until this is done the MDM will not have any access to
+// the enterprise.
+//
+// After calling enroll the MDM should call setAccount to specify the
+// service account that will be allowed to act on behalf of the
+// enterprise, which will be required for access to the enterprise's
+// data through this API. Only one call of setAccount is allowed for a
+// given enterprise; the only way to change the account later is to
+// unenroll the enterprise and enroll it again (obtaining a new
+// token).
+//
+// The MDM can unenroll an enterprise in order to sever the binding
+// between them. Re-enrolling an enterprise is possible, but requires a
+// new token to be retrieved. Enterprises.unenroll requires the MDM's
+// credentials (as enroll does), not the enterprise's.
+// Enterprises.unenroll can only be used for enterprises that were
+// previously enrolled with the enroll call. Any enterprises that were
+// enrolled using the (deprecated) Enterprises.insert call must be
+// unenrolled with Enterprises.delete and can then be re-enrolled using
+// the Enterprises.enroll call.
+//
+// The ID for an enterprise is an opaque string. It is returned by
+// insert and enroll and can also be retrieved if the enterprise's
+// primary domain is known using the list method.
 type Enterprise struct {
 	// Id: The unique ID for the enterprise.
 	Id string `json:"id,omitempty"`
@@ -369,6 +434,8 @@ type Enterprise struct {
 	PrimaryDomain string `json:"primaryDomain,omitempty"`
 }
 
+// EnterpriseAccount: A service account that can be used to authenticate
+// as the enterprise to API calls that require such authentication.
 type EnterpriseAccount struct {
 	// AccountEmail: The email address of the service account.
 	AccountEmail string `json:"accountEmail,omitempty"`
@@ -378,6 +445,7 @@ type EnterpriseAccount struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// EnterprisesListResponse: The matching enterprise resources.
 type EnterprisesListResponse struct {
 	// Enterprise: An enterprise.
 	Enterprise []*Enterprise `json:"enterprise,omitempty"`
@@ -387,6 +455,38 @@ type EnterprisesListResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// Entitlement: The existence of an entitlement resource means that a
+// user has the right to use a particular app on any of their devices.
+// This might be because the app is free or because they have been
+// allocated a license to the app from a group license purchased by the
+// enterprise.
+//
+// It should always be true that a user has an app installed on one of
+// their devices only if they have an entitlement to it. So if an
+// entitlement is deleted, the app will be uninstalled from all devices.
+// Similarly if the user installs an app (and is permitted to do so), or
+// the MDM triggers an install of the app, an entitlement to that app is
+// automatically created. If this is impossible - e.g. the enterprise
+// has not purchased sufficient licenses - then installation
+// fails.
+//
+// Note that entitlements are always user specific, not device specific;
+// a user may have an entitlement even though they have not installed
+// the app anywhere. Once they have an entitlement they can install the
+// app on multiple devices.
+//
+// The API can be used to create an entitlement. If the app is a free
+// app, a group license for that app is created. If it's a paid app,
+// creating the entitlement consumes one license; it remains consumed
+// until the entitlement is removed. Optionally an installation of the
+// app on all the user's managed devices can be triggered at the time
+// the entitlement is created. An entitlement cannot be created for an
+// app if the app requires permissions that the enterprise has not yet
+// accepted.
+//
+// Entitlements for paid apps that are due to purchases by the user on a
+// non-managed profile will have "userPurchase" as entitlement reason;
+// those entitlements cannot be removed via the API.
 type Entitlement struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "androidenterprise#entitlement".
@@ -402,6 +502,7 @@ type Entitlement struct {
 	Reason string `json:"reason,omitempty"`
 }
 
+// EntitlementsListResponse: The entitlement resources for the user.
 type EntitlementsListResponse struct {
 	// Entitlement: An entitlement of a user to a product (e.g. an app). For
 	// example, a free app that they have installed, or a paid app that they
@@ -413,6 +514,28 @@ type EntitlementsListResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// GroupLicense: A group license object indicates a product that an
+// enterprise admin has approved for use in the enterprise. The product
+// may be free or paid. For free products, a group license object is
+// created in these cases: if the enterprise admin approves a product in
+// Google Play, if the product is added to a collection, or if an
+// entitlement for the product is created for a user via the API. For
+// paid products, a group license object is only created as part of the
+// first bulk purchase of that product in Google Play by the enterprise
+// admin.
+//
+// The API can be used to query group licenses; the available
+// information includes the total number of licenses purchased (for paid
+// products) and the total number of licenses that have been
+// provisioned, that is, the total number of user entitlements in
+// existence for the product.
+//
+// Group license objects are never deleted. If, for example, a free app
+// is added to a collection and then removed, the group license will
+// remain, allowing the enterprise admin to keep track of any remaining
+// entitlements. An enterprise admin may indicate they are no longer
+// interested in the group license by marking it as unapproved in Google
+// Play.
 type GroupLicense struct {
 	// AcquisitionKind: How this group license was acquired. "bulkPurchase"
 	// means that this group license object was created because the
@@ -449,6 +572,8 @@ type GroupLicense struct {
 	ProductId string `json:"productId,omitempty"`
 }
 
+// GroupLicenseUsersListResponse: The user resources for the group
+// license.
 type GroupLicenseUsersListResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "androidenterprise#groupLicenseUsersListResponse".
@@ -458,6 +583,8 @@ type GroupLicenseUsersListResponse struct {
 	User []*User `json:"user,omitempty"`
 }
 
+// GroupLicensesListResponse: The grouplicense resources for the
+// enterprise.
 type GroupLicensesListResponse struct {
 	// GroupLicense: A group license for a product approved for use in the
 	// enterprise.
@@ -468,6 +595,34 @@ type GroupLicensesListResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// Install: The existence of an install resource indicates that an app
+// is installed on a particular device (or that an install is
+// pending).
+//
+// The API can be used to create an install resource using the update
+// method. This triggers the actual install of the app on the device. If
+// the user does not already have an entitlement for the app then an
+// attempt is made to create one. If this fails (e.g. because the app is
+// not free and there is no available license) then the creation of the
+// install fails.
+//
+// The API can also be used to update an installed app. If the update
+// method is used on an existing install then the app will be updated to
+// the latest available version.
+//
+// Note that it is not possible to force the installation of a specific
+// version of an app; the version code is read-only.
+//
+// If a user installs an app themselves (as permitted by the
+// enterprise), then again an install resource and possibly an
+// entitlement resource are automatically created.
+//
+// The API can also be used to delete an install resource, which
+// triggers the removal of the app from the device. Note that deleting
+// an install does not automatically remove the corresponding
+// entitlement, even if there are no remaining installs. The install
+// resource will also be deleted if the user uninstalls the app
+// themselves.
 type Install struct {
 	// InstallState: Install state. The state "installPending" means that an
 	// install request has recently been made and download to the device is
@@ -488,6 +643,7 @@ type Install struct {
 	VersionCode int64 `json:"versionCode,omitempty"`
 }
 
+// InstallsListResponse: The install resources for the device.
 type InstallsListResponse struct {
 	// Install: An installation of an app for a user on a specific device.
 	// The existence of an install implies that the user must have an
@@ -499,6 +655,15 @@ type InstallsListResponse struct {
 	Kind string `json:"kind,omitempty"`
 }
 
+// Permission: A permission represents some extra capability, to be
+// granted to an Android app, which requires explicit consent. An
+// enterprise admin must consent to these permissions on behalf of their
+// users before an entitlement for the app can be created.
+//
+// The permissions collection is read-only. The information provided for
+// each permission (localized name and description) is intended to be
+// used in the MDM user interface when obtaining consent from the
+// enterprise.
 type Permission struct {
 	// Description: A longer description of the permissions giving more
 	// details of what it affects.
@@ -515,10 +680,18 @@ type Permission struct {
 	PermissionId string `json:"permissionId,omitempty"`
 }
 
+// Product: A product represents an app in the Google Play Store that is
+// available to at least some users in the enterprise. (Some apps are
+// restricted to a single enterprise, and no information about them is
+// made available outside that enterprise.)
+//
+// The information provided for each product (localized name, icon, link
+// to the full Google Play details page) is intended to allow a basic
+// representation of the product within an MDM user interface.
 type Product struct {
-	// AppVersion: List of app versions available for this product. The
-	// returned list contains only public versions. E.g. alpha, beta or
-	// canary versions will not be included.
+	// AppVersion: App versions currently available for this product. The
+	// returned list contains only public versions. Alpha and beta versions
+	// are not included.
 	AppVersion []*AppVersion `json:"appVersion,omitempty"`
 
 	// AuthorName: The name of the author of the product (e.g. the app
@@ -530,6 +703,12 @@ type Product struct {
 	DetailsUrl string `json:"detailsUrl,omitempty"`
 
 	// DistributionChannel: How and to whom the package is made available.
+	// The value publicGoogleHosted means that the package is available
+	// through the Play Store and not restricted to a specific enterprise.
+	// The value privateGoogleHosted means that the package is a private app
+	// (restricted to an enterprise) but hosted by Google. The value
+	// privateSelfHosted means that the package is a private app (restricted
+	// to an enterprise) and is privately hosted.
 	DistributionChannel string `json:"distributionChannel,omitempty"`
 
 	// IconUrl: A link to an image that can be used as an icon for the
@@ -540,8 +719,8 @@ type Product struct {
 	// string "androidenterprise#product".
 	Kind string `json:"kind,omitempty"`
 
-	// ProductId: A string of the form "app:
-	// " - e.g. "app:com.google.android.gm" represents the GMail app.
+	// ProductId: A string of the form app:
+	// . For example, app:com.google.android.gm represents the Gmail app.
 	ProductId string `json:"productId,omitempty"`
 
 	// RequiresContainerApp: Whether this app can only be installed on
@@ -556,6 +735,12 @@ type Product struct {
 	WorkDetailsUrl string `json:"workDetailsUrl,omitempty"`
 }
 
+// ProductPermission: A product permissions resource represents the set
+// of permissions required by a specific app and whether or not they
+// have been accepted by an enterprise admin.
+//
+// The API can be used to read the set of permissions, and also to
+// update the set to indicate that permissions have been accepted.
 type ProductPermission struct {
 	// PermissionId: An opaque string uniquely identifying the permission.
 	PermissionId string `json:"permissionId,omitempty"`
@@ -564,6 +749,8 @@ type ProductPermission struct {
 	State string `json:"state,omitempty"`
 }
 
+// ProductPermissions: Information about the permissions required by a
+// specific app and whether they have been accepted by the enterprise.
 type ProductPermissions struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "androidenterprise#productPermissions".
@@ -578,20 +765,40 @@ type ProductPermissions struct {
 }
 
 type ProductsApproveRequest struct {
+	// ApprovalUrlInfo: The approval URL that was shown to the user. Only
+	// the permissions shown to the user with that URL will be accepted,
+	// which may not be the product's entire set of permissions. For
+	// example, the URL may only display new permissions from an update
+	// after the product was approved, or not include new permissions if the
+	// product was updated since the URL was generated.
 	ApprovalUrlInfo *ApprovalUrlInfo `json:"approvalUrlInfo,omitempty"`
 }
 
 type ProductsGenerateApprovalUrlResponse struct {
-	// Url: A iframe-able URL that displays a product's permissions (if
-	// any). This URL can be used to approve the product only once and for a
-	// limited time (1 hour), using the Products.approve call. If the
-	// product is not currently approved and has no permissions, this URL
-	// will point to an empty page. If the product is currently approved and
-	// all of its permissions (if any) are also approved, this field will
-	// not be populated.
+	// Url: A URL that can be rendered in an iframe to display the
+	// permissions (if any) of a product. This URL can be used to approve
+	// the product only once and only within 24 hours of being generated,
+	// using the Products.approve call. If the product is currently
+	// unapproved and has no permissions, this URL will point to an empty
+	// page. If the product is currently approved, a URL will only be
+	// generated if that product has added permissions since it was last
+	// approved, and the URL will only display those new permissions that
+	// have not yet been accepted.
 	Url string `json:"url,omitempty"`
 }
 
+// User: A user resource represents an individual user within the
+// enterprise's domain.
+//
+// Note that each user is associated with a Google account based on the
+// user's corporate email address (which must be in one of the
+// enterprise's domains). As part of installing an MDM app to manage a
+// device the Google account must be provisioned to the device, and so
+// the user resource must be created before that. This can be done using
+// the Google Admin SDK Directory API.
+//
+// The ID for a user is an opaque string. It can be retrieved using the
+// list method queried by the user's primary email address.
 type User struct {
 	// Id: The unique ID for the user.
 	Id string `json:"id,omitempty"`
@@ -604,6 +811,10 @@ type User struct {
 	PrimaryEmail string `json:"primaryEmail,omitempty"`
 }
 
+// UserToken: A UserToken is used by a user when setting up a managed
+// device or profile with their work account on a device. When the user
+// enters their email address and token (activation code) the
+// appropriate MDM app can be automatically downloaded.
 type UserToken struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "androidenterprise#userToken".
@@ -618,6 +829,7 @@ type UserToken struct {
 	UserId string `json:"userId,omitempty"`
 }
 
+// UsersListResponse: The matching user resources.
 type UsersListResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "androidenterprise#usersListResponse".
@@ -4100,10 +4312,17 @@ type ProductsGenerateApprovalUrlCall struct {
 	opt_         map[string]interface{}
 }
 
-// GenerateApprovalUrl: Generates a URL that can be used to display an
-// iframe to view the product's permissions (if any) and approve the
-// product. This URL can be used to approve the product for a limited
-// time (currently 1 hour) using the Products.approve call.
+// GenerateApprovalUrl: Generates a URL that can be rendered in an
+// iframe to display the permissions (if any) of a product. An
+// enterprise admin must view these permissions and accept them on
+// behalf of their organization in order to approve that
+// product.
+//
+// Admins should accept the displayed permissions by interacting with a
+// separate UI element in the EMM console, which in turn should trigger
+// the use of this URL as the approvalUrlInfo.approvalUrl property in a
+// Products.approve call to approve the product. This URL can only be
+// used to display permissions for up to 1 day.
 func (r *ProductsService) GenerateApprovalUrl(enterpriseId string, productId string) *ProductsGenerateApprovalUrlCall {
 	c := &ProductsGenerateApprovalUrlCall{s: r.s, opt_: make(map[string]interface{})}
 	c.enterpriseId = enterpriseId
@@ -4111,9 +4330,9 @@ func (r *ProductsService) GenerateApprovalUrl(enterpriseId string, productId str
 	return c
 }
 
-// LanguageCode sets the optional parameter "languageCode": The language
-// code that will be used for permission names and descriptions in the
-// returned iframe.
+// LanguageCode sets the optional parameter "languageCode": The BCP 47
+// language code used for permission names and descriptions in the
+// returned iframe, for instance "en-US".
 func (c *ProductsGenerateApprovalUrlCall) LanguageCode(languageCode string) *ProductsGenerateApprovalUrlCall {
 	c.opt_["languageCode"] = languageCode
 	return c
@@ -4159,7 +4378,7 @@ func (c *ProductsGenerateApprovalUrlCall) Do() (*ProductsGenerateApprovalUrlResp
 	}
 	return ret, nil
 	// {
-	//   "description": "Generates a URL that can be used to display an iframe to view the product's permissions (if any) and approve the product. This URL can be used to approve the product for a limited time (currently 1 hour) using the Products.approve call.",
+	//   "description": "Generates a URL that can be rendered in an iframe to display the permissions (if any) of a product. An enterprise admin must view these permissions and accept them on behalf of their organization in order to approve that product.\n\nAdmins should accept the displayed permissions by interacting with a separate UI element in the EMM console, which in turn should trigger the use of this URL as the approvalUrlInfo.approvalUrl property in a Products.approve call to approve the product. This URL can only be used to display permissions for up to 1 day.",
 	//   "httpMethod": "POST",
 	//   "id": "androidenterprise.products.generateApprovalUrl",
 	//   "parameterOrder": [
@@ -4174,7 +4393,7 @@ func (c *ProductsGenerateApprovalUrlCall) Do() (*ProductsGenerateApprovalUrlResp
 	//       "type": "string"
 	//     },
 	//     "languageCode": {
-	//       "description": "The language code that will be used for permission names and descriptions in the returned iframe.",
+	//       "description": "The BCP 47 language code used for permission names and descriptions in the returned iframe, for instance \"en-US\".",
 	//       "location": "query",
 	//       "type": "string"
 	//     },

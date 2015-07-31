@@ -144,18 +144,22 @@ type UsersSessionsService struct {
 }
 
 type AggregateBucket struct {
-	// Activity: available for Bucket.Type.ACTIVITY_TYPE,
+	// Activity: Available for Bucket.Type.ACTIVITY_TYPE,
 	// Bucket.Type.ACTIVITY_SEGMENT
 	Activity int64 `json:"activity,omitempty"`
 
-	// Dataset: There will be one dataset per datatype/datasource
+	// Dataset: There will be one dataset per AggregateBy in the request.
 	Dataset []*Dataset `json:"dataset,omitempty"`
 
+	// EndTimeMillis: The end time for the aggregated data, in milliseconds
+	// since epoch, inclusive.
 	EndTimeMillis int64 `json:"endTimeMillis,omitempty,string"`
 
-	// Session: available for Bucket.Type.SESSION
+	// Session: Available for Bucket.Type.SESSION
 	Session *Session `json:"session,omitempty"`
 
+	// StartTimeMillis: The start time for the aggregated data, in
+	// milliseconds since epoch, inclusive.
 	StartTimeMillis int64 `json:"startTimeMillis,omitempty,string"`
 
 	// Type: The type of a bucket signifies how the data aggregation is
@@ -170,39 +174,73 @@ type AggregateBucket struct {
 	Type string `json:"type,omitempty"`
 }
 
+// AggregateBy: The specification of which data to aggregate.
 type AggregateBy struct {
+	// DataSourceId: A data source ID to aggregate. Mutually exclusive of
+	// dataTypeName. Only data from the specified data source ID will be
+	// included in the aggregation. The dataset in the response will have
+	// the same data source ID.
 	DataSourceId string `json:"dataSourceId,omitempty"`
 
-	// DataTypeName: by dataype or by datasource
+	// DataTypeName: The data type to aggregate. All data sources providing
+	// this data type will contribute data to the aggregation. The response
+	// will contain a single dataset for this data type name. The dataset
+	// will have a data source ID of
+	// derived:com.google.:com.google.android.gms:aggregated
 	DataTypeName string `json:"dataTypeName,omitempty"`
-
-	OutputDataSourceId string `json:"outputDataSourceId,omitempty"`
-
-	OutputDataTypeName string `json:"outputDataTypeName,omitempty"`
 }
 
 type AggregateRequest struct {
+	// AggregateBy: The specification of data to be aggregated. At least one
+	// aggregateBy spec must be provided. All data that is specified will be
+	// aggregated using the same bucketing criteria. There will be one
+	// dataset in the response for every aggregateBy spec.
 	AggregateBy []*AggregateBy `json:"aggregateBy,omitempty"`
 
+	// BucketByActivitySegment: Specifies that data be aggregated each
+	// activity segment recored for a user. Similar to
+	// bucketByActivitySegment, but bucketing is done for each activity
+	// segment rather than all segments of the same type. Mutually exclusive
+	// of other bucketing specifications.
 	BucketByActivitySegment *BucketByActivity `json:"bucketByActivitySegment,omitempty"`
 
+	// BucketByActivityType: Specifies that data be aggregated by the type
+	// of activity being performed when the data was recorded. All data that
+	// was recorded during a certain activity type (for the given time
+	// range) will be aggregated into the same bucket. Data that was
+	// recorded while the user was not active will not be included in the
+	// response. Mutually exclusive of other bucketing specifications.
 	BucketByActivityType *BucketByActivity `json:"bucketByActivityType,omitempty"`
 
+	// BucketBySession: Specifies that data be aggregated by user sessions.
+	// Data that does not fall within the time range of a session will not
+	// be included in the response. Mutually exclusive of other bucketing
+	// specifications.
 	BucketBySession *BucketBySession `json:"bucketBySession,omitempty"`
 
-	// BucketByTime: apparently oneof is not supported by reduced_nano_proto
+	// BucketByTime: Specifies that data be aggregated by a single time
+	// interval. Mutually exclusive of other bucketing specifications.
 	BucketByTime *BucketByTime `json:"bucketByTime,omitempty"`
 
+	// EndTimeMillis: The end of a window of time. Data that intersects with
+	// this time window will be aggregated. The time is in milliseconds
+	// since epoch, inclusive.
 	EndTimeMillis int64 `json:"endTimeMillis,omitempty,string"`
 
-	// StartTimeMillis: required time range
+	// StartTimeMillis: The start of a window of time. Data that intersects
+	// with this time window will be aggregated. The time is in milliseconds
+	// since epoch, inclusive.
 	StartTimeMillis int64 `json:"startTimeMillis,omitempty,string"`
 }
 
 type AggregateResponse struct {
+	// Bucket: A list of buckets containing the aggregated data.
 	Bucket []*AggregateBucket `json:"bucket,omitempty"`
 }
 
+// Application: See:
+// google3/java/com/google/android/apps/heart/platform/api/Application.ja
+// va
 type Application struct {
 	// DetailsUrl: An optional URI that can be used to link back to the
 	// application.
@@ -228,24 +266,42 @@ type Application struct {
 }
 
 type BucketByActivity struct {
-	// ActivityDataSourceId: default activity stream will be used if not
-	// specified
+	// ActivityDataSourceId: The default activity stream will be used if a
+	// specific activityDataSourceId is not specified.
 	ActivityDataSourceId string `json:"activityDataSourceId,omitempty"`
 
-	// MinDurationMillis: Only activity segments of duration longer than
-	// this is used
+	// MinDurationMillis: Specifies that only activity segments of duration
+	// longer than minDurationMillis are considered and used as a container
+	// for aggregated data.
 	MinDurationMillis int64 `json:"minDurationMillis,omitempty,string"`
 }
 
 type BucketBySession struct {
-	// MinDurationMillis: Only sessions of duration longer than this is used
+	// MinDurationMillis: Specifies that only sessions of duration longer
+	// than minDurationMillis are considered and used as a container for
+	// aggregated data.
 	MinDurationMillis int64 `json:"minDurationMillis,omitempty,string"`
 }
 
 type BucketByTime struct {
+	// DurationMillis: Specifies that result buckets aggregate data by
+	// exactly durationMillis time frames. Time frames that contain no data
+	// will be included in the response with an empty dataset.
 	DurationMillis int64 `json:"durationMillis,omitempty,string"`
 }
 
+// DataPoint: Represents a single data point, generated by a particular
+// data source. A data point holds a value for each field, an end
+// timestamp and an optional start time. The exact semantics of each of
+// these attributes are specified in the documentation for the
+// particular data type.
+//
+// A data point can represent an instantaneous measurement, reading or
+// input observation, as well as averages or aggregates over a time
+// interval. Check the data type documentation to determine which is the
+// case for a particular data type.
+//
+// Data points always contain one value for each field of the data type.
 type DataPoint struct {
 	// ComputationTimeMillis: Used for version checking during
 	// transformation; that is, a datapoint can only replace another
@@ -287,6 +343,24 @@ type DataPoint struct {
 	Value []*Value `json:"value,omitempty"`
 }
 
+// DataSource: Definition of a unique source of sensor data. Data
+// sources can expose raw data coming from hardware sensors on local or
+// companion devices. They can also expose derived data, created by
+// transforming or merging other data sources. Multiple data sources can
+// exist for the same data type. Every data point inserted into or read
+// from this service has an associated data source.
+//
+// The data source contains enough information to uniquely identify its
+// data, including the hardware device and the application that
+// collected and/or transformed the data. It also holds useful metadata,
+// such as the hardware and application versions, and the device
+// type.
+//
+// Each data source produces a unique stream of data, with a unique
+// identifier. Not all changes to data source affect the stream
+// identifier, so that data collected by updated versions of the same
+// application/device can still be considered to belong to the same data
+// stream.
 type DataSource struct {
 	// Application: Information about an application which feeds sensor data
 	// into the platform.
@@ -358,6 +432,8 @@ type DataSource struct {
 	Type string `json:"type,omitempty"`
 }
 
+// DataType: See:
+// google3/java/com/google/android/apps/heart/platform/api/DataType.java
 type DataType struct {
 	// Field: A field represents one dimension of a data type.
 	Field []*DataTypeField `json:"field,omitempty"`
@@ -367,6 +443,14 @@ type DataType struct {
 	Name string `json:"name,omitempty"`
 }
 
+// DataTypeField: In case of multi-dimensional data (such as an
+// accelerometer with x, y, and z axes) each field represents one
+// dimension. Each data type field has a unique name which identifies
+// it. The field also defines the format of the data (int, float,
+// etc.).
+//
+// This message is only instantiated in code and not used for wire comms
+// or stored in any way.
 type DataTypeField struct {
 	// Format: The different supported formats for each field in a data
 	// type.
@@ -388,6 +472,10 @@ type DataTypeField struct {
 	Optional bool `json:"optional,omitempty"`
 }
 
+// Dataset: A dataset represents a projection container for data points.
+// They do not carry any info of their own. Datasets represent a set of
+// data points from a particular data source. A data point can be found
+// in more than one dataset.
 type Dataset struct {
 	// DataSourceId: The data stream ID of the data source that created the
 	// points in this dataset.
@@ -419,6 +507,20 @@ type Dataset struct {
 	Point []*DataPoint `json:"point,omitempty"`
 }
 
+// Device: Representation of an integrated device (such as a phone or a
+// wearable) that can hold sensors. Each sensor is exposed as a data
+// source.
+//
+// The main purpose of the device information contained in this class is
+// to identify the hardware of a particular data source. This can be
+// useful in different ways, including:
+// - Distinguishing two similar sensors on different devices (the step
+// counter on two nexus 5 phones, for instance)
+// - Display the source of data to the user (by using the device make /
+// model)
+// - Treat data differently depending on sensor type (accelerometers on
+// a watch may give different patterns than those on a phone)
+// - Build different analysis models for each device/version.
 type Device struct {
 	// Manufacturer: Manufacturer of the product/hardware.
 	Manufacturer string `json:"manufacturer,omitempty"`
@@ -468,6 +570,18 @@ type ListSessionsResponse struct {
 	Session []*Session `json:"session,omitempty"`
 }
 
+// MapValue: Holder object for the value of an entry in a map field of a
+// data point.
+//
+// A map value supports a subset of the formats that the regular Value
+// supports.
+type MapValue struct {
+	// FpVal: Floating point value.
+	FpVal float64 `json:"fpVal,omitempty"`
+}
+
+// Session: Sessions contain metadata, such as a user-friendly name and
+// time interval information.
 type Session struct {
 	// ActiveTimeMillis: Session active time. While start_time_millis and
 	// end_time_millis define the full session time, the active time can be
@@ -504,13 +618,37 @@ type Session struct {
 	StartTimeMillis int64 `json:"startTimeMillis,omitempty,string"`
 }
 
+// Value: Holder object for the value of a single field in a data
+// point.
+//
+// A field value has a particular format and is only ever set to one of
+// an integer or a floating point value.
 type Value struct {
-	// FpVal: Floating point value. When this is set, intVal must not be
-	// set.
+	// FpVal: Floating point value. When this is set, other values must not
+	// be set.
 	FpVal float64 `json:"fpVal,omitempty"`
 
-	// IntVal: Integer value. When this is set, fpVal must not be set.
+	// IntVal: Integer value. When this is set, other values must not be
+	// set.
 	IntVal int64 `json:"intVal,omitempty"`
+
+	// MapVal: Map value. The valid key space and units for the
+	// corresponding value of each entry should be documented as part of the
+	// data type definition. Keys should be kept small whenever possible.
+	// Data streams with large keys and high data frequency may be down
+	// sampled.
+	MapVal []*ValueMapValEntry `json:"mapVal,omitempty"`
+
+	// StringVal: String value. When this is set, other values must not be
+	// set. Strings should be kept small whenever possible. Data streams
+	// with large string values and high data frequency may be down sampled.
+	StringVal string `json:"stringVal,omitempty"`
+}
+
+type ValueMapValEntry struct {
+	Key string `json:"key,omitempty"`
+
+	Value *MapValue `json:"value,omitempty"`
 }
 
 // method id "fitness.users.dataSources.create":
@@ -1513,7 +1651,10 @@ type UsersDatasetAggregateCall struct {
 	opt_             map[string]interface{}
 }
 
-// Aggregate:
+// Aggregate: Aggregates data of a certain type or stream into buckets
+// divided by a given type of boundary. Multiple data sets of multiple
+// types and from multiple sources can be aggreated into exactly one
+// bucket type per request.
 func (r *UsersDatasetService) Aggregate(userId string, aggregaterequest *AggregateRequest) *UsersDatasetAggregateCall {
 	c := &UsersDatasetAggregateCall{s: r.s, opt_: make(map[string]interface{})}
 	c.userId = userId
@@ -1563,6 +1704,7 @@ func (c *UsersDatasetAggregateCall) Do() (*AggregateResponse, error) {
 	}
 	return ret, nil
 	// {
+	//   "description": "Aggregates data of a certain type or stream into buckets divided by a given type of boundary. Multiple data sets of multiple types and from multiple sources can be aggreated into exactly one bucket type per request.",
 	//   "httpMethod": "POST",
 	//   "id": "fitness.users.dataset.aggregate",
 	//   "parameterOrder": [
@@ -1570,6 +1712,7 @@ func (c *UsersDatasetAggregateCall) Do() (*AggregateResponse, error) {
 	//   ],
 	//   "parameters": {
 	//     "userId": {
+	//       "description": "Aggregate data for the person identified. Use me to indicate the authenticated user. Only me is supported at this time.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -1581,7 +1724,12 @@ func (c *UsersDatasetAggregateCall) Do() (*AggregateResponse, error) {
 	//   },
 	//   "response": {
 	//     "$ref": "AggregateResponse"
-	//   }
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/fitness.activity.write",
+	//     "https://www.googleapis.com/auth/fitness.body.write",
+	//     "https://www.googleapis.com/auth/fitness.location.write"
+	//   ]
 	// }
 
 }

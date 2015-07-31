@@ -32,6 +32,22 @@
     "x32": "https://www.google.com/images/icons/product/doubleclick-32.gif"
    },
    "documentationLink": "https://developers.google.com/ad-exchange/buyer-rest",
+   "preferred": false
+  },
+  {
+   "kind": "discovery#directoryItem",
+   "id": "adexchangebuyer:v1.4",
+   "name": "adexchangebuyer",
+   "version": "v1.4",
+   "title": "Ad Exchange Buyer API",
+   "description": "Accesses your bidding-account information, submits creatives for validation, finds available direct deals, and retrieves performance reports.",
+   "discoveryRestUrl": "https://www.googleapis.com/discovery/v1/apis/adexchangebuyer/v1.4/rest",
+   "discoveryLink": "./apis/adexchangebuyer/v1.4/rest",
+   "icons": {
+    "x16": "https://www.google.com/images/icons/product/doubleclick-16.gif",
+    "x32": "https://www.google.com/images/icons/product/doubleclick-32.gif"
+   },
+   "documentationLink": "https://developers.google.com/ad-exchange/buyer-rest",
    "preferred": true
   },
   {
@@ -242,6 +258,7 @@
     "x16": "https://www.google.com/images/icons/product/android-16.png",
     "x32": "https://www.google.com/images/icons/product/android-32.png"
    },
+   "documentationLink": "https://developers.google.com/play/enterprise",
    "preferred": true
   },
   {
@@ -1125,6 +1142,22 @@
   },
   {
    "kind": "discovery#directoryItem",
+   "id": "appengine:v1beta4",
+   "name": "appengine",
+   "version": "v1beta4",
+   "title": "Google App Engine Admin API",
+   "description": "The App Engine Admin API enables developers to provision and manage their App Engine applications.",
+   "discoveryRestUrl": "https://www.googleapis.com/discovery/v1/apis/appengine/v1beta4/rest",
+   "discoveryLink": "./apis/appengine/v1beta4/rest",
+   "icons": {
+    "x16": "http://www.google.com/images/icons/product/search-16.gif",
+    "x32": "http://www.google.com/images/icons/product/search-32.gif"
+   },
+   "documentationLink": "https://developers.google.com/appengine/",
+   "preferred": true
+  },
+  {
+   "kind": "discovery#directoryItem",
    "id": "classroom:v1",
    "name": "classroom",
    "version": "v1",
@@ -1157,11 +1190,27 @@
   },
   {
    "kind": "discovery#directoryItem",
+   "id": "clouddebugger:v2",
+   "name": "clouddebugger",
+   "version": "v2",
+   "title": "Google Cloud Debugger API",
+   "description": "",
+   "discoveryRestUrl": "https://www.googleapis.com/discovery/v1/apis/clouddebugger/v2/rest",
+   "discoveryLink": "./apis/clouddebugger/v2/rest",
+   "icons": {
+    "x16": "http://www.google.com/images/icons/product/search-16.gif",
+    "x32": "http://www.google.com/images/icons/product/search-32.gif"
+   },
+   "documentationLink": "https://cloud.google.com/tools/cloud-debugger",
+   "preferred": true
+  },
+  {
+   "kind": "discovery#directoryItem",
    "id": "cloudresourcemanager:v1beta1",
    "name": "cloudresourcemanager",
    "version": "v1beta1",
    "title": "Google Cloud Resource Manager API",
-   "description": "The Google Cloud Resource Manager API provides methods for creating, reading, and updating of project metadata, including IAM policies, and will shortly provide the same for other high-level entities (e.g. customers and resource groups). Longer term, we expect the cloudresourcemanager API to encompass other Cloud resources as well.",
+   "description": "The Google Cloud Resource Manager API provides methods for creating, reading, and updating of project metadata.",
    "discoveryRestUrl": "https://www.googleapis.com/discovery/v1/apis/cloudresourcemanager/v1beta1/rest",
    "discoveryLink": "./apis/cloudresourcemanager/v1beta1/rest",
    "icons": {
@@ -1217,6 +1266,22 @@
     "x32": "http://www.google.com/images/icons/product/search-32.gif"
    },
    "documentationLink": "",
+   "preferred": true
+  },
+  {
+   "kind": "discovery#directoryItem",
+   "id": "partners:v2",
+   "name": "partners",
+   "version": "v2",
+   "title": "Google Partners API",
+   "description": "Lets advertisers search certified companies and create contact leads with them, and also audits the usage of clients.",
+   "discoveryRestUrl": "https://www.googleapis.com/discovery/v1/apis/partners/v2/rest",
+   "discoveryLink": "./apis/partners/v2/rest",
+   "icons": {
+    "x16": "http://www.google.com/images/icons/product/search-16.gif",
+    "x32": "http://www.google.com/images/icons/product/search-32.gif"
+   },
+   "documentationLink": "https://developers.google.com/partners/",
    "preferred": true
   },
   {

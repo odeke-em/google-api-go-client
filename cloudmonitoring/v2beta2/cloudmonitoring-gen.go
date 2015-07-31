@@ -43,6 +43,9 @@ const basePath = "https://www.googleapis.com/cloudmonitoring/v2beta2/projects/"
 
 // OAuth2 scopes used by this API.
 const (
+	// View and manage your data across Google Cloud Platform services
+	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
+
 	// View and write monitoring data for all of your Google and third-party
 	// Cloud and API projects
 	MonitoringScope = "https://www.googleapis.com/auth/monitoring"
@@ -105,18 +108,24 @@ type TimeseriesDescriptorsService struct {
 	s *Service
 }
 
+// DeleteMetricDescriptorResponse: The response of
+// cloudmonitoring.metricDescriptors.delete.
 type DeleteMetricDescriptorResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#deleteMetricDescriptorResponse".
 	Kind string `json:"kind,omitempty"`
 }
 
+// ListMetricDescriptorsRequest: The request of
+// cloudmonitoring.metricDescriptors.list.
 type ListMetricDescriptorsRequest struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#listMetricDescriptorsRequest".
 	Kind string `json:"kind,omitempty"`
 }
 
+// ListMetricDescriptorsResponse: The response of
+// cloudmonitoring.metricDescriptors.list.
 type ListMetricDescriptorsResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#listMetricDescriptorsResponse".
@@ -132,12 +141,16 @@ type ListMetricDescriptorsResponse struct {
 	NextPageToken string `json:"nextPageToken,omitempty"`
 }
 
+// ListTimeseriesDescriptorsRequest: The request of
+// cloudmonitoring.timeseriesDescriptors.list
 type ListTimeseriesDescriptorsRequest struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#listTimeseriesDescriptorsRequest".
 	Kind string `json:"kind,omitempty"`
 }
 
+// ListTimeseriesDescriptorsResponse: The response of
+// cloudmonitoring.timeseriesDescriptors.list
 type ListTimeseriesDescriptorsResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#listTimeseriesDescriptorsResponse".
@@ -161,12 +174,15 @@ type ListTimeseriesDescriptorsResponse struct {
 	Youngest string `json:"youngest,omitempty"`
 }
 
+// ListTimeseriesRequest: The request of cloudmonitoring.timeseries.list
 type ListTimeseriesRequest struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#listTimeseriesRequest".
 	Kind string `json:"kind,omitempty"`
 }
 
+// ListTimeseriesResponse: The response of
+// cloudmonitoring.timeseries.list
 type ListTimeseriesResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#listTimeseriesResponse".
@@ -191,6 +207,8 @@ type ListTimeseriesResponse struct {
 	Youngest string `json:"youngest,omitempty"`
 }
 
+// MetricDescriptor: A metricDescriptor defines the name, label keys,
+// and data type of a particular metric.
 type MetricDescriptor struct {
 	// Description: Description of this metric.
 	Description string `json:"description,omitempty"`
@@ -208,6 +226,9 @@ type MetricDescriptor struct {
 	TypeDescriptor *MetricDescriptorTypeDescriptor `json:"typeDescriptor,omitempty"`
 }
 
+// MetricDescriptorLabelDescriptor: A label in a metric is a description
+// of this metric, including the key of this description (what the
+// description is), and the value for this description.
 type MetricDescriptorLabelDescriptor struct {
 	// Description: Label description.
 	Description string `json:"description,omitempty"`
@@ -216,6 +237,9 @@ type MetricDescriptorLabelDescriptor struct {
 	Key string `json:"key,omitempty"`
 }
 
+// MetricDescriptorTypeDescriptor: A type in a metric contains
+// information about how the metric is collected and what its data
+// points look like.
 type MetricDescriptorTypeDescriptor struct {
 	// MetricType: The method of collecting data for the metric. See Metric
 	// types.
@@ -226,6 +250,8 @@ type MetricDescriptorTypeDescriptor struct {
 	ValueType string `json:"valueType,omitempty"`
 }
 
+// Point: Point is a single point in a time series. It consists of a
+// start time, an end time, and a value.
 type Point struct {
 	// BoolValue: The value of this data point. Either "true" or "false".
 	BoolValue bool `json:"boolValue,omitempty"`
@@ -263,6 +289,10 @@ type Point struct {
 	StringValue string `json:"stringValue,omitempty"`
 }
 
+// PointDistribution: Distribution data point value type. When writing
+// distribution points, try to be consistent with the boundaries of your
+// buckets. If you must modify the bucket boundaries, then do so by
+// merging, partitioning, or appending rather than skewing them.
 type PointDistribution struct {
 	// Buckets: The finite buckets.
 	Buckets []*PointDistributionBucket `json:"buckets,omitempty"`
@@ -274,6 +304,10 @@ type PointDistribution struct {
 	UnderflowBucket *PointDistributionUnderflowBucket `json:"underflowBucket,omitempty"`
 }
 
+// PointDistributionBucket: The histogram's bucket. Buckets that form
+// the histogram of a distribution value. If the upper bound of a
+// bucket, say U1, does not equal the lower bound of the next bucket,
+// say L2, this means that there is no event in [U1, L2).
 type PointDistributionBucket struct {
 	// Count: The number of events whose values are in the interval defined
 	// by this bucket.
@@ -288,6 +322,9 @@ type PointDistributionBucket struct {
 	UpperBound float64 `json:"upperBound,omitempty"`
 }
 
+// PointDistributionOverflowBucket: The overflow bucket is a special
+// bucket that does not have the upperBound field; it includes all of
+// the events that are no less than its lower bound.
 type PointDistributionOverflowBucket struct {
 	// Count: The number of events whose values are in the interval defined
 	// by this bucket.
@@ -298,6 +335,9 @@ type PointDistributionOverflowBucket struct {
 	LowerBound float64 `json:"lowerBound,omitempty"`
 }
 
+// PointDistributionUnderflowBucket: The underflow bucket is a special
+// bucket that does not have the lowerBound field; it includes all of
+// the events that are less than its upper bound.
 type PointDistributionUnderflowBucket struct {
 	// Count: The number of events whose values are in the interval defined
 	// by this bucket.
@@ -308,6 +348,10 @@ type PointDistributionUnderflowBucket struct {
 	UpperBound float64 `json:"upperBound,omitempty"`
 }
 
+// Timeseries: The monitoring data is organized as metrics and stored as
+// data points that are recorded over time. Each data point represents
+// information like the CPU utilization of your virtual machine. A
+// historical record of these data points is called a time series.
 type Timeseries struct {
 	// Points: The data points of this time series. The points are listed in
 	// order of their end timestamp, from younger to older.
@@ -317,6 +361,8 @@ type Timeseries struct {
 	TimeseriesDesc *TimeseriesDescriptor `json:"timeseriesDesc,omitempty"`
 }
 
+// TimeseriesDescriptor: TimeseriesDescriptor identifies a single time
+// series.
 type TimeseriesDescriptor struct {
 	// Labels: The label's name.
 	Labels map[string]string `json:"labels,omitempty"`
@@ -337,6 +383,9 @@ type TimeseriesDescriptorLabel struct {
 	Value string `json:"value,omitempty"`
 }
 
+// TimeseriesPoint: When writing time series, TimeseriesPoint should be
+// used instead of Timeseries, to enforce single point for each time
+// series in the timeseries.write request.
 type TimeseriesPoint struct {
 	// Point: The data point in this time series snapshot.
 	Point *Point `json:"point,omitempty"`
@@ -345,6 +394,8 @@ type TimeseriesPoint struct {
 	TimeseriesDesc *TimeseriesDescriptor `json:"timeseriesDesc,omitempty"`
 }
 
+// WriteTimeseriesRequest: The request of
+// cloudmonitoring.timeseries.write
 type WriteTimeseriesRequest struct {
 	// CommonLabels: The label's name.
 	CommonLabels map[string]string `json:"commonLabels,omitempty"`
@@ -355,6 +406,8 @@ type WriteTimeseriesRequest struct {
 	Timeseries []*TimeseriesPoint `json:"timeseries,omitempty"`
 }
 
+// WriteTimeseriesResponse: The response of
+// cloudmonitoring.timeseries.write
 type WriteTimeseriesResponse struct {
 	// Kind: Identifies what kind of resource this is. Value: the fixed
 	// string "cloudmonitoring#writeTimeseriesResponse".
@@ -442,6 +495,7 @@ func (c *MetricDescriptorsCreateCall) Do() (*MetricDescriptor, error) {
 	//     "$ref": "MetricDescriptor"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
@@ -528,6 +582,7 @@ func (c *MetricDescriptorsDeleteCall) Do() (*DeleteMetricDescriptorResponse, err
 	//     "$ref": "DeleteMetricDescriptorResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
@@ -669,6 +724,7 @@ func (c *MetricDescriptorsListCall) Do() (*ListMetricDescriptorsResponse, error)
 	//     "$ref": "ListMetricDescriptorsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
@@ -937,6 +993,7 @@ func (c *TimeseriesListCall) Do() (*ListTimeseriesResponse, error) {
 	//     "$ref": "ListTimeseriesResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
@@ -1031,6 +1088,7 @@ func (c *TimeseriesWriteCall) Do() (*WriteTimeseriesResponse, error) {
 	//     "$ref": "WriteTimeseriesResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
@@ -1300,6 +1358,7 @@ func (c *TimeseriesDescriptorsListCall) Do() (*ListTimeseriesDescriptorsResponse
 	//     "$ref": "ListTimeseriesDescriptorsResponse"
 	//   },
 	//   "scopes": [
+	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/monitoring"
 	//   ]
 	// }
